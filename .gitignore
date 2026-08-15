@@ -1,0 +1,17 @@
+# 秘密情報とローカル実行環境
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.py[cod]
+
+# 実行時データ・メディア・バックアップ
+output_media/
+backups/
+*.log
+
+# OS・エディタ
+.DS_Store
+Thumbs.db
+.vscode/
