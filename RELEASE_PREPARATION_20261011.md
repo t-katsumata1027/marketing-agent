@@ -44,3 +44,5 @@
 - 従来モード：専用環境で21件を実行し、yaml・supabase等の依存不足による14エラー。Minaの停止制御の成功へ読み替えず、正式CIの従来testジョブで再確認する。
 - サブPCの既存Mina daemon・Gateway・通知／バックアップtimerとGitHubランナー2件はactive。準備timerはdisabled。
 - 配布物・サブPC別配置の結果は生成後に同ディレクトリの検証記録へ保存する。GitHub CIはこの作業では未実行で、同じ版の正式CIと独立レビューがリリース条件として残る。
+
+最初の候補版0e26a56はサブPCのunit試験・固定版照合・停止設定確認には成功したが、WindowsのGit改行設定でarchive内のシェルがCRLFとなり、bash構文検査に失敗した。この配布物はリリース不可。`.gitattributes`と配布CLIの`core.autocrlf=false`、archive内のシェルLF検査を追加し、修正commitで新しい候補版を作る。旧候補は上書きせず不採用の証跡として保持する。

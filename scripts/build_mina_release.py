@@ -5,6 +5,7 @@ import hashlib
 import json
 import subprocess
 import sys
+import tarfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -13,7 +14,7 @@ from src.mina.readiness import release_commit
 
 
 def git(*args):
-    result = subprocess.run(['git', '-C', str(ROOT), *args], capture_output=True, timeout=60)
+    result = subprocess.run(['git', '-c', 'core.autocrlf=false', '-C', str(ROOT), *args], capture_output=True, timeout=60)
     if result.returncode:
         raise ValueError('配布Git操作に失敗しました')
     return result.stdout
@@ -27,7 +28,7 @@ def build(output, commit):
     names = git('ls-tree', '-r', '--name-only', commit).decode().splitlines()
     selected = [name for name in names if (
         name.startswith(('src/mina/', 'deploy/', 'tests/mina/', 'tests/contract_bridge/'))
-        or name in ('src/__init__.py', 'requirements-mina.txt', 'requirements-mina.in',
+        or name in ('.gitattributes', 'src/__init__.py', 'requirements-mina.txt', 'requirements-mina.in',
                     'scripts/test_logeats_contract.py', 'scripts/build_mina_release.py')
         or ('/' not in name and name.endswith('.md') and name != 'README.md')
     )]
@@ -40,6 +41,10 @@ def build(output, commit):
         raise ValueError('既存の配布物を上書きしません')
     output.mkdir(parents=True, mode=0o700)
     git('archive', '--format=tar', f'--output={output / "source.tar"}', commit, '--', *selected)
+    with tarfile.open(output / 'source.tar') as archive:
+        for name in selected:
+            if name.endswith('.sh') and b'\r' in archive.extractfile(name).read():
+                raise ValueError('配布シェルスクリプトのLF改行を確認できません')
     # bundleは履歴だけであり、ローカルGit設定・認証・未コミット値をコピーしない。
     git('bundle', 'create', str(output / 'source.bundle'), 'HEAD')
     artifacts = {}
