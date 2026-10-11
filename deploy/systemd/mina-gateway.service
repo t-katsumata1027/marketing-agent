@@ -1,0 +1,24 @@
+[Unit]
+Description=AI広報みなのDiscord常時接続による承認受付
+After=network-online.target
+
+[Service]
+Type=simple
+User=mina-agent
+Group=mina-agent
+WorkingDirectory=/opt/marketing-agent
+EnvironmentFile=/etc/marketing-agent/mina.env
+EnvironmentFile=/etc/marketing-agent/doppler.env
+ExecStart=/bin/sh /opt/marketing-agent/deploy/run-mina-doppler.sh gateway
+Restart=on-failure
+RestartSec=30
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/mina-agent
+MemoryMax=256M
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,11 @@
+[Unit]
+Description=毎日20時JSTに翌日候補の承認依頼
+
+[Timer]
+OnCalendar=*-*-* 20:00:00 Asia/Tokyo
+Persistent=false
+AccuracySec=1s
+Unit=mina-notify.service
+
+[Install]
+WantedBy=timers.target

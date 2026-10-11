@@ -3,6 +3,8 @@
 .env.*
 !.env.example
 .venv/
+.venv-mina/
+runtime/
 __pycache__/
 *.py[cod]
 
