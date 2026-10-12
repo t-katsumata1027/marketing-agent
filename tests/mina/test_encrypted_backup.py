@@ -13,6 +13,21 @@ from src.mina.encrypted_backup import create_recovery_keys, seal_file, unseal_fi
 
 
 class EncryptedBackupTest(unittest.TestCase):
+    def test_mismatched_passwords_have_safe_message_and_no_keys(self):
+        from src.mina.__main__ import main
+        with tempfile.TemporaryDirectory() as tmp:
+            output=Path(tmp)/'keys';error=io.StringIO()
+            with patch('sys.argv',['mina','backup-keygen','--output',str(output)]), \
+                 patch('sys.stdin.isatty',return_value=True), \
+                 patch('getpass.getpass',side_effect=['test-password-first','test-password-second']), \
+                 patch('sys.stderr',error),self.assertRaises(SystemExit) as stopped:
+                main()
+            self.assertEqual(stopped.exception.code,2)
+            self.assertIn('2回の入力が一致しません',error.getvalue())
+            self.assertNotIn('test-password-',error.getvalue())
+            self.assertNotIn('Traceback',error.getvalue())
+            self.assertFalse(output.exists())
+
     def test_short_password_has_safe_cli_message_without_creating_keys(self):
         from src.mina.__main__ import main
         with tempfile.TemporaryDirectory() as tmp:

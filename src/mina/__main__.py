@@ -115,7 +115,7 @@ def cycle(store: Store, now: datetime):
 
 def main():
     parser = argparse.ArgumentParser(description="みなの日次運用と承認の検証")
-    parser.add_argument("command", choices=("status", "doctor", "handover-check", "inspect-handoff", "history-draft", "backup", "backup-artifacts", "backup-keygen", "backup-encrypt", "backup-decrypt", "backup-restore-set", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
+    parser.add_argument("command", choices=("status", "doctor", "handover-check", "inspect-handoff", "history-draft", "backup", "backup-artifacts", "backup-keygen", "backup-encrypt", "backup-decrypt", "backup-create-set", "backup-restore-set", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
     parser.add_argument("--database", default=os.getenv("MINA_DATABASE", "runtime/mina.sqlite3"))
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--draft", type=Path)
@@ -135,6 +135,16 @@ def main():
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
+    if args.command == 'backup-create-set':
+        if not all((args.manifest,args.output,args.backup_key,args.backup_recipient,args.source_commit)):
+            parser.error('--manifest・--output・--backup-key・--backup-recipient・--source-commitが必要です')
+        from .readiness import read_json,release_commit
+        from .recovery_set import create_recovery_set
+        release_commit(Path(__file__).resolve().parents[2],args.source_commit)
+        config=read_json(args.manifest)
+        print(json.dumps(create_recovery_set(args.database,config['artifacts'],config['files'],
+            args.output,args.backup_key,args.backup_recipient,args.source_commit),ensure_ascii=False))
+        return
     if args.command == 'backup-restore-set':
         if not args.manifest or not args.output:
             parser.error('--manifestに復号済みZIP、--outputに新規隔離先を指定してください')

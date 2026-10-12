@@ -68,6 +68,7 @@ def diagnose(database: str | Path, heartbeat: str | Path, now: datetime, env=Non
                                   "tomorrow_missing_slots": [slot for slot in SLOTS if slot not in present],
                                   "candidate_states": candidates, "notice_states": notices}
             tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            report['database']['recovery_reconciliation_required'] = 'mina_recovery_guard' in tables
             if 'cycle_health' in tables:
                 row = db.execute('SELECT checked,last_success,consecutive_failures,mode FROM cycle_health WHERE singleton=1').fetchone()
                 if row:
@@ -89,7 +90,7 @@ def diagnose(database: str | Path, heartbeat: str | Path, now: datetime, env=Non
                     "SELECT COUNT(*) FROM mina_requests WHERE phase IN ('held','dispatching')").fetchone()[0]
     except (OSError, sqlite3.Error, ValueError, TypeError, OverflowError):
         pass
-    report["manual_reconciliation_needed"] = bool(report['database'].get('preparation_holds', 0) or
+    report["manual_reconciliation_needed"] = bool(report['database'].get('recovery_reconciliation_required', False) or report['database'].get('preparation_holds', 0) or
         report['database'].get('unknown_preparation_steps', 0) or report['database'].get('request_holds', 0)) or any(
         report["database"].get(section, {}).get(state, 0)
         for section, states in (("candidate_states", ("dispatching", "outcome_unknown")),

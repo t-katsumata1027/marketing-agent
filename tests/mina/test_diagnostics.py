@@ -12,6 +12,18 @@ from src.mina.store import Store
 
 
 class DiagnosticsTest(unittest.TestCase):
+    def test_restored_database_requires_reconciliation_without_modifying_it(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'database';store=Store(path)
+            with store.transaction() as db:
+                db.execute('CREATE TABLE mina_recovery_guard(blocked INTEGER NOT NULL)')
+                db.execute('INSERT INTO mina_recovery_guard VALUES(1)')
+            before=path.read_bytes()
+            report=diagnose(path,Path(directory)/'heartbeat',datetime(2026,10,12,19,tzinfo=JST),{})
+            self.assertTrue(report['database']['recovery_reconciliation_required'])
+            self.assertTrue(report['manual_reconciliation_needed'])
+            self.assertEqual(path.read_bytes(),before)
+
     def test_cli_configuration_does_not_require_openai_api_key(self):
         with tempfile.TemporaryDirectory() as directory:
             report = diagnose(Path(directory) / 'missing', Path(directory) / 'heartbeat',

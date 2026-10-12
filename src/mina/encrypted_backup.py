@@ -72,6 +72,24 @@ def protect_directory(directory):
         os.chmod(directory, 0o700)
 
 
+def check_private_parent(directory):
+    """他の利用者が読み取れる親へ、平文の復旧実体を作らない。"""
+    directory = checked_path(directory)
+    if os.name != 'nt':
+        if directory.stat().st_mode & 0o077:
+            raise ValueError('保存先の親に第三者のアクセス権があります')
+        return
+    import base64
+    import subprocess
+    script = "$ErrorActionPreference='Stop'; $sid=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $allowed=@($sid,'S-1-5-18','S-1-5-32-544'); $acl=[System.IO.Directory]::GetAccessControl($env:MINA_CHECK_DIRECTORY); if($acl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value -notin $allowed){exit 2}; $allowed+=@('S-1-3-4'); foreach($rule in $acl.Access){if($rule.AccessControlType -eq 'Allow' -and $rule.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).Value -notin $allowed){exit 2}}; exit 0"
+    encoded = base64.b64encode(script.encode('utf-16-le')).decode('ascii')
+    system = Path(os.environ.get('SystemRoot','C:/Windows'))/'System32/WindowsPowerShell/v1.0/powershell.exe'
+    result = subprocess.run([str(system),'-NoProfile','-NonInteractive','-EncodedCommand',encoded],
+                            env={**os.environ,'MINA_CHECK_DIRECTORY':str(directory)},capture_output=True,timeout=15)
+    if result.returncode:
+        raise ValueError('保存先の親を本人専用の保護フォルダーにしてください')
+
+
 def create_recovery_keys(directory, password):
     """メインPCの新規保護領域へ、暗号化秘密鍵とサーバー用公開鍵を作る。"""
     if not isinstance(password, bytes) or not 16 <= len(password) <= 1024 or not password.strip():

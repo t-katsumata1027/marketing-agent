@@ -19,6 +19,8 @@ class Store:
         self.path = str(path)
         Path(path).parent.mkdir(parents=True, exist_ok=True)
         with self.transaction() as db:
+            if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='mina_recovery_guard'").fetchone():
+                raise ValueError('復旧台帳は外部履歴照合と承認失効の確認が必要です。稼働開始を停止します')
             db.executescript("""
                 CREATE TABLE IF NOT EXISTS candidates (
                     target_date TEXT NOT NULL, slot TEXT NOT NULL, revision INTEGER NOT NULL,
