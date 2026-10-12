@@ -127,3 +127,28 @@ class DriveBackupTest(unittest.TestCase):
         with patch.object(self.client,'_update',side_effect=OSError('秘密を含む可能性のある生の例外')):
             with self.assertRaisesRegex(OutcomeUnknown,'^backup_upload_unknown$'):self.upload()
         self.assertEqual(json.loads((self.root/'journal').read_text())['state'],'started')
+
+    def prepare_unknown_for_reconciliation(self,rows):
+        self.success()
+        with patch('src.mina.drive_backup.CHUNK',262144):self.upload()
+        path=self.root/'journal';state=json.loads(path.read_text());state['state']='outcome_unknown'
+        path.write_text(json.dumps(state))
+        self.client._send.reset_mock()
+        self.drive._request=Mock(side_effect=lambda url,**kwargs:self.raw if 'alt=media' in url else json.dumps({'files':rows}).encode())
+        return path
+
+    def test_unknown_completed_upload_reconciles_by_get_without_post(self):
+        row={'id':'file_id_12345','name':self.filename,'appProperties':{'mina_role':'encrypted_recovery','mina_source_commit':'a'*40}}
+        path=self.prepare_unknown_for_reconciliation([row])
+        result=self.client.reconcile(self.root/'sealed',path,self.filename,self.sha,'a'*40)
+        self.assertTrue(result['reconciled']);self.assertFalse(result['upload_performed'])
+        self.client._send.assert_not_called();self.assertEqual(json.loads(path.read_text())['state'],'verified')
+
+    def test_zero_or_multiple_remote_matches_do_not_resolve_unknown(self):
+        row={'id':'file_id_12345','name':self.filename,'appProperties':{'mina_role':'encrypted_recovery','mina_source_commit':'a'*40}}
+        path=self.prepare_unknown_for_reconciliation([])
+        for rows in ([],[row,row]):
+            self.drive._request=Mock(return_value=json.dumps({'files':rows}).encode())
+            with self.assertRaises(OutcomeUnknown):self.client.reconcile(self.root/'sealed',path,self.filename,self.sha,'a'*40)
+            self.assertEqual(json.loads(path.read_text())['state'],'outcome_unknown')
+        self.client._send.assert_not_called()

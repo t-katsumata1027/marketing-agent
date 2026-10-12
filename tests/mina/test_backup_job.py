@@ -80,6 +80,15 @@ class BackupJobTests(unittest.TestCase):
             self.config['database']=str(self.root/'different-db')
             with self.assertRaisesRegex(ValueError,'コード版が変わ'):self.run_job()
 
+    def test_delayed_run_after_jst_midnight_creates_next_day_snapshot(self):
+        with patch('src.mina.backup_job.create_recovery_set',return_value={'sha256':'b'*64}) as create,patch('src.mina.backup_job.BackupDriveClient.upload_once',return_value={'verified':True}):
+            self.run_job()
+            self.now=datetime(2026,10,12,16,tzinfo=UTC)
+            self.run_job()
+        self.assertEqual(create.call_count,2)
+        self.assertTrue((self.root/'backups/job-2026-10-12.json').exists())
+        self.assertTrue((self.root/'backups/job-2026-10-13.json').exists())
+
     def test_dedicated_wrapper_excludes_business_credentials(self):
         wrapper=Path('deploy/run-mina-backup-doppler.sh').read_text(encoding='utf-8')
         self.assertIn('backup-upload|backup-run',wrapper)

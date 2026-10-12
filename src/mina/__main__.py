@@ -115,7 +115,7 @@ def cycle(store: Store, now: datetime):
 
 def main():
     parser = argparse.ArgumentParser(description="みなの日次運用と承認の検証")
-    parser.add_argument("command", choices=("status", "doctor", "handover-check", "inspect-handoff", "history-draft", "backup", "backup-artifacts", "backup-keygen", "backup-encrypt", "backup-decrypt", "backup-create-set", "backup-restore-set", "backup-upload", "backup-run", "backup-status", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
+    parser.add_argument("command", choices=("status", "doctor", "handover-check", "inspect-handoff", "history-draft", "backup", "backup-artifacts", "backup-keygen", "backup-encrypt", "backup-decrypt", "backup-create-set", "backup-restore-set", "backup-upload", "backup-reconcile", "backup-run", "backup-status", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
     parser.add_argument("--database", default=os.getenv("MINA_DATABASE", "runtime/mina.sqlite3"))
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--draft", type=Path)
@@ -154,13 +154,15 @@ def main():
         release_commit(Path(__file__).resolve().parents[2],args.source_commit)
         print(json.dumps(run_backup_job(read_json(args.manifest),DriveClient.from_env(),args.source_commit),ensure_ascii=False))
         return
-    if args.command == 'backup-upload':
+    if args.command in ('backup-upload','backup-reconcile'):
         if not all((args.manifest,args.output,args.backup_sha256,args.backup_filename,args.source_commit)):
             parser.error('--manifest・--output・--backup-sha256・--backup-filename・--source-commitが必要です')
         from .drive_backup import BackupDriveClient,require_backup_upload
         from .drive import DriveClient
         require_backup_upload()
-        print(json.dumps(BackupDriveClient(DriveClient.from_env()).upload_once(args.manifest,args.output,
+        client=BackupDriveClient(DriveClient.from_env())
+        action=client.reconcile if args.command=='backup-reconcile' else client.upload_once
+        print(json.dumps(action(args.manifest,args.output,
             args.backup_filename,args.backup_sha256,args.source_commit),ensure_ascii=False))
         return
     if args.command == 'backup-create-set':

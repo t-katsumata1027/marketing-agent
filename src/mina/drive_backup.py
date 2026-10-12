@@ -160,3 +160,40 @@ class BackupDriveClient:
         result=self.verify(state['file_id'],raw,filename,sha)
         self._update(journal,{**state,'state':'verified'})
         return result
+
+    def reconcile(self,source,journal,filename,sha,commit):
+        """既存要求に対応する完成ファイルだけをGET照合し、再送や削除はしない。"""
+        require_backup_upload()
+        if (not re.fullmatch(r'mina-recovery-\d{8}(?:T\d{12}Z)?-[0-9a-f]{7,40}\.encrypted',filename)
+                or not re.fullmatch(r'[0-9a-f]{64}',sha) or not re.fullmatch(r'[0-9a-f]{40}',commit)):
+            raise ValueError('照合対象の固定情報が不正です')
+        raw=read_regular(source,LIMIT+4096)
+        if not raw.startswith(MAGIC) or hashlib.sha256(raw).hexdigest()!=sha:
+            raise ValueError('照合元の暗号化ファイルが不一致です')
+        journal=checked_path(journal)
+        state=json.loads(read_regular(journal,131072))
+        binding={'sha256':sha,'bytes':len(raw),'filename':filename,'folder_id':self.drive.folder_id,'source_commit':commit}
+        if state.get('binding')!=binding:raise ValueError('照合台帳の対象が不一致です')
+        self._folder()
+        candidates=[];token=None
+        query=f"'{self.drive.folder_id}' in parents and trashed = false and appProperties has {{ key='mina_sha256' and value='{sha}' }}"
+        for _ in range(10):
+            params={'q':query,'fields':'nextPageToken,files(id,name,appProperties)','pageSize':'100'}
+            if token:params['pageToken']=token
+            response=json.loads(self.drive._request('https://www.googleapis.com/drive/v3/files?'+urlencode(params),headers=self.drive._authorization()))
+            for row in response.get('files',[]):
+                props=row.get('appProperties',{})
+                if row.get('name')==filename and props.get('mina_role')=='encrypted_recovery' and props.get('mina_source_commit')==commit:
+                    candidates.append(self.drive._id(row['id']))
+            token=response.get('nextPageToken')
+            if not token:break
+            if not isinstance(token,str) or len(token)>8192:raise ValueError('照合応答の継続情報が不正です')
+        else:
+            raise OutcomeUnknown('backup_reconciliation_incomplete')
+        if len(candidates)!=1:
+            raise OutcomeUnknown('backup_reconciliation_not_unique')
+        result=self.verify(candidates[0],raw,filename,sha)
+        reconciled={**state,'state':'verified','file_id':candidates[0],'reconciled_by_readback':True}
+        reconciled.pop('session_url',None)
+        self._update(journal,reconciled)
+        return {**result,'upload_performed':False,'reconciled':True}

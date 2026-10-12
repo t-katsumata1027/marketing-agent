@@ -8,6 +8,7 @@ from .artifact_backup import checked_path
 from .drive_backup import BackupDriveClient,require_backup_upload
 from .encrypted_backup import protect_directory,save_new,read_regular
 from .recovery_set import create_recovery_set
+from .domain import JST
 
 
 def run_backup_job(config,drive,commit,now=None):
@@ -27,7 +28,7 @@ def run_backup_job(config,drive,commit,now=None):
         directory.mkdir(mode=0o700)
         protect_directory(directory)
     binding=hashlib.sha256(json.dumps({'config':config,'commit':commit},sort_keys=True,ensure_ascii=False).encode()).hexdigest()
-    job=directory/('job-'+now.date().isoformat()+'.json')
+    job=directory/('job-'+now.astimezone(JST).date().isoformat()+'.json')
     if job.exists():
         state=json.loads(read_regular(job,131072))
         if state.get('binding')!=binding:
