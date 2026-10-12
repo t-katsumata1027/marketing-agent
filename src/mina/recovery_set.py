@@ -102,6 +102,7 @@ def restore_recovery_set(archive, output):
         protect_directory(private)
         staged = private/'files'
         staged.mkdir(mode=0o700)
+        protect_directory(staged)
         with zipfile.ZipFile(source) as reader:
             result = _restore_entries(reader,staged)
         after = os.fstat(source.fileno())
@@ -114,7 +115,10 @@ def restore_recovery_set(archive, output):
 def _rename_new_directory(source,output):
     """同じ親の新規先へ確定する。並行作成された既存先も上書きしない。"""
     if os.name == 'nt':
-        os.rename(source,output)
+        try:
+            os.rename(source,output)
+        except OSError:
+            raise ValueError('復元先が既存か、確定操作に失敗しました') from None
         return
     import ctypes
     library=ctypes.CDLL(None,use_errno=True)
@@ -144,13 +148,22 @@ def _restore_entries(reader,output):
     if not infos or len(infos)>10001 or sum(item.file_size for item in infos)>LIMIT+4*1024*1024:
         raise ValueError('復旧セットの展開容量・件数が不正です')
     names = set()
+    folded = {}
     for item in infos:
         name = item.filename
         path = PurePosixPath(name)
         mode = stat.S_IFMT(item.external_attr >> 16)
         if (path.is_absolute() or '..' in path.parts or '\\' in name or ':' in name or
-                path.as_posix()!=name or name in names or item.is_dir() or mode not in (0, stat.S_IFREG)):
+                path.as_posix()!=name or name in names or item.orig_filename!=name or item.is_dir() or mode not in (0, stat.S_IFREG)):
             raise ValueError('復旧セットのパス・形式が不正です')
+        for i,part in enumerate(path.parts):
+            reserved=part.split('.')[0].upper()
+            if part.endswith(('.', ' ')) or reserved in {'CON','PRN','AUX','NUL',*(f'COM{i}' for i in range(1,10)),*(f'LPT{i}' for i in range(1,10))}:
+                raise ValueError('復旧セットに移植できないファイル名があります')
+            prefix='/'.join(path.parts[:i+1]);key=prefix.casefold()
+            if key in folded and folded[key]!=prefix:
+                raise ValueError('復旧セットの大文字・小文字による衝突を拒否しました')
+            folded[key]=prefix
         names.add(name)
     if 'manifest.json' not in names or reader.getinfo('manifest.json').file_size>4*1024*1024:
         raise ValueError('復旧セットのmanifestが不正です')
@@ -194,8 +207,11 @@ def _restore_entries(reader,output):
         tables={row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         if 'candidates' in tables:
             db.execute("UPDATE candidates SET state='changes_requested',reason='restored_reconciliation_required',actor=NULL,approved=NULL,nonce_hash=NULL WHERE state IN ('approved','approval_pending')")
+        # 元の送信プロセスは再開しない。送信済みか不明な枠を再送可能に戻さない。
+        db.execute("UPDATE candidates SET state='outcome_unknown',reason='restored_dispatch_unknown' WHERE state='dispatching'")
         if 'notices' in tables:
             db.execute("UPDATE notices SET state='obsolete' WHERE state='pending'")
+        db.execute("UPDATE notices SET state='outcome_unknown' WHERE state='sending'")
         db.execute('CREATE TABLE IF NOT EXISTS mina_recovery_guard(blocked INTEGER NOT NULL CHECK(blocked=1))')
         db.execute('INSERT INTO mina_recovery_guard VALUES(1)')
         db.commit()

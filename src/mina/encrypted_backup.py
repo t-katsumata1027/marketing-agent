@@ -37,8 +37,7 @@ def save_new(path, raw):
     path = checked_path(path)
     if path.exists() or not path.parent.is_dir():
         raise ValueError('新規の保護された保存先が必要です')
-    if os.name == 'posix' and path.parent.stat().st_mode & 0o077:
-        raise ValueError('保存先に第三者のアクセス権があります')
+    check_private_parent(path.parent)
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     try:
         with os.fdopen(fd, 'wb') as writer:

@@ -52,13 +52,13 @@ def backup_artifacts(source, directory):
         raise ValueError('成果物の元・保存先が不正です')
     before = inventory(source)
     directory.mkdir(parents=True, exist_ok=True, mode=0o700)
-    if os.name == 'posix' and directory.stat().st_mode & 0o077:
-        raise ValueError('保存先に第三者のアクセス権があります')
+    from .encrypted_backup import check_private_parent,protect_directory
+    check_private_parent(directory)
     destination = directory / datetime.now(UTC).strftime('artifacts-%Y%m%dT%H%M%S%fZ')
     with tempfile.TemporaryDirectory(prefix='.incomplete-', dir=directory) as tmp:
         pending = Path(tmp) / 'snapshot'
         (pending / 'files').mkdir(parents=True, mode=0o700)
-        os.chmod(pending, 0o700)
+        protect_directory(pending)
         files = []
         for name in sorted(before):
             path = source / name

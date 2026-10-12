@@ -14,6 +14,16 @@ from src.mina.store import Store
 
 
 class RecoverySetTest(unittest.TestCase):
+    def test_case_collisions_and_nonportable_names_leave_no_restore(self):
+        for names in (('artifacts/daily/Photos/a.jpg','artifacts/daily/photos/b.jpg'),('artifacts/daily/NUL.txt',),('artifacts/daily/a.',)):
+            with self.subTest(names=names),tempfile.TemporaryDirectory() as directory:
+                root=Path(directory)
+                with zipfile.ZipFile(root/'bad.zip','x') as writer:
+                    for name in names:writer.writestr(name,b'unsafe')
+                with self.assertRaises(ValueError):restore_recovery_set(root/'bad.zip',root/'restore')
+                self.assertFalse((root/'restore').exists())
+                self.assertFalse(list(root.glob('.mina-restore-*')))
+
     def test_encrypted_set_restores_database_artifacts_and_credentials_only_in_isolation(self):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory)
@@ -43,7 +53,11 @@ class RecoverySetTest(unittest.TestCase):
                 self.assertEqual(connection.execute('SELECT image FROM requests').fetchone()[0],b'original-image')
                 self.assertEqual(connection.execute("SELECT COUNT(*) FROM candidates WHERE state IN ('approved','approval_pending')").fetchone()[0],0)
                 self.assertEqual(connection.execute("SELECT COUNT(*) FROM candidates WHERE state IN ('published','dispatching','outcome_unknown')").fetchone()[0],3)
+                self.assertEqual(connection.execute("SELECT COUNT(*) FROM candidates WHERE state='dispatching'").fetchone()[0],0)
+                self.assertEqual(connection.execute("SELECT COUNT(*) FROM candidates WHERE state='outcome_unknown'").fetchone()[0],2)
                 self.assertEqual(connection.execute("SELECT COUNT(*) FROM notices WHERE state='pending'").fetchone()[0],0)
+                self.assertEqual(connection.execute("SELECT COUNT(*) FROM notices WHERE state='sending'").fetchone()[0],0)
+                self.assertEqual(connection.execute("SELECT COUNT(*) FROM notices WHERE state='outcome_unknown'").fetchone()[0],2)
             with self.assertRaisesRegex(ValueError,'復旧台帳'):
                 Store(root/'keys/restored/database.sqlite3')
             with self.assertRaises(ValueError):restore_recovery_set(root/'keys/plain.zip',root/'keys/restored')

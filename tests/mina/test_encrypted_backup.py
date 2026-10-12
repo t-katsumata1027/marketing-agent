@@ -10,9 +10,17 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
 from src.mina.encrypted_backup import create_recovery_keys, seal_file, unseal_file
+from src.mina.encrypted_backup import save_new
 
 
 class EncryptedBackupTest(unittest.TestCase):
+    def test_parent_permission_failure_prevents_plaintext_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output=Path(directory)/'plaintext'
+            with patch('src.mina.encrypted_backup.check_private_parent',side_effect=ValueError('拒否')):
+                with self.assertRaises(ValueError):save_new(output,b'test-only-private')
+            self.assertFalse(output.exists())
+
     def test_mismatched_passwords_have_safe_message_and_no_keys(self):
         from src.mina.__main__ import main
         with tempfile.TemporaryDirectory() as tmp:
