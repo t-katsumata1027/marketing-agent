@@ -178,9 +178,15 @@ def main():
     parser.add_argument('--port', type=int, default=8766)
     parser.add_argument('--config-dir', type=Path, required=True)
     parser.add_argument('--recovery-directory', type=Path, default=Path('runtime/google-oauth'))
+    parser.add_argument('--rotate-existing', action='store_true', help='既存トークンを保持して、本人同意後に明示的に更新する')
     args = parser.parse_args()
-    if os.getenv('MINA_GOOGLE_REFRESH_TOKEN') or (args.recovery_directory / 'refresh-pending.json').exists():
+    if (args.recovery_directory / 'refresh-pending.json').exists():
         raise SystemExit('既存の認証結果を照合してから再認証してください')
+    existing = bool(os.getenv('MINA_GOOGLE_REFRESH_TOKEN'))
+    if existing and not args.rotate_existing:
+        raise SystemExit('既存トークンの更新には--rotate-existingが必要です')
+    if args.rotate_existing and not existing:
+        raise SystemExit('更新対象の既存トークンを確認できません')
     flow = OAuthFlow(os.getenv('MINA_GOOGLE_CLIENT_ID', ''), os.getenv('MINA_GOOGLE_CLIENT_SECRET', ''), args.port)
     raise SystemExit(0 if serve_flow(flow, args.port, args.config_dir, args.recovery_directory) else 1)
 

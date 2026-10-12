@@ -15,6 +15,25 @@ from src.mina.google_auth_setup import ConsentServer, OAuthFlow, SCOPE, save_ref
 
 
 class GoogleAuthSetupTests(unittest.TestCase):
+    def test_rotation_requires_explicit_flag_and_keeps_existing_on_denial(self):
+        from src.mina.google_auth_setup import main
+        import os
+        with tempfile.TemporaryDirectory() as tmp:
+            args = ['auth', '--config-dir', '/config', '--recovery-directory', tmp]
+            env = {'MINA_GOOGLE_CLIENT_ID':'example.apps.googleusercontent.com',
+                   'MINA_GOOGLE_CLIENT_SECRET':'secret', 'MINA_GOOGLE_REFRESH_TOKEN':'existing-private'}
+            with patch.dict(os.environ, env, clear=True), patch('sys.argv', args), \
+                 patch('src.mina.google_auth_setup.serve_flow') as serve:
+                with self.assertRaises(SystemExit): main()
+                serve.assert_not_called()
+            with patch.dict(os.environ, env, clear=True), patch('sys.argv', args + ['--rotate-existing']), \
+                 patch('src.mina.google_auth_setup.serve_flow', return_value=False), \
+                 patch('src.mina.google_auth_setup.save_refresh') as save:
+                with self.assertRaises(SystemExit) as result: main()
+                self.assertEqual(result.exception.code, 1)
+                save.assert_not_called()
+                self.assertEqual(os.environ['MINA_GOOGLE_REFRESH_TOKEN'], 'existing-private')
+
     def test_idle_browser_connection_does_not_block_request(self):
         class Handler(BaseHTTPRequestHandler):
             def log_message(self, *_):
