@@ -318,3 +318,10 @@ SQLite・成果物・認証を一つの整合した復旧セットへ固定す�
 - バックアップは2世代を保持し、現時点で削除は不要。月次・警告時の棚卸し、復号確認済みセットと未解決証跡の保持、実削除前の対象確認をBACKUP_RETENTION_RUNBOOK.mdへ記録。自動削除・新しいサービスは追加していない。
 - Google公式のスコープとデータ利用説明、手元のLogEatsプライバシー・利用規約を照合。Drive・暗号化バックアップ・CLIと解析APIの区別・Discord/Xの時点・削除対象・窓口をGOOGLE_POLICY_ALIGNMENT_20261012.mdへまとめた。公開中の本文との一致や文書反映は未確認で、LogEats側へ実装済みM1を広げずに判断できる最小資料として渡す。
 - LOGEATS_TASK_REVIEW_20261012.mdの古い「X認証未照合」「毎日手動履歴」「復号未完了」を現在の証跡へ修正。実装や停止設定は変更せず、他タスクの未追跡ファイルは追加していない。
+
+### 引き継ぎ条件の現在地を確認
+
+- 既存SSHのWindowsログ読取ではGet-WinEventが失敗、wevtutilもSystem・RDP・TaskSchedulerすべてexit 5。無人起動の時刻証明は取得できず、権限やログ設定を変更していない。
+- LogEats PR129の読取時head9788b4bはDraft・未マージ。最新QAのpreview-e2eはbootstrap前のMina隔離証明で失敗。契約はmina-write-v1、実OGPをAPI readyだけで保証しない説明が追加された。
+- Agentの実バイトSHA照合をコードと既存16試験で再確認して成功。初回のmodule指定はfixture importで失敗し、正式discoverで修正して実行。実接続・追加実装は行わない。
+- 実装済み・部分受入・供給側待ち・本人操作・時刻到来待ちをHANDOVER_READINESS_20261012.mdへ整理。全体の完了や運用開始とは宣言しない。
