@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from .clients import OutcomeUnknown
-from .generation import MEAL_SLOTS, validate_plan
+from .generation import MEAL_SLOTS, validate_plan, IMAGE_STYLE, meal_image_description
 
 
 def fingerprint(value):
@@ -64,17 +64,19 @@ def prepare_images(store, draft_path: Path, directory: Path, client):
     for slot in MEAL_SLOTS:
         meal = draft["meals"][slot]
         path = directory / f"{target}-{slot}.jpg"
+        description=meal_image_description(meal)
+        prompt_sha256=hashlib.sha256((IMAGE_STYLE+'\n料理と量：'+description).encode()).hexdigest()
 
         def generate():
             if path.exists() or path.is_symlink():
                 raise ValueError("既存の画像を自動上書きしません")
-            from .generation import meal_image_description
-            raw = client.image(meal_image_description(meal))
+            raw = client.image(description)
             with path.open("xb") as file:
                 file.write(raw)
             return {"path": str(path.resolve()), "sha256": hashlib.sha256(raw).hexdigest(), "size": len(raw)}
 
-        image = journal.run(target, "image:" + slot, {"meal": meal, "directory": str(directory.resolve())}, generate)
+        image = journal.run(target, "image:" + slot, {"meal": meal, "directory": str(directory.resolve()),
+                                                     "prompt_sha256":prompt_sha256}, generate)
         saved = Path(image["path"])
         if saved.is_symlink():
             raise ValueError("画像実体の確認が必要です")
