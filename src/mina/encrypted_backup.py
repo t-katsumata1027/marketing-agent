@@ -50,6 +50,28 @@ def save_new(path, raw):
         raise
 
 
+def protect_directory(directory):
+    """新規の私有ディレクトリを保護する。Windowsでは継承権限も除去する。"""
+    directory = checked_path(directory)
+    if not directory.is_dir():
+        raise ValueError('保護する保存ディレクトリがありません')
+    if os.name == 'nt':
+        import subprocess
+        system = Path(os.environ.get('SystemRoot', 'C:/Windows'))/'System32'
+        identity = subprocess.run([str(system/'whoami.exe'), '/user', '/fo', 'csv', '/nh'],
+                                  capture_output=True, timeout=10)
+        sid = re.search(rb'S-1-[0-9-]+', identity.stdout)
+        if identity.returncode or sid is None:
+            raise ValueError('Windowsの鍵保存主体を確認できません')
+        protected = subprocess.run([str(system/'icacls.exe'), str(directory), '/inheritance:r',
+                                    '/grant:r', '*'+sid[0].decode('ascii')+':(OI)(CI)F'],
+                                   capture_output=True, timeout=10)
+        if protected.returncode:
+            raise ValueError('Windowsの保存ACLを設定できません')
+    else:
+        os.chmod(directory, 0o700)
+
+
 def create_recovery_keys(directory, password):
     """メインPCの新規保護領域へ、暗号化秘密鍵とサーバー用公開鍵を作る。"""
     if not isinstance(password, bytes) or not 16 <= len(password) <= 1024 or not password.strip():
@@ -62,19 +84,7 @@ def create_recovery_keys(directory, password):
     public = directory/'public.pem'
     private = directory/'private-encrypted.pem'
     try:
-        if os.name == 'nt':
-            import subprocess
-            system = Path(os.environ.get('SystemRoot', 'C:/Windows'))/'System32'
-            identity = subprocess.run([str(system/'whoami.exe'), '/user', '/fo', 'csv', '/nh'],
-                                      capture_output=True, timeout=10)
-            sid = re.search(rb'S-1-[0-9-]+', identity.stdout)
-            if identity.returncode or sid is None:
-                raise ValueError('Windowsの鍵保存主体を確認できません')
-            protected = subprocess.run([str(system/'icacls.exe'), str(directory), '/inheritance:r',
-                                        '/grant:r', '*'+sid[0].decode('ascii')+':(OI)(CI)F'],
-                                       capture_output=True, timeout=10)
-            if protected.returncode:
-                raise ValueError('Windowsの鍵保存ACLを設定できません')
+        protect_directory(directory)
         save_new(public, key.public_key().public_bytes(serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo))
         save_new(private, key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, serialization.BestAvailableEncryption(password)))
     except Exception:
