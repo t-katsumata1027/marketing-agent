@@ -325,3 +325,7 @@ SQLite・成果物・認証を一つの整合した復旧セットへ固定す�
 - LogEats PR129の読取時head9788b4bはDraft・未マージ。最新QAのpreview-e2eはbootstrap前のMina隔離証明で失敗。契約はmina-write-v1、実OGPをAPI readyだけで保証しない説明が追加された。
 - Agentの実バイトSHA照合をコードと既存16試験で再確認して成功。初回のmodule指定はfixture importで失敗し、正式discoverで修正して実行。実接続・追加実装は行わない。
 - 実装済み・部分受入・供給側待ち・本人操作・時刻到来待ちをHANDOVER_READINESS_20261012.mdへ整理。全体の完了や運用開始とは宣言しない。
+
+### 2回目の手動再起動確認
+
+CI実行・待機とローカルWorkerがゼロの時点でQAランナー2件を停止し、本人が再起動した。RDPログインを待っていただく手順で、Windows側の稼働中一覧からWSLの自動起動を確認。その後、起動ID変更、Mina本体・Gateway・各タイマー・QAランナー2件のactiveとGitHub onlineを確認した。手動でサービスを起動していない。停止8設定false、heartbeat・巡回監視正常を確認後にRDP接続を案内した。ログオン監査は取得できていないため、その限界は保持する。自然な23:10の外部バックアップ実行とLogEats最終引き継ぎは別の残件。
