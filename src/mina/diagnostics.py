@@ -40,6 +40,7 @@ def diagnose(database: str | Path, heartbeat: str | Path, now: datetime, env=Non
         'ai_backend': backend,
         "database": {"readable": False},
         "heartbeat": {"fresh": False},
+        "cycle_health": {"measured": False, "healthy": False},
         # 設定済みだけでは日次運用の完成を意味しない。
         "daily_automation_complete": False,
         "remaining_pipeline": ["本番M1接続と全工程の実測", "履歴・旧予約の確認証跡",
@@ -65,6 +66,14 @@ def diagnose(database: str | Path, heartbeat: str | Path, now: datetime, env=Non
                                   "tomorrow_missing_slots": [slot for slot in SLOTS if slot not in present],
                                   "candidate_states": candidates, "notice_states": notices}
             tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            if 'cycle_health' in tables:
+                row = db.execute('SELECT checked,last_success,consecutive_failures,mode FROM cycle_health WHERE singleton=1').fetchone()
+                if row:
+                    age = now.timestamp() - row[0]
+                    valid = (math.isfinite(age) and 0 <= age <= 90 and type(row[2]) is int and row[2] >= 0 and row[3] in ('dry_run','live','failed'))
+                    report['cycle_health'] = {'measured': True, 'healthy': valid and row[2] == 0 and row[3] != 'failed',
+                                              'consecutive_failures': max(0, row[2]) if type(row[2]) is int else None,
+                                              'fresh': valid, 'mode': row[3] if row[3] in ('dry_run','live','failed') else 'unrecognized'}
             if 'preparation' in tables:
                 report['database']['preparation_holds'] = db.execute(
                     "SELECT COUNT(*) FROM preparation WHERE state LIKE 'held:%' OR (state='started' AND started<?)",
@@ -76,7 +85,7 @@ def diagnose(database: str | Path, heartbeat: str | Path, now: datetime, env=Non
             if 'mina_requests' in tables:
                 report['database']['request_holds'] = db.execute(
                     "SELECT COUNT(*) FROM mina_requests WHERE phase IN ('held','dispatching')").fetchone()[0]
-    except (OSError, sqlite3.Error, ValueError):
+    except (OSError, sqlite3.Error, ValueError, TypeError, OverflowError):
         pass
     report["manual_reconciliation_needed"] = bool(report['database'].get('preparation_holds', 0) or
         report['database'].get('unknown_preparation_steps', 0) or report['database'].get('request_holds', 0)) or any(

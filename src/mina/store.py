@@ -33,6 +33,9 @@ class Store:
                     UNIQUE(target_date, slot, revision, kind));
                 CREATE TABLE IF NOT EXISTS preparation (
                     target_date TEXT PRIMARY KEY, state TEXT NOT NULL, started REAL NOT NULL);
+                CREATE TABLE IF NOT EXISTS cycle_health (
+                    singleton INTEGER PRIMARY KEY CHECK(singleton=1), checked REAL NOT NULL,
+                    last_success REAL, consecutive_failures INTEGER NOT NULL, mode TEXT NOT NULL);
             """)
 
     @contextmanager
@@ -147,6 +150,26 @@ class Store:
             for row in rows:
                 db.execute("UPDATE candidates SET state='dispatching',dispatch_started=? WHERE target_date=? AND slot=?", (ts, row["target_date"], row["slot"]))
             return [dict(r) for r in rows]
+
+    def has_due(self, now: datetime, grace_seconds: int = 120) -> bool:
+        """期限超過を整理し、公開枠がない巡回でX認証照会をしない。確保はしない。"""
+        ts = instant(now).timestamp()
+        with self.transaction() as db:
+            db.execute("UPDATE candidates SET state='expired',nonce_hash=NULL WHERE state IN ('approval_pending','approved') AND scheduled<?", (ts-grace_seconds,))
+            return db.execute("SELECT 1 FROM candidates WHERE state='approved' AND scheduled BETWEEN ? AND ? LIMIT 1",
+                              (ts-grace_seconds, ts)).fetchone() is not None
+
+    def record_cycle_health(self, success: bool, now: datetime, mode='failed'):
+        """例外原文・本文・認証を保存せず、再起動後も連続失敗を検知する。"""
+        if type(success) is not bool or mode not in ('dry_run', 'live', 'failed') or (success == (mode == 'failed')):
+            raise ValueError('巡回状態の分類が不正です')
+        ts = instant(now).timestamp()
+        with self.transaction() as db:
+            previous = db.execute('SELECT * FROM cycle_health WHERE singleton=1').fetchone()
+            last = ts if success else (previous['last_success'] if previous else None)
+            failures = 0 if success else min(1000000, (previous['consecutive_failures'] if previous else 0)+1)
+            db.execute('INSERT INTO cycle_health VALUES(1,?,?,?,?) ON CONFLICT(singleton) DO UPDATE SET checked=excluded.checked,last_success=excluded.last_success,consecutive_failures=excluded.consecutive_failures,mode=excluded.mode',
+                       (ts, last, failures, mode))
 
     def finish(self, row: dict, x_id: str | None, now: datetime):
         """送信後は成功または成否不明へ固定し、結果通知を積む。"""

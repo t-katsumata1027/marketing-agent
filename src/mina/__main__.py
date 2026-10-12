@@ -100,7 +100,7 @@ def cycle(store: Store, now: datetime):
     sent = send_notifications(store, DiscordClient(os.environ["DISCORD_BOT_TOKEN"], os.environ["DISCORD_ALLOWED_CHANNEL_ID"]))
     host = os.environ["MINA_SHARE_HOST"]
     published = 0
-    if status["publish_enabled"]:
+    if status["publish_enabled"] and store.has_due(now):
         # 公開開始には承認設定も必須。確認用PINGだけで公開を有効にしない。
         policy_from_env()
         from .m1_contract import verify_source
@@ -113,7 +113,7 @@ def cycle(store: Store, now: datetime):
 
 def main():
     parser = argparse.ArgumentParser(description="みなの日次運用と承認の検証")
-    parser.add_argument("command", choices=("status", "doctor", "handover-check", "inspect-handoff", "backup", "backup-artifacts", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
+    parser.add_argument("command", choices=("status", "doctor", "handover-check", "inspect-handoff", "history-draft", "backup", "backup-artifacts", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
     parser.add_argument("--database", default=os.getenv("MINA_DATABASE", "runtime/mina.sqlite3"))
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--draft", type=Path)
@@ -163,6 +163,12 @@ def main():
         from .readiness import read_json
         print(json.dumps(inspect_handoff(read_json(args.manifest), args.contract_file,
                                         args.producer_commit), ensure_ascii=False, indent=2))
+        return
+    if args.command == 'history-draft':
+        if not args.date or not args.output:
+            parser.error('--date・--outputが必要です')
+        from .history_draft import export_history_draft
+        print(json.dumps(export_history_draft(args.database,args.date,args.output)))
         return
     if args.command == 'verify-artifacts':
         from .artifact_backup import verify_artifacts
@@ -308,11 +314,17 @@ def main():
         heartbeat = Path(os.getenv("MINA_HEARTBEAT", "runtime/mina.heartbeat"))
         heartbeat.parent.mkdir(parents=True, exist_ok=True)
         while True:
+            succeeded, mode = False, 'failed'
             try:
                 result = cycle(store, datetime.now(UTC))
+                succeeded, mode = True, result['mode']
                 print(json.dumps(result), flush=True)
             except Exception:
                 print('{"event":"mina_cycle_failed"}', flush=True)
+            try:
+                store.record_cycle_health(succeeded, datetime.now(UTC), mode)
+            except Exception:
+                print('{"event":"mina_health_record_unconfirmed"}', flush=True)
             heartbeat.write_text(str(time.time()), encoding="ascii")
             time.sleep(15)
 

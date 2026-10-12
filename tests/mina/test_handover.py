@@ -28,7 +28,8 @@ class HandoverTest(unittest.TestCase):
     def test_all_local_conditions_still_require_real_acceptance(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            Store(root/'db')
+            store = Store(root/'db')
+            store.record_cycle_health(True, NOW, 'dry_run')
             (root/'heartbeat').write_text(str(NOW.timestamp()))
             (root/'evidence').write_text(json.dumps(evidence()))
             (root/'auth.json').write_text('これは実認証ではない')

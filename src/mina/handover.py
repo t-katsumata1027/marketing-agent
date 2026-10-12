@@ -36,6 +36,7 @@ def check_handover(root, commit, database, heartbeat, evidence, now, env=None):
         'history_evidence_current': history_valid,
         'database_readable': diagnostic['database']['readable'],
         'heartbeat_fresh': diagnostic['heartbeat']['fresh'],
+        'daemon_cycle_healthy': diagnostic['cycle_health']['healthy'],
         'no_unknown_operations': not diagnostic['manual_reconciliation_needed'],
         'cli_auth_file_present': bool(env.get('MINA_CODEX_HOME')) and
                                  (Path(env.get('MINA_CODEX_HOME', '')) / 'auth.json').is_file(),

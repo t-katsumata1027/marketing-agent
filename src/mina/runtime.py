@@ -55,6 +55,8 @@ def send_notifications(store: Store, client):
 
 def publish_due(store: Store, client, now: datetime, host: str, preflight, clock=lambda: datetime.now(UTC), timer=time.monotonic):
     """公開先・OGPを照合後、排他的に一度だけ送信する。"""
+    if not store.has_due(now):
+        return 0
     client.verify_account(ACCOUNT)
     count = 0
     for row in store.claim_due(now):
