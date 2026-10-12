@@ -25,7 +25,7 @@ def release_commit(root, commit):
     if not isinstance(commit, str) or not re.fullmatch(r'[0-9a-f]{40}', commit):
         raise ValueError('実装commitが必要です')
     # root所有のサービス配置を専用ユーザーから読む。この呼出しの正確な配置先だけを信頼する。
-    git_command=['git','-c','safe.directory='+str(root),'-C',str(root)]
+    git_command=['git','-c','safe.directory='+root.as_posix(),'-C',str(root)]
     tree = subprocess.run([*git_command, 'ls-tree', '-r', '--name-only', commit],
                           capture_output=True, timeout=10)
     if tree.returncode:

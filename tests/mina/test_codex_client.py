@@ -11,9 +11,17 @@ from unittest.mock import Mock, patch
 from src.mina.codex_client import CodexClient, generation_client
 from src.mina.preparation import PreparationJournal
 from src.mina.store import Store
+from src.mina.generation import IMAGE_STYLE
 
 
 class CodexClientTest(unittest.TestCase):
+    def test_image_client_adds_style_once_at_tool_boundary(self):
+        client=CodexClient()
+        client.execute=Mock(side_effect=RuntimeError('生成前に停止'))
+        with self.assertRaisesRegex(RuntimeError,'生成前に停止'):
+            client.image('料理と食品別の分量')
+        self.assertEqual(client.execute.call_args.args[0],IMAGE_STYLE+'\n料理と量：料理と食品別の分量')
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)

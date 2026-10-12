@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from .clients import OutcomeUnknown
-from .generation import MEAL_SLOTS, validate_plan, IMAGE_STYLE, meal_image_description
+from .generation import MEAL_SLOTS, validate_plan, IMAGE_STYLE, meal_image_description, image_review_policy_sha256
 
 
 def fingerprint(value):
@@ -83,7 +83,9 @@ def prepare_images(store, draft_path: Path, directory: Path, client):
         raw = saved.read_bytes()
         if hashlib.sha256(raw).hexdigest() != image["sha256"] or len(raw) != image["size"]:
             raise ValueError("保存した画像の版が変わっています")
-        review = journal.run(target, "image_review:" + slot, {"sha256": image["sha256"], "meal": meal},
+        review = journal.run(target, "image_review:" + slot,
+                             {"sha256": image["sha256"], "meal": meal,
+                              "review_policy_sha256": image_review_policy_sha256()},
                              lambda: client.review_image(raw, meal))
         if review["status"] != "image_acceptable" or review["reason_codes"]:
             raise ValueError("画像の事前点検で保留になりました")
