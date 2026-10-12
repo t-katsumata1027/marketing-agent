@@ -115,7 +115,7 @@ def cycle(store: Store, now: datetime):
 
 def main():
     parser = argparse.ArgumentParser(description="みなの日次運用と承認の検証")
-    parser.add_argument("command", choices=("status", "doctor", "handover-check", "inspect-handoff", "history-draft", "backup", "backup-artifacts", "backup-keygen", "backup-encrypt", "backup-decrypt", "backup-create-set", "backup-restore-set", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
+    parser.add_argument("command", choices=("status", "doctor", "handover-check", "inspect-handoff", "history-draft", "backup", "backup-artifacts", "backup-keygen", "backup-encrypt", "backup-decrypt", "backup-create-set", "backup-restore-set", "backup-upload", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
     parser.add_argument("--database", default=os.getenv("MINA_DATABASE", "runtime/mina.sqlite3"))
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--draft", type=Path)
@@ -126,6 +126,8 @@ def main():
     parser.add_argument('--producer-commit')
     parser.add_argument('--backup-key', type=Path)
     parser.add_argument('--backup-recipient')
+    parser.add_argument('--backup-sha256')
+    parser.add_argument('--backup-filename')
     parser.add_argument('--operation', choices=('meal_register', 'meal_correction', 'daily_share'), default='meal_register')
     parser.add_argument("--date")
     parser.add_argument("--history", type=Path)
@@ -135,6 +137,15 @@ def main():
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
+    if args.command == 'backup-upload':
+        if not all((args.manifest,args.output,args.backup_sha256,args.backup_filename,args.source_commit)):
+            parser.error('--manifest・--output・--backup-sha256・--backup-filename・--source-commitが必要です')
+        from .drive_backup import BackupDriveClient,require_backup_upload
+        from .drive import DriveClient
+        require_backup_upload()
+        print(json.dumps(BackupDriveClient(DriveClient.from_env()).upload_once(args.manifest,args.output,
+            args.backup_filename,args.backup_sha256,args.source_commit),ensure_ascii=False))
+        return
     if args.command == 'backup-create-set':
         if not all((args.manifest,args.output,args.backup_key,args.backup_recipient,args.source_commit)):
             parser.error('--manifest・--output・--backup-key・--backup-recipient・--source-commitが必要です')

@@ -207,11 +207,11 @@ def _restore_entries(reader,output):
         tables={row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         if 'candidates' in tables:
             db.execute("UPDATE candidates SET state='changes_requested',reason='restored_reconciliation_required',actor=NULL,approved=NULL,nonce_hash=NULL WHERE state IN ('approved','approval_pending')")
-        # 元の送信プロセスは再開しない。送信済みか不明な枠を再送可能に戻さない。
-        db.execute("UPDATE candidates SET state='outcome_unknown',reason='restored_dispatch_unknown' WHERE state='dispatching'")
+            # 元の送信プロセスは再開しない。送信済みか不明な枠を再送可能に戻さない。
+            db.execute("UPDATE candidates SET state='outcome_unknown',reason='restored_dispatch_unknown' WHERE state='dispatching'")
         if 'notices' in tables:
             db.execute("UPDATE notices SET state='obsolete' WHERE state='pending'")
-        db.execute("UPDATE notices SET state='outcome_unknown' WHERE state='sending'")
+            db.execute("UPDATE notices SET state='outcome_unknown' WHERE state='sending'")
         db.execute('CREATE TABLE IF NOT EXISTS mina_recovery_guard(blocked INTEGER NOT NULL CHECK(blocked=1))')
         db.execute('INSERT INTO mina_recovery_guard VALUES(1)')
         db.commit()

@@ -14,6 +14,26 @@ from src.mina.store import Store
 
 
 class RecoverySetTest(unittest.TestCase):
+    def test_database_without_application_tables_restores_only_with_start_guard(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            with closing(sqlite3.connect(root/'db')) as db:
+                db.execute('CREATE TABLE sample(value TEXT)')
+                db.execute("INSERT INTO sample VALUES('kept')");db.commit()
+            content={'database.sqlite3':(root/'db').read_bytes(),**{f'protected/{name}':b'test-only' for name in
+                     ('service-env','doppler-env','codex-auth','history-bootstrap','cutover')}}
+            manifest={'format':'mina-recovery-set-v1','live_restore_allowed':False,
+                      'external_reconciliation_required':True,
+                      'files':[{'path':name,'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()} for name,raw in content.items()]}
+            with zipfile.ZipFile(root/'archive.zip','x') as writer:
+                writer.writestr('manifest.json',json.dumps(manifest))
+                for name,raw in content.items():writer.writestr(name,raw)
+            report=restore_recovery_set(root/'archive.zip',root/'restore')
+            self.assertTrue(report['application_start_blocked'])
+            with closing(sqlite3.connect(root/'restore/database.sqlite3')) as db:
+                self.assertEqual(db.execute('SELECT value FROM sample').fetchone()[0],'kept')
+            with self.assertRaises(ValueError):Store(root/'restore/database.sqlite3')
+
     def test_case_collisions_and_nonportable_names_leave_no_restore(self):
         for names in (('artifacts/daily/Photos/a.jpg','artifacts/daily/photos/b.jpg'),('artifacts/daily/NUL.txt',),('artifacts/daily/a.',)):
             with self.subTest(names=names),tempfile.TemporaryDirectory() as directory:
