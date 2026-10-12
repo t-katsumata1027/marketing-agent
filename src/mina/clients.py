@@ -112,6 +112,29 @@ class XClient:
             raise OutcomeUnknown("x_response_unknown")
         return str(result.data["id"])
 
+    def read_history(self, expected, target):
+        """読取専用の明示スイッチで取得する。投稿・予約変更は行わない。"""
+        if os.getenv('MINA_X_HISTORY_READ_ENABLED', 'false').lower() != 'true':
+            raise RuntimeError('X履歴の実読取は無効です')
+        from .domain import ACCOUNT
+        from .x_history import collect_timeline
+        if expected != ACCOUNT:
+            raise ValueError('履歴の対象アカウントが不正です')
+        try:
+            identity = self.client.get_me(user_auth=True)
+            if identity.errors or not identity.data or identity.data.username.lower() != expected.lower():
+                raise ValueError()
+            account_id = str(identity.data.id)
+
+            def fetch(account_id, **params):
+                response = self.client.get_users_tweets(account_id, user_auth=True, **params)
+                return {'data': [dict(item.data) for item in (response.data or [])],
+                        'meta': response.meta, 'errors': response.errors}
+
+            return collect_timeline(fetch, account_id, target)
+        except Exception:
+            raise RuntimeError('X履歴の読取を確認できません') from None
+
 
 class MealClient:
     """固定みな境界の内部API。失われた応答を新UUIDで再送しない。"""
