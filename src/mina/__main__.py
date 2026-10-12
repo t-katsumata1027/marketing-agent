@@ -26,6 +26,8 @@ def settings_status():
     return {"ai_enabled": os.getenv("MINA_AI_ENABLED", "false").lower() == "true",
             "prepare_enabled": os.getenv("MINA_PREPARE_ENABLED", "false").lower() == "true",
             "read_review_enabled": os.getenv("MINA_READ_REVIEW_ENABLED", "false").lower() == "true",
+            "x_history_read_enabled": os.getenv("MINA_X_HISTORY_READ_ENABLED", "false").lower() == "true",
+            "history_auto_enabled": os.getenv("MINA_HISTORY_AUTO_ENABLED", "false").lower() == "true",
             "live_writes": os.getenv("MINA_LIVE_WRITES", "false").lower() == "true",
             "publish_enabled": os.getenv("MINA_PUBLISH_ENABLED", "false").lower() == "true",
             "approval_enabled": os.getenv("MINA_APPROVAL_ENABLED", "false").lower() == "true",
@@ -261,6 +263,21 @@ def main():
         from .drive import DriveClient
         history = args.history or Path(os.getenv('MINA_HISTORY_FILE', '/var/lib/mina-agent/readiness.json'))
         evidence = args.evidence or history
+        if os.getenv('MINA_HISTORY_AUTO_ENABLED', 'false').lower() == 'true':
+            from .automatic_history import refresh_history
+            from .readiness import read_json
+            now = datetime.now(UTC)
+            target = (now.astimezone(JST).date() + timedelta(days=1)).isoformat()
+            # 履歴取得も19時から20時の準備窓内に限定する。
+            if now.astimezone(JST).hour != 19:
+                raise ValueError('自動履歴取得は19時の準備窓内だけです')
+            base = Path(os.getenv('MINA_HISTORY_DIRECTORY', '/var/lib/mina-agent/history'))
+            base.mkdir(parents=True, exist_ok=True, mode=0o700)
+            history = refresh_history(args.database, target, base / (now.strftime('%Y%m%dT%H%M%S%fZ') + '.json'),
+                                      read_json(Path(os.getenv('MINA_HISTORY_BOOTSTRAP', '/var/lib/mina-agent/history-bootstrap.json'))),
+                                      read_json(Path(os.getenv('MINA_CUTOVER_FILE', '/var/lib/mina-agent/cutover.json'))),
+                                      XClient(), lambda: datetime.now(UTC))
+            evidence = history
         result = prepare_day(store, args.output or Path(os.getenv('MINA_PREPARE_DIRECTORY', '/var/lib/mina-agent/daily')),
                              history, evidence, args.source_commit, Path(__file__).resolve().parents[2],
                              os.getenv('MINA_SHARE_HOST', ''), generation_client(), DriveClient.from_env(),

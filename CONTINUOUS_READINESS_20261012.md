@@ -34,6 +34,42 @@ python -m src.mina history-draft --date <翌日JST日付> --output <保護領域
 切替時の確認と復旧優先順位は`CUTOVER_STATUS_20261012.md`に記録する。
 この報告を過去投稿の取得成功とは扱わないが、旧予約ゼロ確認を毎日の手入力として繰り返し要求しない。
 
+### 日次準備への自動履歴経路
+
+`automatic_history.py`をprepare入口へ接続した。`MINA_HISTORY_AUTO_ENABLED=true`の場合、19時の準備窓に実X履歴を全ページ取得し、読取専用SQLiteの公開ID・候補ハッシュ・完成本文と照合する。
+移行前投稿は、初回確認した`history-bootstrap.json`の公開ID・投稿日・献立・コメント・完成本文との一致を必要とする。
+移行前履歴を空と推測しない。期間外になった初回履歴は自動的に対象から外れる。
+旧予約ゼロ・旧生成停止は、ユーザーの切替確認を`cutover.json`へ固定して参照する。未来時刻・対象アカウント不一致・未確認は拒否する。
+
+両資料の形式は以下。実値・投稿ID・投稿本文を公開Gitへ保存しない。
+
+```json
+{
+  "account": "EatsLog88161",
+  "reviewed": false,
+  "reviewer": "",
+  "entries": [
+    {"x_id": "実投稿ID", "date": "投稿JST日付", "menu": "確認した献立", "comment": "確認したコメント", "publish_text": "実際の完成本文"}
+  ]
+}
+```
+
+```json
+{
+  "account": "EatsLog88161",
+  "old_reservations_zero": true,
+  "old_generation_stopped": true,
+  "confirmed_by": "確認した運用者",
+  "confirmed_at": "実際の確認日時（タイムゾーン付き）"
+}
+```
+
+実投稿と対応しない履歴、公開成否不明、台帳の改変、本文変更、投稿の消失では候補生成へ進まない。
+照合した履歴証跡は新規の保護ファイルへ固定し、生成・候補検査の双方で同じ資料を使用する。
+初回履歴の実取得・確認と資料配置、実X API・費用の確認、例外時のDiscord案内は未完了。
+通常の毎日JSON入力は自動経路で不要になるが、現時点では実運用成功とは扱わない。
+自動履歴と実X読取の2スイッチは既定falseのまま、稼働配置・Doppler・timerは変更していない。
+
 ### 履歴取得・公開台帳照合の先行実装
 
 `src/mina/x_history.py`へ全ページ読取と公開ID・完成本文の照合を追加した。
