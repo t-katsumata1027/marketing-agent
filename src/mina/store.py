@@ -218,6 +218,19 @@ class Store:
         with self.transaction() as db:
             db.execute("INSERT OR IGNORE INTO notices(target_date,slot,revision,kind,payload,created) VALUES(?,'all',0,'delay',?,?)", (target_date, json.dumps(payload, ensure_ascii=False), instant(now).timestamp()))
 
+    def queue_history_hold(self, target_date: str, now: datetime):
+        """履歴の不明点をまとめ、秘密値を含めず一度だけ通知待ちへ保存する。"""
+        if date.fromisoformat(target_date).isoformat() != target_date:
+            raise ValueError('対象日が不正です')
+        payload = {'content': f'翌日{target_date}の準備を履歴確認で保留しました。X履歴の取得、台帳にない投稿、本文変更・消失、送信成否不明のいずれかを確認する必要があります。確認が済むまで生成・登録・公開へ進みません。',
+                   'allowed_mentions': {'parse': []}}
+        with self.transaction() as db:
+            # 既存の未送信候補がある場合も、履歴不明のまま旧承認で公開しない。
+            db.execute("UPDATE candidates SET state='changes_requested',actor=NULL,approved=NULL,nonce_hash=NULL,reason='history_hold' WHERE target_date=? AND state IN ('approved','approval_pending')", (target_date,))
+            db.execute("UPDATE notices SET state='obsolete' WHERE target_date=? AND state='pending' AND kind='approval'", (target_date,))
+            db.execute("INSERT OR IGNORE INTO notices(target_date,slot,revision,kind,payload,created) VALUES(?,'all',0,'history_hold',?,?)",
+                       (target_date, json.dumps(payload, ensure_ascii=False), instant(now).timestamp()))
+
     def claim_preparation(self, target_date: str, now: datetime) -> bool:
         """生成中に再起動しても自動再登録しない。再開は人が照合する。"""
         with self.transaction() as db:

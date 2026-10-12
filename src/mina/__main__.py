@@ -264,8 +264,7 @@ def main():
         history = args.history or Path(os.getenv('MINA_HISTORY_FILE', '/var/lib/mina-agent/readiness.json'))
         evidence = args.evidence or history
         if os.getenv('MINA_HISTORY_AUTO_ENABLED', 'false').lower() == 'true':
-            from .automatic_history import refresh_history
-            from .readiness import read_json
+            from .automatic_history import prepare_history
             now = datetime.now(UTC)
             target = (now.astimezone(JST).date() + timedelta(days=1)).isoformat()
             # 履歴取得も19時から20時の準備窓内に限定する。
@@ -273,9 +272,9 @@ def main():
                 raise ValueError('自動履歴取得は19時の準備窓内だけです')
             base = Path(os.getenv('MINA_HISTORY_DIRECTORY', '/var/lib/mina-agent/history'))
             base.mkdir(parents=True, exist_ok=True, mode=0o700)
-            history = refresh_history(args.database, target, base / (now.strftime('%Y%m%dT%H%M%S%fZ') + '.json'),
-                                      read_json(Path(os.getenv('MINA_HISTORY_BOOTSTRAP', '/var/lib/mina-agent/history-bootstrap.json'))),
-                                      read_json(Path(os.getenv('MINA_CUTOVER_FILE', '/var/lib/mina-agent/cutover.json'))),
+            history = prepare_history(store, args.database, target, base / (now.strftime('%Y%m%dT%H%M%S%fZ') + '.json'),
+                                      Path(os.getenv('MINA_HISTORY_BOOTSTRAP', '/var/lib/mina-agent/history-bootstrap.json')),
+                                      Path(os.getenv('MINA_CUTOVER_FILE', '/var/lib/mina-agent/cutover.json')),
                                       XClient(), lambda: datetime.now(UTC))
             evidence = history
         result = prepare_day(store, args.output or Path(os.getenv('MINA_PREPARE_DIRECTORY', '/var/lib/mina-agent/daily')),

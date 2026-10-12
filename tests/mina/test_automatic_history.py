@@ -1,11 +1,13 @@
 """日々の手入力なしで公開台帳を照合し、不明投稿を保留する。"""
 
 import tempfile
+import json
+from dataclasses import replace
 import unittest
 from datetime import datetime
 from pathlib import Path
 
-from src.mina.automatic_history import build_automatic_history, refresh_history
+from src.mina.automatic_history import build_automatic_history, refresh_history, prepare_history
 from src.mina.domain import ACCOUNT, JST
 from src.mina.store import Store
 from tests.mina.test_daily import candidate, NOW, HOST
@@ -67,3 +69,24 @@ class AutomaticHistoryTest(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             refresh_history(self.root/'db', '2026-10-10', self.root/'failed', self.bootstrap, self.cutover, client, lambda: self.now)
         self.assertFalse((self.root/'failed').exists())
+
+    def test_failed_history_queues_one_safe_notice_without_generation(self):
+        c = replace(candidate(), target_date='2026-10-10')
+        self.store.save(c, HOST, NOW)
+        (self.root/'bootstrap').write_text(json.dumps(self.bootstrap), encoding='utf-8')
+        (self.root/'cutover').write_text(json.dumps(self.cutover), encoding='utf-8')
+        client = Mock()
+        client.read_history.side_effect = RuntimeError('秘密値を含む応答原文')
+        for _ in range(2):
+            with self.assertRaisesRegex(ValueError, '生成・登録を開始していません'):
+                prepare_history(self.store, self.root/'db', '2026-10-10', self.root/'history.json',
+                                self.root/'bootstrap', self.root/'cutover', client, lambda: self.now)
+        notice = self.store.claim_notice()
+        self.assertEqual(notice['kind'], 'history_hold')
+        self.assertNotIn('秘密値', notice['payload'])
+        self.assertIsNone(self.store.claim_notice())
+        self.assertFalse((self.root/'history.json').exists())
+        with self.store.transaction() as db:
+            self.assertEqual(db.execute('SELECT COUNT(*) FROM preparation').fetchone()[0], 0)
+            row = db.execute('SELECT state,nonce_hash,actor FROM candidates').fetchone()
+            self.assertEqual(tuple(row), ('changes_requested', None, None))

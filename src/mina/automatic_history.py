@@ -10,7 +10,7 @@ from pathlib import Path
 from .artifact_backup import checked_path
 from .domain import ACCOUNT, Candidate, JST, instant
 from .encrypted_backup import save_new
-from .readiness import check_evidence
+from .readiness import check_evidence, read_json
 from .x_history import reconcile_timeline
 
 
@@ -82,3 +82,13 @@ def refresh_history(database, target, output, bootstrap, cutover, client, clock)
     evidence = build_automatic_history(database, snapshot, bootstrap, cutover, after)
     save_new(output, json.dumps(evidence, ensure_ascii=False, indent=2).encode())
     return Path(output)
+
+
+def prepare_history(store, database, target, output, bootstrap_path, cutover_path, client, clock):
+    """確認失敗を通知台帳へ固定する。外部応答の原文を通知・例外へ出さない。"""
+    try:
+        return refresh_history(database, target, output, read_json(bootstrap_path),
+                               read_json(cutover_path), client, clock)
+    except Exception:
+        store.queue_history_hold(target, clock())
+        raise ValueError('履歴確認を保留しました。生成・登録を開始していません') from None
