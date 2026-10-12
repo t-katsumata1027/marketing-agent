@@ -10,7 +10,8 @@ from .domain import JST
 from .readiness import check_evidence, read_json, release_commit
 
 STOP_FLAGS = ('MINA_AI_ENABLED', 'MINA_LIVE_WRITES', 'MINA_PUBLISH_ENABLED',
-              'MINA_APPROVAL_ENABLED', 'MINA_PREPARE_ENABLED', 'MINA_READ_REVIEW_ENABLED')
+              'MINA_APPROVAL_ENABLED', 'MINA_PREPARE_ENABLED', 'MINA_READ_REVIEW_ENABLED',
+              'MINA_X_HISTORY_READ_ENABLED', 'MINA_HISTORY_AUTO_ENABLED')
 
 
 def check_handover(root, commit, database, heartbeat, evidence, now, env=None):
@@ -52,7 +53,7 @@ def check_handover(root, commit, database, heartbeat, evidence, now, env=None):
                 'X認証先の実照合と承認された公開試験', 'Google OAuthの継続性',
                 '実1日分の所要時間と20時通知・Discord実操作', '旧予約・旧自動化の切替',
                 'Windows起動からの無人復帰・保護された別媒体の復旧', '正式CIと独立レビュー'],
-            'history_mode': '担当者が日々確認する14日履歴・旧予約証跡',
+            'history_mode': '初回履歴と旧予約停止を確認し、運用時はAgentが14日履歴を取得・照合する',
             'notes': ['設定の存在は認証成功の証明ではない',
                       '認証ファイルの存在は期限・無人実行の証明ではない',
                       '独立診断成功は外部処理の開始許可ではない']}
