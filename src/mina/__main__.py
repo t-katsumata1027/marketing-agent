@@ -113,13 +113,15 @@ def cycle(store: Store, now: datetime):
 
 def main():
     parser = argparse.ArgumentParser(description="みなの日次運用と承認の検証")
-    parser.add_argument("command", choices=("status", "doctor", "handover-check", "backup", "backup-artifacts", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
+    parser.add_argument("command", choices=("status", "doctor", "handover-check", "inspect-handoff", "backup", "backup-artifacts", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
     parser.add_argument("--database", default=os.getenv("MINA_DATABASE", "runtime/mina.sqlite3"))
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--draft", type=Path)
     parser.add_argument('--request-key')
     parser.add_argument('--review-round')
     parser.add_argument('--bindings', type=Path)
+    parser.add_argument('--contract-file', type=Path)
+    parser.add_argument('--producer-commit')
     parser.add_argument('--operation', choices=('meal_register', 'meal_correction', 'daily_share'), default='meal_register')
     parser.add_argument("--date")
     parser.add_argument("--history", type=Path)
@@ -153,6 +155,14 @@ def main():
         source = Path(os.getenv('MINA_PREPARE_DIRECTORY', '/var/lib/mina-agent/daily'))
         output = args.output or Path(args.database).parent / 'artifact-backups'
         print(json.dumps(backup_artifacts(source, output)))
+        return
+    if args.command == 'inspect-handoff':
+        if not args.manifest or not args.contract_file or not args.producer_commit:
+            parser.error('--manifest・--contract-file・--producer-commitが必要です')
+        from .handoff_packet import inspect_handoff
+        from .readiness import read_json
+        print(json.dumps(inspect_handoff(read_json(args.manifest), args.contract_file,
+                                        args.producer_commit), ensure_ascii=False, indent=2))
         return
     if args.command == 'verify-artifacts':
         from .artifact_backup import verify_artifacts

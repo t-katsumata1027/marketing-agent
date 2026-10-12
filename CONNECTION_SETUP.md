@@ -115,8 +115,6 @@ Google CloudでDrive APIを有効にし、OAuth同意画面と専用クライア
 
 公式資料: [アップロード](https://developers.google.com/workspace/drive/api/guides/manage-uploads)、[ダウンロード](https://developers.google.com/workspace/drive/api/guides/manage-downloads)、[オフラインOAuth認証](https://developers.google.com/identity/protocols/oauth2/web-server#offline)。
 
-## LogEats M1接続の準備
-
 ## 2026年10月12日・長期運用向けGoogle再認証
 
 本人の管理画面でGoogle OAuthを「外部／本番環境」へ変更したとの報告を受領した。設定元はLogEatsプロジェクトの専用OAuthクライアント。Googleの公開ステータスと審査完了は別であり、Googleデータの扱いを含む公開文書の整合は引き続き必要。
