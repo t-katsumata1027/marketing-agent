@@ -7,10 +7,26 @@ from pathlib import Path
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-from src.mina.encrypted_backup import seal_file, unseal_file
+from src.mina.encrypted_backup import create_recovery_keys, seal_file, unseal_file
 
 
 class EncryptedBackupTest(unittest.TestCase):
+    def test_key_creation_roundtrip_and_recipient_pin(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            report = create_recovery_keys(root/'keys', b'test-only-password-long')
+            (root/'source').write_bytes(b'recovery test')
+            with self.assertRaises(ValueError):
+                seal_file(root/'source', root/'wrong', root/'keys/public.pem', '0'*64)
+            self.assertFalse((root/'wrong').exists())
+            seal_file(root/'source', root/'sealed', root/'keys/public.pem', report['recipient_sha256'])
+            unseal_file(root/'sealed', root/'restored', root/'keys/private-encrypted.pem', b'test-only-password-long')
+            self.assertEqual((root/'restored').read_bytes(), b'recovery test')
+            with self.assertRaises(ValueError):
+                create_recovery_keys(root/'keys', b'test-only-password-long')
+            with self.assertRaises(ValueError):
+                create_recovery_keys(root/'invalid', b'short')
+            self.assertFalse((root/'invalid').exists())
     @classmethod
     def setUpClass(cls):
         cls.key = rsa.generate_private_key(public_exponent=65537, key_size=3072)

@@ -3,6 +3,7 @@
 import hashlib
 import os
 import struct
+import re
 from pathlib import Path
 
 from cryptography.hazmat.primitives import hashes, serialization
@@ -49,11 +50,53 @@ def save_new(path, raw):
         raise
 
 
-def seal_file(source, output, public_key_file):
+def create_recovery_keys(directory, password):
+    """メインPCの新規保護領域へ、暗号化秘密鍵とサーバー用公開鍵を作る。"""
+    if not isinstance(password, bytes) or not 16 <= len(password) <= 1024 or not password.strip():
+        raise ValueError('16バイト以上の復号用パスワードが必要です')
+    directory = checked_path(directory)
+    if directory.exists() or not directory.parent.is_dir():
+        raise ValueError('新規の鍵保存ディレクトリが必要です')
+    key = rsa.generate_private_key(public_exponent=65537, key_size=3072)
+    directory.mkdir(mode=0o700)
+    public = directory/'public.pem'
+    private = directory/'private-encrypted.pem'
+    try:
+        if os.name == 'nt':
+            import subprocess
+            system = Path(os.environ.get('SystemRoot', 'C:/Windows'))/'System32'
+            identity = subprocess.run([str(system/'whoami.exe'), '/user', '/fo', 'csv', '/nh'],
+                                      capture_output=True, timeout=10)
+            sid = re.search(rb'S-1-[0-9-]+', identity.stdout)
+            if identity.returncode or sid is None:
+                raise ValueError('Windowsの鍵保存主体を確認できません')
+            protected = subprocess.run([str(system/'icacls.exe'), str(directory), '/inheritance:r',
+                                        '/grant:r', '*'+sid[0].decode('ascii')+':(OI)(CI)F'],
+                                       capture_output=True, timeout=10)
+            if protected.returncode:
+                raise ValueError('Windowsの鍵保存ACLを設定できません')
+        save_new(public, key.public_key().public_bytes(serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo))
+        save_new(private, key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, serialization.BestAvailableEncryption(password)))
+    except Exception:
+        # この呼出しで作った新規ディレクトリ内の2ファイルだけを片付ける。
+        public.unlink(missing_ok=True)
+        private.unlink(missing_ok=True)
+        directory.rmdir()
+        raise
+    return {'recovery_keys_created': True, 'private_key_encrypted': True,
+            'local_key_directory_protected': True,
+            'recipient_sha256': hashlib.sha256(key.public_key().public_bytes(serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo)).hexdigest(),
+            'server_keys_installed': False}
+
+
+def seal_file(source, output, public_key_file, expected_recipient_sha256=None):
     """公開鍵で暗号化する。認証情報・鍵の本文を応答へ含めない。"""
     key = serialization.load_pem_public_key(read_regular(public_key_file, 16384))
     if not isinstance(key, rsa.RSAPublicKey) or key.key_size < 3072:
         raise ValueError('3072bit以上のRSA公開鍵が必要です')
+    recipient = hashlib.sha256(key.public_bytes(serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo)).hexdigest()
+    if expected_recipient_sha256 is not None and (not isinstance(expected_recipient_sha256, str) or not re.fullmatch(r'[0-9a-f]{64}', expected_recipient_sha256) or recipient != expected_recipient_sha256):
+        raise ValueError('復号先の公開鍵指紋が不一致です')
     content = read_regular(source, LIMIT)
     secret, nonce = AESGCM.generate_key(bit_length=256), os.urandom(12)
     wrapped = key.encrypt(secret, padding.OAEP(mgf=padding.MGF1(hashes.SHA256()), algorithm=hashes.SHA256(), label=MAGIC))
@@ -62,7 +105,7 @@ def seal_file(source, output, public_key_file):
     save_new(output, encrypted)
     return {'encrypted_backup_created': True, 'bytes': len(encrypted),
             'sha256': hashlib.sha256(encrypted).hexdigest(),
-            'recipient_sha256': hashlib.sha256(key.public_bytes(serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo)).hexdigest(),
+            'recipient_sha256': recipient,
             'drive_upload_performed': False}
 
 
