@@ -113,7 +113,7 @@ def cycle(store: Store, now: datetime):
 
 def main():
     parser = argparse.ArgumentParser(description="みなの日次運用と承認の検証")
-    parser.add_argument("command", choices=("status", "doctor", "handover-check", "inspect-handoff", "history-draft", "backup", "backup-artifacts", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
+    parser.add_argument("command", choices=("status", "doctor", "handover-check", "inspect-handoff", "history-draft", "backup", "backup-artifacts", "backup-encrypt", "backup-decrypt", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
     parser.add_argument("--database", default=os.getenv("MINA_DATABASE", "runtime/mina.sqlite3"))
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--draft", type=Path)
@@ -122,6 +122,7 @@ def main():
     parser.add_argument('--bindings', type=Path)
     parser.add_argument('--contract-file', type=Path)
     parser.add_argument('--producer-commit')
+    parser.add_argument('--backup-key', type=Path)
     parser.add_argument('--operation', choices=('meal_register', 'meal_correction', 'daily_share'), default='meal_register')
     parser.add_argument("--date")
     parser.add_argument("--history", type=Path)
@@ -131,6 +132,19 @@ def main():
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
+    if args.command in ('backup-encrypt', 'backup-decrypt'):
+        if not args.manifest or not args.output or not args.backup_key:
+            parser.error('--manifest・--output・--backup-keyが必要です')
+        from .encrypted_backup import seal_file, unseal_file
+        if args.command == 'backup-encrypt':
+            report = seal_file(args.manifest, args.output, args.backup_key)
+        else:
+            # 復号用パスワードをコマンド履歴・引数・環境変数へ保存しない。
+            from getpass import getpass
+            password = getpass('復号用秘密鍵のパスワード: ').encode('utf-8')
+            report = unseal_file(args.manifest, args.output, args.backup_key, password)
+        print(json.dumps(report, ensure_ascii=False))
+        return
     if args.command == "status":
         print(json.dumps(settings_status(), ensure_ascii=False))
         return
