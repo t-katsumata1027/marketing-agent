@@ -56,6 +56,18 @@ class AutomaticHistoryTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             build_automatic_history(self.root/'db', snapshot, self.bootstrap, self.cutover, self.now)
 
+    def test_reviewed_reply_matches_timeline_without_invented_food_history(self):
+        reply = {'id': '456', 'author_id': '99', 'created_at': '2026-10-08T07:30:00+09:00', 'text': '@someone ありがとうございます'}
+        snapshot = self.snapshot([reply])
+        self.bootstrap['entries'] = [{'x_id': '456', 'date': '2026-10-08', 'kind': 'other', 'publish_text': reply['text']}]
+        evidence = build_automatic_history(self.root/'db', snapshot, self.bootstrap, self.cutover, self.now)
+        self.assertEqual(evidence['entries'], [])
+        self.assertEqual(evidence['coverage_post_count'], 1)
+        self.assertEqual(evidence['reviewed_other_post_count'], 1)
+        self.bootstrap['entries'][0]['publish_text'] = '今日の食事解析結果 500kcal'
+        with self.assertRaises(ValueError):
+            build_automatic_history(self.root/'db', snapshot, self.bootstrap, self.cutover, self.now)
+
     def test_unresolved_publish_and_cutover_not_confirmed_hold(self):
         self.store.save(candidate(), HOST, NOW)
         with self.store.transaction() as db:

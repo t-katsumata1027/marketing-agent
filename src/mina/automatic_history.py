@@ -32,8 +32,15 @@ def build_automatic_history(database, snapshot, bootstrap, cutover, now):
     records = {}
     def add(row):
         key, recorded = row['x_id'], date.fromisoformat(row['date'])
-        if not isinstance(key, str) or not key.isdigit() or not all(isinstance(row.get(name), str) and row[name].strip() for name in ('menu', 'comment', 'publish_text')):
+        kind = row.get('kind', 'meal')
+        if kind not in ('meal', 'daily', 'other'):
+            raise ValueError('履歴の投稿種別を確認できません')
+        required = ('publish_text',) if kind == 'other' else ('menu', 'comment', 'publish_text')
+        if not isinstance(key, str) or not key.isdigit() or not all(isinstance(row.get(name), str) and row[name].strip() for name in required):
             raise ValueError('公開履歴の対応が不正です')
+        if kind == 'other' and any(marker in row['publish_text'] for marker in ('今日の食事解析結果', '今日1日の食事まとめ')):
+            raise ValueError('食事投稿を交流投稿として除外できません')
+        row = {**row, 'kind': kind}
         if first <= recorded < day:
             if key in records and records[key] != row:
                 raise ValueError('公開履歴の対応が競合しています')
@@ -54,7 +61,8 @@ def build_automatic_history(database, snapshot, bootstrap, cutover, now):
             if candidate.account != ACCOUNT or candidate.target_date != recorded or candidate.slot != slot or candidate.digest != digest:
                 raise ValueError('公開台帳が変更されています')
             add({'x_id': key, 'date': recorded, 'menu': candidate.menu,
-                 'comment': candidate.comment, 'publish_text': candidate.content})
+                 'comment': candidate.comment, 'publish_text': candidate.content,
+                 'kind': 'daily' if slot == 'daily' else 'meal'})
     comparison = reconcile_timeline(snapshot, list(records.values()))
     if not comparison['timeline_matches_ledger']:
         raise ValueError('外部投稿・消失・本文変更の確認が必要です')
@@ -66,7 +74,9 @@ def build_automatic_history(database, snapshot, bootstrap, cutover, now):
                 'schedule_source': '旧予約ゼロ・旧生成停止の切替確認',
                 'history_complete': True, 'legacy_schedule_clear': True,
                 'history_from': first.isoformat(), 'history_to': (day-timedelta(days=1)).isoformat(),
-                'entries': [{k: row[k] for k in ('date','menu','comment','x_id')} for row in records.values()],
+                'entries': [{k: row[k] for k in ('date','menu','comment','x_id')} for row in records.values() if row['kind'] != 'other'],
+                'coverage_post_count': len(records),
+                'reviewed_other_post_count': sum(row['kind'] == 'other' for row in records.values()),
                 'timeline_sha256': hashlib.sha256(json.dumps(snapshot, sort_keys=True, ensure_ascii=False).encode()).hexdigest(),
                 'history_observed_until': observed_until.isoformat(),
                 'cutover_sha256': hashlib.sha256(json.dumps(cutover, sort_keys=True, ensure_ascii=False).encode()).hexdigest()}
