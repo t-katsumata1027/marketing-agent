@@ -33,7 +33,7 @@ def diagnose(database: str | Path, heartbeat: str | Path, now: datetime, env=Non
     report = {
         "target_date": target,
         "switches": {key: env.get(key, "false").lower() == "true" for key in
-                     ("MINA_LIVE_WRITES", "MINA_APPROVAL_ENABLED", "MINA_PUBLISH_ENABLED", "MINA_PREPARE_ENABLED", "MINA_READ_REVIEW_ENABLED")},
+                     ("MINA_AI_ENABLED", "MINA_LIVE_WRITES", "MINA_APPROVAL_ENABLED", "MINA_PUBLISH_ENABLED", "MINA_PREPARE_ENABLED", "MINA_READ_REVIEW_ENABLED")},
         "connections": {name: {"configured": all(env.get(key, "").strip() for key in keys),
                                "missing": [key for key in keys if not env.get(key, "").strip()]}
                         for name, keys in groups.items()},

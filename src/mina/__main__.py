@@ -113,7 +113,7 @@ def cycle(store: Store, now: datetime):
 
 def main():
     parser = argparse.ArgumentParser(description="みなの日次運用と承認の検証")
-    parser.add_argument("command", choices=("status", "doctor", "backup", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
+    parser.add_argument("command", choices=("status", "doctor", "handover-check", "backup", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
     parser.add_argument("--database", default=os.getenv("MINA_DATABASE", "runtime/mina.sqlite3"))
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--draft", type=Path)
@@ -139,6 +139,14 @@ def main():
     if args.command == 'backup':
         from .backup import backup_database
         print(json.dumps(backup_database(args.database, args.output or Path(args.database).parent / 'backups')))
+        return
+    if args.command == 'handover-check':
+        from .handover import check_handover
+        report = check_handover(Path(__file__).resolve().parents[2], args.source_commit,
+                  args.database, os.getenv('MINA_HEARTBEAT', 'runtime/mina.heartbeat'),
+                  args.evidence or Path(os.getenv('MINA_HISTORY_FILE', '/var/lib/mina-agent/readiness.json')),
+                  datetime.now(UTC))
+        print(json.dumps(report, ensure_ascii=False, indent=2))
         return
     if args.command == 'request-status':
         if os.getenv('MINA_READ_REVIEW_ENABLED', 'false').lower() != 'true':
