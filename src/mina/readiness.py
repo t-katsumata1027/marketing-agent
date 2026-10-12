@@ -24,7 +24,9 @@ def release_commit(root, commit):
     root = Path(root).resolve()
     if not isinstance(commit, str) or not re.fullmatch(r'[0-9a-f]{40}', commit):
         raise ValueError('実装commitが必要です')
-    tree = subprocess.run(['git', '-C', str(root), 'ls-tree', '-r', '--name-only', commit],
+    # root所有のサービス配置を専用ユーザーから読む。この呼出しの正確な配置先だけを信頼する。
+    git_command=['git','-c','safe.directory='+str(root),'-C',str(root)]
+    tree = subprocess.run([*git_command, 'ls-tree', '-r', '--name-only', commit],
                           capture_output=True, timeout=10)
     if tree.returncode:
         raise ValueError('実装commitを確認できません')
@@ -42,7 +44,7 @@ def release_commit(root, commit):
         raise ValueError('配布コードを確認できません')
     for path in paths:
         relative = path.relative_to(root).as_posix()
-        result = subprocess.run(['git', '-C', str(root), 'show', f'{commit}:{relative}'],
+        result = subprocess.run([*git_command, 'show', f'{commit}:{relative}'],
                                 capture_output=True, timeout=10)
         if result.returncode or path.is_symlink() or result.stdout.replace(b'\r\n', b'\n') != path.read_bytes().replace(b'\r\n', b'\n'):
             raise ValueError('配布コードが指定commitと一致しません')

@@ -243,3 +243,9 @@ SQLite・成果物・認証を一つの整合した復旧セットへ固定す�
 - サブPCで停止スイッチ8件false、接続設定の不足なし、heartbeat正常、SQLite整合性正常、候補0件、prepare timer停止、GitHub runner2件稼働を再確認した。
 - 固定7b4d5bbを別のroot所有配置へcloneし、既存CLIのコピー、固定依存の新venv、pip check、コード版照合を完了。稼働コード・サービス・設定・台帳は未切替。
 - Windows既存LogEatsWSLRunnerAutostartのboot trigger、Passwordログオン、ログオンtriggerなし、StartWhenAvailable、1分再試行を読取確認した。CIM経路はアクセス拒否だったため、schtasksの読取で確認。設定変更・Windows再起動は行わず、実無人復帰の成功にはしない。
+
+### 実準備処理とサービス所有権の確認
+
+- 固定a5817afの実prepare_imagesを診断用SQLiteで実行。朝食は生成205.475秒・点検21.229秒で合格、昼食は62.117秒・8.683秒でcontext_mismatch保留。準備処理が停止し、夕食・登録・公開へ進んでいない。全体298.115秒、3画像の準備受入は未完了。単純に保留を合格へ変えない。
+- root所有の未稼働候補をmina-agentユーザーから照合したところ、Gitの所有権保護でrelease_commitが失敗した。各読取Gitコマンドに、その正確な配置先だけのprocess限定safe.directoryを追加した。グローバル設定や全ディレクトリの信頼は変更しない。関連15件が成功。サービスユーザーでの実再確認はこれから。
+- ユーザーから、最新コードの停止配置後、稼働中のCIがないことを確認してWindows再起動する許可を受領。画像確認処理とCIの終了確認後に実施する。現時点では再起動未実施。
