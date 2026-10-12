@@ -19,6 +19,9 @@ def build_automatic_history(database, snapshot, bootstrap, cutover, now):
     target = snapshot['target_date']
     day = date.fromisoformat(target)
     first = day - timedelta(days=14)
+    observed_until = instant(datetime.fromisoformat(snapshot['read_until']))
+    if not timedelta(seconds=30) <= instant(now) - observed_until <= timedelta(seconds=151):
+        raise ValueError('履歴の実観測終端が古いか不正です')
     if cutover.get('account') != ACCOUNT or cutover.get('old_reservations_zero') is not True or cutover.get('old_generation_stopped') is not True or not isinstance(cutover.get('confirmed_by'), str) or not cutover['confirmed_by'].strip():
         raise ValueError('旧予約・旧生成停止の切替確認が必要です')
     confirmed = instant(datetime.fromisoformat(cutover['confirmed_at']))
@@ -65,6 +68,7 @@ def build_automatic_history(database, snapshot, bootstrap, cutover, now):
                 'history_from': first.isoformat(), 'history_to': (day-timedelta(days=1)).isoformat(),
                 'entries': [{k: row[k] for k in ('date','menu','comment','x_id')} for row in records.values()],
                 'timeline_sha256': hashlib.sha256(json.dumps(snapshot, sort_keys=True, ensure_ascii=False).encode()).hexdigest(),
+                'history_observed_until': observed_until.isoformat(),
                 'cutover_sha256': hashlib.sha256(json.dumps(cutover, sort_keys=True, ensure_ascii=False).encode()).hexdigest()}
     check_evidence(evidence, target, now)
     return evidence

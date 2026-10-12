@@ -2,6 +2,7 @@
 
 import unittest
 import os
+from datetime import datetime, UTC
 from unittest.mock import patch, Mock
 
 from src.mina.x_history import collect_timeline, reconcile_timeline
@@ -20,6 +21,14 @@ def page(data, token=None):
 
 
 class XHistoryTest(unittest.TestCase):
+    def test_next_day_query_ends_before_observation_time(self):
+        calls = []
+        def fetch(*a, **params):
+            calls.append(params)
+            return page([])
+        result = collect_timeline(fetch, '99', '2026-10-13', as_of=datetime(2026, 10, 12, 10, microsecond=123456, tzinfo=UTC))
+        self.assertEqual(calls[0]['end_time'], '2026-10-12T09:59:30Z')
+        self.assertEqual(result['read_until'], '2026-10-12T09:59:30+00:00')
     def test_disabled_reader_does_not_contact_sdk(self):
         from src.mina.clients import XClient
         client = XClient.__new__(XClient)
@@ -36,7 +45,7 @@ class XHistoryTest(unittest.TestCase):
             return page([post()], 'next') if len(calls) == 1 else page([post('2')])
         result = collect_timeline(fetch, '99', '2026-10-12')
         self.assertEqual(calls[1]['pagination_token'], 'next')
-        self.assertEqual(calls[0]['start_time'], '2026-09-27T15:00:00+00:00')
+        self.assertEqual(calls[0]['start_time'], '2026-09-27T15:00:00Z')
         rows = [{'x_id': key, 'publish_text': '本文 https://www.log-eats.com/s/a'} for key in ('1', '2')]
         checked = reconcile_timeline(result, rows)
         self.assertTrue(checked['timeline_matches_ledger'])

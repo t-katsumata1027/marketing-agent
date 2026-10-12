@@ -1,19 +1,25 @@
 """X履歴を全ページ確認し、公開台帳と照合する。予約不存在は推測しない。"""
 
 import re
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 from .domain import ACCOUNT, JST, instant
 
 
-def collect_timeline(fetch_page, account_id, target, *, max_pages=40):
+def collect_timeline(fetch_page, account_id, target, *, max_pages=40, as_of=None):
     """注入された読取処理を使う。ページ欠落・重複・上限到達で停止する。"""
     day = date.fromisoformat(target)
     if day.isoformat() != target or not isinstance(account_id, str) or not account_id.isdigit():
         raise ValueError('履歴の対象が不正です')
     start = datetime.combine(day - timedelta(days=14), datetime.min.time(), JST)
     end = datetime.combine(day, datetime.min.time(), JST)
-    params = {'start_time': instant(start).isoformat(), 'end_time': instant(end).isoformat(),
+    # 翌日の準備では対象日の0時が未来になる。APIへ未来の終端を送らない。
+    # 配信直後の反映待ちも含め、照会開始の30秒前を観測終端として固定する。
+    end = min(instant(end), instant(as_of or datetime.now(UTC)) - timedelta(seconds=30))
+    end = end.replace(microsecond=0)
+    if instant(start) >= end:
+        raise ValueError('履歴の観測期間が不正です')
+    params = {'start_time': instant(start).strftime('%Y-%m-%dT%H:%M:%SZ'), 'end_time': end.strftime('%Y-%m-%dT%H:%M:%SZ'),
               'max_results': 100, 'tweet_fields': ['author_id', 'created_at', 'entities', 'note_tweet']}
     posts, identifiers, tokens = [], set(), set()
     for _ in range(max_pages):
@@ -38,6 +44,7 @@ def collect_timeline(fetch_page, account_id, target, *, max_pages=40):
             token = meta.get('next_token')
             if token is None:
                 return {'account': ACCOUNT, 'target_date': target, 'posts': posts,
+                        'read_until': end.isoformat(),
                         'timeline_pages_complete': True, 'legacy_schedule_verified': False}
             if not isinstance(token, str) or not token or token in tokens or not data:
                 raise ValueError()

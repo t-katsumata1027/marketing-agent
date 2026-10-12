@@ -27,7 +27,14 @@ class AutomaticHistoryTest(unittest.TestCase):
         self.bootstrap = {'account': ACCOUNT, 'reviewed': True, 'reviewer': '運用者', 'entries': []}
 
     def snapshot(self, posts):
-        return collect_timeline(lambda *a, **k: {'data': posts, 'meta': {'result_count': len(posts)}}, '99', '2026-10-10')
+        return collect_timeline(lambda *a, **k: {'data': posts, 'meta': {'result_count': len(posts)}}, '99', '2026-10-10', as_of=self.now)
+
+    def test_stale_or_future_observation_end_is_not_current_history(self):
+        snapshot = self.snapshot([])
+        for value in ('2026-10-08T10:00:00+00:00', '2026-10-09T11:00:00+00:00'):
+            snapshot['read_until'] = value
+            with self.assertRaises(ValueError):
+                build_automatic_history(self.root/'db', snapshot, self.bootstrap, self.cutover, self.now)
 
     def test_published_ledger_and_actual_timeline_produce_readiness(self):
         c = candidate()
