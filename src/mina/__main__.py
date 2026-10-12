@@ -140,13 +140,20 @@ def main():
             parser.error('--outputに新規の保護フォルダーを指定してください')
         import sys
         if not sys.stdin.isatty():
-            raise ValueError('復号用パスワードは本人の対話端末で入力してください')
+            parser.error('PowerShellなど、本人が入力できる端末で実行してください')
         from getpass import getpass
         from .encrypted_backup import create_recovery_keys
-        first = getpass('復号用パスワード（チャットに送らない）: ')
+        first = getpass('復号用パスワード（半角英数字20文字以上を推奨。チャットに送らない）: ')
         if first != getpass('同じパスワードを再入力: '):
-            raise ValueError('復号用パスワードが一致しません')
-        print(json.dumps(create_recovery_keys(args.output, first.encode('utf-8')), ensure_ascii=False))
+            parser.error('2回の入力が一致しません。鍵は作成していません。同じパスワードでやり直してください')
+        encoded = first.encode('utf-8')
+        if not 16 <= len(encoded) <= 1024 or not encoded.strip():
+            parser.error('パスワードが短すぎるか長すぎます。鍵は作成していません。半角英数字20文字以上の新しいパスワードを保管してからやり直してください')
+        try:
+            report = create_recovery_keys(args.output, encoded)
+        except ValueError as error:
+            parser.error(str(error))
+        print(json.dumps(report, ensure_ascii=False))
         return
     if args.command in ('backup-encrypt', 'backup-decrypt'):
         if not args.manifest or not args.output or not args.backup_key:

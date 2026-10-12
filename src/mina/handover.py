@@ -5,14 +5,9 @@ import subprocess
 from datetime import timedelta
 from pathlib import Path
 
-from .diagnostics import diagnose
+from .diagnostics import diagnose, STOP_FLAGS
 from .domain import JST
 from .readiness import check_evidence, read_json, release_commit
-
-STOP_FLAGS = ('MINA_AI_ENABLED', 'MINA_LIVE_WRITES', 'MINA_PUBLISH_ENABLED',
-              'MINA_APPROVAL_ENABLED', 'MINA_PREPARE_ENABLED', 'MINA_READ_REVIEW_ENABLED',
-              'MINA_X_HISTORY_READ_ENABLED', 'MINA_HISTORY_AUTO_ENABLED')
-
 
 def check_handover(root, commit, database, heartbeat, evidence, now, env=None):
     """設定の存在や自己申告だけでは本番開始可能としない。秘密値は返さない。"""

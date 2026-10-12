@@ -2,6 +2,8 @@
 
 import tempfile
 import unittest
+import io
+from unittest.mock import patch
 from pathlib import Path
 
 from cryptography.hazmat.primitives import serialization
@@ -11,6 +13,22 @@ from src.mina.encrypted_backup import create_recovery_keys, seal_file, unseal_fi
 
 
 class EncryptedBackupTest(unittest.TestCase):
+    def test_short_password_has_safe_cli_message_without_creating_keys(self):
+        from src.mina.__main__ import main
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)/'keys'
+            error = io.StringIO()
+            with patch('sys.argv', ['mina', 'backup-keygen', '--output', str(output)]), \
+                 patch('sys.stdin.isatty', return_value=True), \
+                 patch('getpass.getpass', return_value='test-only-short'), \
+                 patch('sys.stderr', error), self.assertRaises(SystemExit) as stopped:
+                main()
+            self.assertEqual(stopped.exception.code, 2)
+            self.assertIn('鍵は作成していません', error.getvalue())
+            self.assertNotIn('test-only-short', error.getvalue())
+            self.assertNotIn('Traceback', error.getvalue())
+            self.assertFalse(output.exists())
+
     def test_key_creation_roundtrip_and_recipient_pin(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

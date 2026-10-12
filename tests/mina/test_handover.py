@@ -14,6 +14,13 @@ from tests.mina.test_daily import NOW
 
 
 class HandoverTest(unittest.TestCase):
+    def test_all_required_stop_switches_are_defined(self):
+        expected = {'MINA_AI_ENABLED', 'MINA_LIVE_WRITES', 'MINA_PUBLISH_ENABLED',
+                    'MINA_APPROVAL_ENABLED', 'MINA_PREPARE_ENABLED', 'MINA_READ_REVIEW_ENABLED',
+                    'MINA_X_HISTORY_READ_ENABLED', 'MINA_HISTORY_AUTO_ENABLED'}
+        self.assertEqual(set(STOP_FLAGS), expected)
+        self.assertEqual(len(STOP_FLAGS), 8)
+
     def test_missing_files_do_not_create_database_or_leak_values(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

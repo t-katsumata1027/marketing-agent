@@ -68,7 +68,8 @@ def prepare_images(store, draft_path: Path, directory: Path, client):
         def generate():
             if path.exists() or path.is_symlink():
                 raise ValueError("既存の画像を自動上書きしません")
-            raw = client.image(meal["image_description"])
+            from .generation import meal_image_description
+            raw = client.image(meal_image_description(meal))
             with path.open("xb") as file:
                 file.write(raw)
             return {"path": str(path.resolve()), "sha256": hashlib.sha256(raw).hexdigest(), "size": len(raw)}

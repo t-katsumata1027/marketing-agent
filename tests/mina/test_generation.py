@@ -9,7 +9,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 from urllib.error import HTTPError
 
-from src.mina.generation import OpenAIClient, draft_day, validate_plan
+from src.mina.generation import OpenAIClient, draft_day, validate_plan, meal_image_description
 
 
 def plan():
@@ -21,6 +21,16 @@ def plan():
 
 
 class GenerationTest(unittest.TestCase):
+    def test_image_input_preserves_food_amounts_and_style_priority(self):
+        meal = plan()['meals']['breakfast']
+        meal['image_description'] = '真上から撮影。料理を盛る。'
+        prompt = meal_image_description(meal)
+        context = json.loads(prompt.split('\n', 1)[1])
+        self.assertEqual(context['foods'], meal['foods'])
+        self.assertEqual(context['menu'], meal['menu'])
+        self.assertIn('固定の撮影スタイルを最優先', prompt)
+        self.assertIn('固定スタイルを変更しない', prompt)
+
     def test_disabled_ai_does_not_connect(self):
         with patch.dict("os.environ", {"OPENAI_API_KEY": "private-key", "MINA_AI_ENABLED": "false"}), patch("src.mina.generation.urlopen") as request:
             with self.assertRaises(RuntimeError):

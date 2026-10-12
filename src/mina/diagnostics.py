@@ -21,6 +21,9 @@ SETTING_GROUPS = {
 CANDIDATE_STATES = ("approval_pending", "approved", "changes_requested", "cancelled",
                     "dispatching", "published", "outcome_unknown", "expired")
 NOTICE_STATES = ("pending", "sending", "sent", "outcome_unknown", "obsolete")
+STOP_FLAGS = ('MINA_AI_ENABLED', 'MINA_LIVE_WRITES', 'MINA_PUBLISH_ENABLED',
+              'MINA_APPROVAL_ENABLED', 'MINA_PREPARE_ENABLED', 'MINA_READ_REVIEW_ENABLED',
+              'MINA_X_HISTORY_READ_ENABLED', 'MINA_HISTORY_AUTO_ENABLED')
 
 
 def diagnose(database: str | Path, heartbeat: str | Path, now: datetime, env=None):
@@ -32,8 +35,7 @@ def diagnose(database: str | Path, heartbeat: str | Path, now: datetime, env=Non
     target = (now.astimezone(JST).date() + timedelta(days=1)).isoformat()
     report = {
         "target_date": target,
-        "switches": {key: env.get(key, "false").lower() == "true" for key in
-                     ("MINA_AI_ENABLED", "MINA_LIVE_WRITES", "MINA_APPROVAL_ENABLED", "MINA_PUBLISH_ENABLED", "MINA_PREPARE_ENABLED", "MINA_READ_REVIEW_ENABLED", "MINA_X_HISTORY_READ_ENABLED", "MINA_HISTORY_AUTO_ENABLED")},
+        "switches": {key: env.get(key, "false").lower() == "true" for key in STOP_FLAGS},
         "connections": {name: {"configured": all(env.get(key, "").strip() for key in keys),
                                "missing": [key for key in keys if not env.get(key, "").strip()]}
                         for name, keys in groups.items()},
