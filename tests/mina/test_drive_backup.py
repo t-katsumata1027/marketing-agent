@@ -108,3 +108,22 @@ class DriveBackupTest(unittest.TestCase):
         (self.root/'sealed').write_bytes(b'plain-credentials')
         with self.assertRaises(ValueError):self.upload()
         self.client._send.assert_not_called()
+
+    def test_uploaded_record_failure_stays_unknown_and_never_reposts(self):
+        self.success()
+        original=self.client._update
+        def fail_uploaded(path,state):
+            if state['state']=='uploaded':raise OSError('試験用の保存失敗')
+            return original(path,state)
+        with patch.object(self.client,'_update',side_effect=fail_uploaded),patch('src.mina.drive_backup.CHUNK',262144):
+            with self.assertRaises(OutcomeUnknown):self.upload()
+        self.assertEqual(json.loads((self.root/'journal').read_text())['state'],'outcome_unknown')
+        calls=self.client._send.call_count
+        with self.assertRaises(OutcomeUnknown):self.upload()
+        self.assertEqual(self.client._send.call_count,calls)
+
+    def test_secondary_journal_failure_does_not_expose_raw_exception(self):
+        self.client._send=Mock(side_effect=TimeoutError('試験用'))
+        with patch.object(self.client,'_update',side_effect=OSError('秘密を含む可能性のある生の例外')):
+            with self.assertRaisesRegex(OutcomeUnknown,'^backup_upload_unknown$'):self.upload()
+        self.assertEqual(json.loads((self.root/'journal').read_text())['state'],'started')

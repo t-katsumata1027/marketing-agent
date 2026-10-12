@@ -115,7 +115,7 @@ def cycle(store: Store, now: datetime):
 
 def main():
     parser = argparse.ArgumentParser(description="みなの日次運用と承認の検証")
-    parser.add_argument("command", choices=("status", "doctor", "handover-check", "inspect-handoff", "history-draft", "backup", "backup-artifacts", "backup-keygen", "backup-encrypt", "backup-decrypt", "backup-create-set", "backup-restore-set", "backup-upload", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
+    parser.add_argument("command", choices=("status", "doctor", "handover-check", "inspect-handoff", "history-draft", "backup", "backup-artifacts", "backup-keygen", "backup-encrypt", "backup-decrypt", "backup-create-set", "backup-restore-set", "backup-upload", "backup-run", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
     parser.add_argument("--database", default=os.getenv("MINA_DATABASE", "runtime/mina.sqlite3"))
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--draft", type=Path)
@@ -137,6 +137,17 @@ def main():
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
+    if args.command == 'backup-run':
+        if not args.manifest or not args.source_commit:
+            parser.error('--manifestに私有の対象設定、--source-commitに固定コード版が必要です')
+        from .drive_backup import require_backup_upload
+        from .backup_job import run_backup_job
+        from .drive import DriveClient
+        from .readiness import read_json,release_commit
+        require_backup_upload()
+        release_commit(Path(__file__).resolve().parents[2],args.source_commit)
+        print(json.dumps(run_backup_job(read_json(args.manifest),DriveClient.from_env(),args.source_commit),ensure_ascii=False))
+        return
     if args.command == 'backup-upload':
         if not all((args.manifest,args.output,args.backup_sha256,args.backup_filename,args.source_commit)):
             parser.error('--manifest・--output・--backup-sha256・--backup-filename・--source-commitが必要です')

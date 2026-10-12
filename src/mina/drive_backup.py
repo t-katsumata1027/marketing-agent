@@ -135,8 +135,10 @@ class BackupDriveClient:
                     'Content-Length':str(end-offset),'Content-Range':f'bytes {offset}-{end-1}/{len(raw)}'})
                 if code in (200,201):
                     if end!=len(raw):raise OutcomeUnknown('backup_upload_unknown')
-                    state.update(state='uploaded',file_id=self.drive._id(json.loads(response)['id']))
-                    self._update(journal,state)
+                    uploaded={**state,'state':'uploaded','file_id':self.drive._id(json.loads(response)['id'])}
+                    uploaded.pop('session_url',None)
+                    self._update(journal,uploaded)
+                    state=uploaded
                     break
                 match=re.fullmatch(r'bytes=0-(\d+)',headers.get('Range',headers.get('range','')))
                 if code!=308 or not match or not offset<int(match[1])+1<=end or int(match[1])+1>=len(raw):
@@ -148,7 +150,12 @@ class BackupDriveClient:
                 raise OutcomeUnknown('backup_upload_unknown')
         except Exception:
             if state.get('state')!='uploaded':
-                state['state']='outcome_unknown';self._update(journal,state)
+                state['state']='outcome_unknown'
+                try:
+                    self._update(journal,state)
+                except Exception:
+                    # 台帳の保存失敗でも生の例外を漏らさず、再送は禁止する。
+                    pass
             raise OutcomeUnknown('backup_upload_unknown') from None
         result=self.verify(state['file_id'],raw,filename,sha)
         self._update(journal,{**state,'state':'verified'})
