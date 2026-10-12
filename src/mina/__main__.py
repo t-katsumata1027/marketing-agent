@@ -113,7 +113,7 @@ def cycle(store: Store, now: datetime):
 
 def main():
     parser = argparse.ArgumentParser(description="みなの日次運用と承認の検証")
-    parser.add_argument("command", choices=("status", "doctor", "handover-check", "backup", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
+    parser.add_argument("command", choices=("status", "doctor", "handover-check", "backup", "backup-artifacts", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
     parser.add_argument("--database", default=os.getenv("MINA_DATABASE", "runtime/mina.sqlite3"))
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--draft", type=Path)
@@ -147,6 +147,18 @@ def main():
                   args.evidence or Path(os.getenv('MINA_HISTORY_FILE', '/var/lib/mina-agent/readiness.json')),
                   datetime.now(UTC))
         print(json.dumps(report, ensure_ascii=False, indent=2))
+        return
+    if args.command == 'backup-artifacts':
+        from .artifact_backup import backup_artifacts
+        source = Path(os.getenv('MINA_PREPARE_DIRECTORY', '/var/lib/mina-agent/daily'))
+        output = args.output or Path(args.database).parent / 'artifact-backups'
+        print(json.dumps(backup_artifacts(source, output)))
+        return
+    if args.command == 'verify-artifacts':
+        from .artifact_backup import verify_artifacts
+        if not args.manifest:
+            parser.error('--manifestに復元候補ディレクトリが必要です')
+        print(json.dumps(verify_artifacts(args.manifest)))
         return
     if args.command == 'request-status':
         if os.getenv('MINA_READ_REVIEW_ENABLED', 'false').lower() != 'true':
