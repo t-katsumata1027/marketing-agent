@@ -53,6 +53,34 @@ class TimingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             verify_source(c, client, 'www.log-eats.com', capture, clock=lambda: self.time)
 
+    def test_final_state_follows_image_and_stops_changed_day(self):
+        c, client, capture = self.setup_preflight()
+        original = client.day_state.side_effect
+        calls = []
+        def state(target):
+            calls.append('state')
+            result = original(target)
+            if len(calls) > 1:
+                result['state_version'] = 'sv1_' + 'f' * 64
+            return result
+        client.day_state.side_effect = state
+        snapshot = capture.return_value
+        def image(*args):
+            calls.append('image')
+            return snapshot
+        capture.side_effect = image
+        with self.assertRaisesRegex(ValueError, '画像照合中'):
+            verify_source(c, client, 'www.log-eats.com', capture, clock=lambda: self.time)
+        self.assertEqual(calls, ['state', 'image', 'state'])
+
+    def test_final_state_read_failure_stops_publication(self):
+        c, client, capture = self.setup_preflight()
+        first = client.day_state.side_effect(c.target_date)
+        client.day_state.side_effect = [first, RuntimeError('meal_state_read_failed')]
+        with self.assertRaises(RuntimeError):
+            verify_source(c, client, 'www.log-eats.com', capture, clock=lambda: self.time)
+        capture.assert_called_once()
+
     def test_preflight_crosses_publish_grace_and_revokes_approval(self):
         c, _ = self.approve()
         client = Mock()

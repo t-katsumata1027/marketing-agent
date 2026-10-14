@@ -204,6 +204,11 @@ def verify_source(candidate, client, host, capture, now=None, clock=None, timer=
     if (snapshot['digest'] != candidate.ogp_sha256 or snapshot['meta']['og:image'] != ogp['image_url'] or
             snapshot['meta']['image_sha256'] != ogp['image_sha256']):
         raise ValueError('承認したOGPと現在の実画像が一致しません')
+    # 実画像取得中の正本変更を、最後の対象日照会で検出する。
+    final_state = client.day_state(candidate.target_date)
+    if (validate_state(final_state, candidate.target_date, clock()) != current or
+            final_state['meal_count'] != 3):
+        raise ValueError('画像照合中に日全体の正本が変更されています')
     finished = instant(clock())
     finished_monotonic = timer()
     elapsed = finished_monotonic - started_monotonic
@@ -211,8 +216,8 @@ def verify_source(candidate, client, host, capture, now=None, clock=None, timer=
         raise ValueError('公開前照合の単調時計の時間窓を超えています')
     if not 0 <= (finished - started).total_seconds() <= 120:
         raise ValueError('公開前照合の時間窓を超えています')
-    validate_state(state, candidate.target_date, finished)
+    validate_state(final_state, candidate.target_date, finished)
     validate_ogp(result, host, candidate.slot == 'daily', finished)
-    return {'started_at': started.isoformat(), 'checked_at': state['checked_at'],
+    return {'started_at': started.isoformat(), 'checked_at': final_state['checked_at'],
             'observed_at': finished.isoformat(), 'expires_at': ogp['expires_at'],
             'started_monotonic': started_monotonic, 'observed_monotonic': finished_monotonic}
