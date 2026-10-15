@@ -9,7 +9,7 @@ from dataclasses import asdict
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from .domain import Candidate, JST, approval_time, date, instant
+from .domain import Candidate, JST, LABELS, approval_time, date, instant
 
 
 class Store:
@@ -116,7 +116,8 @@ class Store:
             return []
         issued = []
         with self.transaction() as db:
-            rows = db.execute("SELECT * FROM candidates WHERE target_date=? AND state='approval_pending' AND scheduled>?", (target_date, timestamp)).fetchall()
+            rows = db.execute("""SELECT * FROM candidates WHERE target_date=? AND state='approval_pending' AND scheduled>?
+                ORDER BY CASE slot WHEN 'breakfast' THEN 1 WHEN 'lunch' THEN 2 WHEN 'dinner' THEN 3 ELSE 4 END""", (target_date, timestamp)).fetchall()
             for row in rows:
                 if row["nonce_hash"]:
                     continue
@@ -125,9 +126,9 @@ class Store:
                 c = Candidate(**json.loads(row["payload"]))
                 timing = ('本人指定：本日の昼食は承認後に臨時公開（受付期限 JST '
                           + c.scheduled_at.astimezone(JST).strftime('%H:%M') + '）') if (c.approval_source or {}).get('publish_after_approval_until') else f'JST {c.scheduled_at.astimezone(JST):%H:%M}'
-                card = {"content": f"投稿の承認依頼：{target_date} {c.slot}（{timing}）\n{c.content}",
+                card = {"content": f"━━━━━━━━━━━━━━━━━━━━\n**{LABELS[c.slot]}｜{target_date}**\n投稿予定：{timing}\n━━━━━━━━━━━━━━━━━━━━\n\n{c.content}",
                         "allowed_mentions": {"parse": []},
-                        "embeds": [{"title": "品質確認済みの候補", "description": c.menu,
+                        "embeds": [{"title": f"{LABELS[c.slot]}｜品質確認済みの候補", "description": c.menu,
                                     "fields": [{"name": "栄養の目安", "value": json.dumps(c.nutrition, ensure_ascii=False)},
                                                {"name": "確認", "value": "API・二次レビュー・OGP：合格"}]}],
                         "components": [{"type": 1, "components": [
