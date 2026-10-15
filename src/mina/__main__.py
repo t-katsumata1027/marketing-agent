@@ -115,7 +115,7 @@ def cycle(store: Store, now: datetime):
 
 def main():
     parser = argparse.ArgumentParser(description="みなの日次運用と承認の検証")
-    parser.add_argument("command", choices=("status", "doctor", "handover-check", "inspect-handoff", "history-draft", "backup", "backup-artifacts", "backup-keygen", "backup-encrypt", "backup-decrypt", "backup-create-set", "backup-restore-set", "backup-upload", "backup-reconcile", "backup-run", "backup-status", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "prepare-today", "resume-today", "correct-today", "finalize-today", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
+    parser.add_argument("command", choices=("status", "doctor", "handover-check", "inspect-handoff", "history-draft", "backup", "backup-artifacts", "backup-keygen", "backup-encrypt", "backup-decrypt", "backup-create-set", "backup-restore-set", "backup-upload", "backup-reconcile", "backup-run", "backup-status", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "prepare-today", "resume-today", "correct-today", "finalize-today", "resume-preparation", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
     parser.add_argument("--database", default=os.getenv("MINA_DATABASE", "runtime/mina.sqlite3"))
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--draft", type=Path)
@@ -282,12 +282,12 @@ def main():
         from .codex_client import generation_client
         print(json.dumps(draft_day(args.date, args.history, args.output, generation_client()), ensure_ascii=False))
         return
-    if args.command in ('prepare', 'prepare-today', 'resume-today', 'correct-today'):
+    if args.command in ('prepare', 'prepare-today', 'resume-today', 'correct-today', 'resume-preparation'):
         if os.getenv('MINA_PREPARE_ENABLED', 'false').lower() != 'true':
             raise ValueError('日次準備は停止中です')
         if os.getenv('MINA_LIVE_WRITES', 'false').lower() != 'true':
             raise ValueError('Drive・LogEats書込みの許可が必要です')
-    if args.command in ('request-reconcile', 'rereview', 'rebind-review', 'resume-today', 'correct-today', 'finalize-today'):
+    if args.command in ('request-reconcile', 'rereview', 'rebind-review', 'resume-today', 'correct-today', 'finalize-today', 'resume-preparation'):
         if os.getenv('MINA_READ_REVIEW_ENABLED', 'false').lower() != 'true':
             raise ValueError('照合・再レビューの接続は停止中です')
         if not Path(args.database).is_file():
@@ -329,6 +329,18 @@ def main():
                      os.getenv('MINA_SHARE_HOST', ''), args.output, lambda: datetime.now(UTC), capture_ogp,
                      read_json(args.draft), args.source_commit, Path(__file__).resolve().parents[2], evidence=read_json(args.evidence))
         print(json.dumps({'target_date': args.date, 'state': 'approval_pending', 'post_count': 4}))
+    elif args.command == 'resume-preparation':
+        if not args.date or not args.review_round:
+            parser.error('--dateと--review-roundに本人指定の再開対象が必要です')
+        from .resume_preparation import resume_preparation
+        from .clients import MealClient
+        from .codex_client import generation_client
+        result=resume_preparation(store,Path(os.getenv('MINA_PREPARE_DIRECTORY','/var/lib/mina-agent/daily')),
+            args.date,args.review_round,Path(__file__).resolve().parents[2],args.source_commit,
+            os.getenv('MINA_SHARE_HOST',''),generation_client(),
+            MealClient(os.getenv('MINA_MEAL_API_BASE_URL',''),os.getenv('MINA_AGENT_API_TOKEN','')),
+            Path(os.getenv('MINA_HISTORY_DIRECTORY','/var/lib/mina-agent/history')))
+        print(json.dumps(result,ensure_ascii=False))
     elif args.command == 'finalize-today':
         if not args.review_round:
             parser.error('--review-roundに明示的な再点検のUUIDが必要です')
