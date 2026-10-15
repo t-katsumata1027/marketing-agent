@@ -37,15 +37,18 @@ class NoRedirect(HTTPRedirectHandler):
 
 
 class BufferTrialClient:
-    def __init__(self, token, transport=None):
+    def __init__(self, token, transport=None, on_request=None):
         if not isinstance(token, str) or not token.strip() or '\n' in token or '\r' in token:
             raise ProbeError('buffer_key_missing_or_invalid')
         self._token = token
         self._transport = transport
+        self._on_request = on_request
         self.calls = 0
 
     def _request(self, query, variables=None):
         """固定宛先へ一回だけ送る。GraphQLの200内エラーも拒否する。"""
+        if self._on_request is not None:
+            self._on_request(query)
         self.calls += 1
         try:
             if self._transport is not None:

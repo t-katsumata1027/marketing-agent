@@ -67,7 +67,9 @@ def publish_due(store: Store, client, now: datetime, host: str, preflight, clock
     """公開先・OGPを照合後、排他的に一度だけ送信する。"""
     if not store.has_due(now):
         return 0
-    client.verify_account(ACCOUNT)
+    from .buffer_publisher import requires_x_verification
+    if requires_x_verification(store, now):
+        client.verify_account(ACCOUNT)
     count = 0
     for row in store.claim_due(now):
         try:

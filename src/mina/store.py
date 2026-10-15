@@ -48,12 +48,30 @@ class Store:
                     target_date TEXT PRIMARY KEY, step TEXT NOT NULL, status TEXT NOT NULL,
                     reasons TEXT NOT NULL, updated REAL NOT NULL);
                 CREATE TABLE IF NOT EXISTS buffer_publication (
-                    singleton INTEGER PRIMARY KEY CHECK(singleton=1), target_date TEXT NOT NULL,
-                    slot TEXT NOT NULL CHECK(slot='breakfast'), revision INTEGER NOT NULL,
+                    singleton INTEGER PRIMARY KEY, target_date TEXT NOT NULL,
+                    slot TEXT NOT NULL, revision INTEGER NOT NULL,
                     digest TEXT NOT NULL, channel_id TEXT NOT NULL, service_id TEXT NOT NULL,
                     state TEXT NOT NULL, post_id TEXT, request_json TEXT, response_json TEXT,
-                    attempted REAL, proof_json TEXT);
+                    attempted REAL, proof_json TEXT, UNIQUE(target_date,slot));
+                CREATE TABLE IF NOT EXISTS buffer_policy (
+                    singleton INTEGER PRIMARY KEY CHECK(singleton=1), date_from TEXT NOT NULL,
+                    review_until TEXT NOT NULL, channel_id TEXT NOT NULL, service_id TEXT NOT NULL,
+                    state TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS buffer_api_usage (
+                    id INTEGER PRIMARY KEY, requested REAL NOT NULL, operation TEXT NOT NULL);
             """)
+            # 朝食一件限定だった旧表を、実公開の行をそのまま保って複数枠へ拡張する。
+            db.execute('BEGIN IMMEDIATE')
+            schema = db.execute("SELECT sql FROM sqlite_master WHERE name='buffer_publication'").fetchone()[0]
+            if 'CHECK(singleton=1)' in schema.replace(' ', ''):
+                db.execute('ALTER TABLE buffer_publication RENAME TO buffer_publication_single_legacy')
+                db.execute('''CREATE TABLE buffer_publication (
+                    singleton INTEGER PRIMARY KEY, target_date TEXT NOT NULL, slot TEXT NOT NULL,
+                    revision INTEGER NOT NULL, digest TEXT NOT NULL, channel_id TEXT NOT NULL,
+                    service_id TEXT NOT NULL, state TEXT NOT NULL, post_id TEXT, request_json TEXT,
+                    response_json TEXT, attempted REAL, proof_json TEXT, UNIQUE(target_date,slot))''')
+                db.execute('INSERT INTO buffer_publication SELECT * FROM buffer_publication_single_legacy')
+                db.execute('DROP TABLE buffer_publication_single_legacy')
 
     @contextmanager
     def transaction(self):
