@@ -28,3 +28,11 @@ Bufferは非同期であり、送信遅延の上限や送信後の取り消し�
 ## 確認する結果
 
 07:30以降にBuffer受付・実X URL・実公開時刻・本文・Discord公開報告・重複なしを確認する。試験前の段階では実公開成功と記載しない。Bufferのキュー解除時も試験用の合成本文は下書きのまま保持し、公開しない。
+
+## 配置・実行待ちの確認結果
+
+2026年10月15日夜、実装固定版3fcaa9e392b8685b8707aabb61b5c56f70329204をサブPCのサービスへ配置した。同版の[CI](https://github.com/t-katsumata1027/marketing-agent/actions/runs/38749220461)はsuccess。WindowsとサブPCのLinuxで専用試験281件が成功し、配布コード照合も成功した。
+
+配置前のコード・設定・SQLiteを保全し、候補と承認の行が不変であることを確認した。10月16日の4件はapprovedを保持。Bufferキューは0件、合成本文は下書き1件の状態で、今回の実公開指示に基づきキュー停止を解除した。その後、サブPCのmina-agentユーザーがBufferの対象チャンネルを読取照合し、朝食一件だけの経路をarmedとして保存した。この設定操作によるBuffer作成・公開要求は0件。
+
+常駐サービスのPythonプロセスへのBUFFER_API_KEY注入、live_writes・publish_enabled、Agent・Gateway・準備／通知タイマー、既存QAランナー2件の稼働とSQLite整合性okを確認した。実公開の合否は翌朝の実測待ち。
