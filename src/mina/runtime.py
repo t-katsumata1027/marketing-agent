@@ -75,10 +75,14 @@ def publish_due(store: Store, client, now: datetime, host: str, preflight, clock
             if c.digest != row["digest"]:
                 raise ValueError("成果物ハッシュが一致しません")
             # 到達時刻の検証済み候補を、予定時刻直前として品質再検査する。
-            c.validate(host, c.scheduled_at - timedelta(seconds=1))
+            immediate = bool((c.approval_source or {}).get('publish_after_approval_until'))
+            c.validate(host, clock() if immediate else c.scheduled_at - timedelta(seconds=1))
+            if immediate and row['scheduled'] != row['approved']:
+                raise ValueError('臨時公開の起点が本人承認時刻と一致しません')
             proof = preflight(c)
             sending_at = instant(clock())
-            if not 0 <= (sending_at - c.scheduled_at).total_seconds() <= 120:
+            due_at = datetime.fromtimestamp(row['scheduled'], UTC) if immediate else c.scheduled_at
+            if not 0 <= (sending_at - due_at).total_seconds() <= 120 or (immediate and sending_at >= c.scheduled_at):
                 raise ValueError('送信直前に公開猶予を超えています')
             if c.approval_source is not None:
                 if not isinstance(proof, dict):

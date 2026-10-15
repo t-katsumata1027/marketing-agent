@@ -41,6 +41,9 @@ class Store:
                 CREATE TABLE IF NOT EXISTS publication_exclusions (
                     target_date TEXT NOT NULL, slot TEXT NOT NULL, reason TEXT NOT NULL,
                     PRIMARY KEY(target_date,slot));
+                CREATE TABLE IF NOT EXISTS publication_exceptions (
+                    target_date TEXT NOT NULL, slot TEXT NOT NULL, until_at TEXT NOT NULL,
+                    reason TEXT NOT NULL, PRIMARY KEY(target_date,slot));
             """)
 
     @contextmanager
@@ -77,6 +80,12 @@ class Store:
         with self.transaction() as db:
             revisions = []
             for candidate in candidates:
+                until = (candidate.approval_source or {}).get('publish_after_approval_until')
+                if until:
+                    approval = db.execute('SELECT until_at FROM publication_exceptions WHERE target_date=? AND slot=?',
+                                          (candidate.target_date,candidate.slot)).fetchone()
+                    if not approval or approval['until_at'] != until:
+                        raise ValueError('当日昼食の臨時公開に本人の指定記録が必要です')
                 if db.execute('SELECT 1 FROM publication_exclusions WHERE target_date=? AND slot=?',
                               (candidate.target_date, candidate.slot)).fetchone():
                     raise ValueError('本人指定により公開しない枠です')
@@ -114,7 +123,9 @@ class Store:
                 nonce = secrets.token_urlsafe(24)
                 key = f"{target_date}|{row['slot']}|{row['revision']}|{nonce}"
                 c = Candidate(**json.loads(row["payload"]))
-                card = {"content": f"投稿の承認依頼：{target_date} {c.slot}（JST {c.scheduled_at.astimezone(JST):%H:%M}）\n{c.content}",
+                timing = ('本人指定：本日の昼食は承認後に臨時公開（受付期限 JST '
+                          + c.scheduled_at.astimezone(JST).strftime('%H:%M') + '）') if (c.approval_source or {}).get('publish_after_approval_until') else f'JST {c.scheduled_at.astimezone(JST):%H:%M}'
+                card = {"content": f"投稿の承認依頼：{target_date} {c.slot}（{timing}）\n{c.content}",
                         "allowed_mentions": {"parse": []},
                         "embeds": [{"title": "品質確認済みの候補", "description": c.menu,
                                     "fields": [{"name": "栄養の目安", "value": json.dumps(c.nutrition, ensure_ascii=False)},
@@ -147,6 +158,12 @@ class Store:
             if candidate.digest != row["digest"]:
                 raise ValueError("承認対象が変更されています")
             db.execute("UPDATE candidates SET state=?,actor=?,approved=?,nonce_hash=NULL WHERE target_date=? AND slot=?", (states[action], actor, instant(now).timestamp(), target, slot))
+            if action == 'approve' and (candidate.approval_source or {}).get('publish_after_approval_until'):
+                until = candidate.approval_source['publish_after_approval_until']
+                record = db.execute('SELECT until_at FROM publication_exceptions WHERE target_date=? AND slot=?',(target,slot)).fetchone()
+                if not record or record['until_at'] != until:
+                    raise ValueError('臨時公開の指定記録が不一致です')
+                db.execute('UPDATE candidates SET scheduled=? WHERE target_date=? AND slot=?',(instant(now).timestamp(),target,slot))
             return states[action]
 
     def claim_due(self, now: datetime, grace_seconds: int = 120) -> list[dict]:

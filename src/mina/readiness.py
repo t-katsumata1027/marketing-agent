@@ -76,7 +76,7 @@ def check_evidence(evidence, target, now):
     return entries
 
 
-def build_candidates(reviewed, evidence, commit, host, now, excluded_slots=()):
+def build_candidates(reviewed, evidence, commit, host, now, excluded_slots=(), lunch_after_approval_until=None):
     """APIの完成本文を変更せず、確認証跡を承認対象のハッシュへ含める。"""
     target = reviewed['target_date']
     if excluded_slots:
@@ -102,6 +102,10 @@ def build_candidates(reviewed, evidence, commit, host, now, excluded_slots=()):
             continue
         source = {**post['approval_source'], 'readiness_sha256': evidence_hash,
                   'ogp_image_url': post['ogp']['image_url'], 'ogp_image_sha256': post['ogp']['image_sha256']}
+        if lunch_after_approval_until and slot=='lunch':
+            if set(excluded_slots) != {'breakfast'}:
+                raise ValueError('当日朝食除外時だけ昼食を臨時公開できます')
+            source['publish_after_approval_until'] = lunch_after_approval_until
         candidate = Candidate(target_date=target, slot=slot, **{k: post[k] for k in fields},
                               approval_source=source, source_commit=commit,
                               history_verified=True, legacy_schedule_clear=True,

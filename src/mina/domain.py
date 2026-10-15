@@ -60,6 +60,8 @@ class Candidate:
 
     @property
     def scheduled_at(self) -> datetime:
+        if self.approval_source and self.approval_source.get('publish_after_approval_until'):
+            return instant(datetime.fromisoformat(self.approval_source['publish_after_approval_until']))
         return slot_time(date.fromisoformat(self.target_date), self.slot)
 
     @property
@@ -82,6 +84,11 @@ class Candidate:
             raise ValueError("公開先または投稿枠が不正です")
         if self.scheduled_at <= instant(now):
             raise ValueError("予定時刻を過ぎた候補です")
+        if self.approval_source and self.approval_source.get('publish_after_approval_until'):
+            day = date.fromisoformat(self.target_date)
+            if (self.slot != 'lunch' or now.astimezone(JST).date() != day or
+                    not slot_time(day,'lunch') <= instant(now) < self.scheduled_at < slot_time(day,'dinner')):
+                raise ValueError('本人指定の当日昼食以外は臨時公開できません')
         if not self.comment.strip() or len(self.comment) > 120 or any(c in self.comment for c in "\r\n"):
             raise ValueError("一言は改行なし120文字以内です")
         if self.publish_text is not None:
