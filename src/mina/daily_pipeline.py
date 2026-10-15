@@ -166,9 +166,15 @@ def resume_today_read_failure(store, directory, commit, root, host, ai, meal, ro
         if allow_correction:
             held = db.execute("SELECT result FROM preparation_steps WHERE target_date=? AND step='meal_review:breakfast' AND state='complete'", (target,)).fetchone()
             outcome = json.loads(held[0]) if held else {}
+            corrected_review = db.execute("SELECT state,result FROM preparation_steps WHERE target_date=? AND step='meal_review:breakfast:corrected'", (target,)).fetchone()
+            scope_review_allowed = not corrected_review
+            if corrected_review and corrected_review['state'] == 'complete':
+                previous = json.loads(corrected_review['result'])
+                scope_review_allowed = (previous.get('status') == 'hold' and previous.get('reason_codes') == ['share_ogp_mismatch'] and
+                    not db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND step LIKE 'meal_review:breakfast:corrected:%'", (target,)).fetchone())
             correction_allowed = (outcome.get('status') == 'hold' and bool(outcome.get('reason_codes')) and
                 set(outcome['reason_codes']) <= {'image_analysis_mismatch','nutrition_semantic_mismatch'} and
-                not db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND (step LIKE 'ogp_review:%' OR step='meal_review:breakfast:corrected')", (target,)).fetchone() and
+                scope_review_allowed and not db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND step LIKE 'ogp_review:%'", (target,)).fetchone() and
                 (original_only or known_correction))
             if not correction_allowed:
                 raise ValueError('食品・量の誤認による保留だけを一度訂正できます')

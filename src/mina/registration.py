@@ -8,7 +8,7 @@ from pathlib import Path
 
 from .clients import OutcomeUnknown, MealClient
 from .domain import instant, slot_time
-from .generation import MEAL_SLOTS, validate_plan
+from .generation import MEAL_SLOTS, validate_plan, meal_review_policy_sha256
 from .m1_contract import CONTRACT, completed_request, validate_state, validate_write
 from .ogp import capture_ogp, verify_image_reference
 from .preparation import PreparationJournal, fingerprint
@@ -151,7 +151,8 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
             raise ValueError('要求照会の入力画像版が不一致です')
         variant = ':corrected' if operation == 'meal_correction' else ''
         captured, preview = ogp(slot, normalized, '-corrected' if variant else '')
-        review = journal.run(target, 'meal_review:' + slot + variant, {'image_sha256': info['sha256'], 'meal': meal, 'response': response, 'ogp_digest': captured['digest']},
+        review_suffix = ':' + capture_round if capture_round else ''
+        review = journal.run(target, 'meal_review:' + slot + variant + review_suffix, {'image_sha256': info['sha256'], 'meal': meal, 'response': response, 'ogp_digest': captured['digest'], 'policy_sha256':meal_review_policy_sha256()},
                              lambda: ai.review_meal(raw, meal, response, captured['meta']))
         if (allow_correction and operation == 'meal_register' and review.get('status') == 'hold' and review.get('reason_codes') and
                 set(review['reason_codes']) <= {'image_analysis_mismatch','nutrition_semantic_mismatch'}):
@@ -163,8 +164,8 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
             normalized = validate_write(response, slot, target, host, operation=operation, logged_at=logged, input_comment=meal['comment'])
             input_hash = completed_request(meal_client.request_state(key, operation), key, operation, response['result'])
             captured, preview = ogp(slot, normalized, '-corrected')
-            review = journal.run(target, 'meal_review:' + slot + ':corrected',
-                {'image_sha256':info['sha256'],'meal':meal,'response':response,'ogp_digest':captured['digest']},
+            review = journal.run(target, 'meal_review:' + slot + ':corrected' + review_suffix,
+                {'image_sha256':info['sha256'],'meal':meal,'response':response,'ogp_digest':captured['digest'],'policy_sha256':meal_review_policy_sha256()},
                 lambda:ai.review_meal(raw, meal, response, captured['meta']))
         if review != {'status': 'publishable', 'reason_codes': []}:
             raise ValueError('解析結果の独立レビューが保留です')
