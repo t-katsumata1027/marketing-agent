@@ -15,7 +15,8 @@ def collect_timeline(fetch_page, account_id, target, *, max_pages=40, as_of=None
     end = datetime.combine(day, datetime.min.time(), JST)
     # 翌日の準備では対象日の0時が未来になる。APIへ未来の終端を送らない。
     # 配信直後の反映待ちも含め、照会開始の30秒前を観測終端として固定する。
-    end = min(instant(end), instant(as_of or datetime.now(UTC)) - timedelta(seconds=30))
+    read_started = instant(as_of or datetime.now(UTC))
+    end = min(instant(end), read_started - timedelta(seconds=30))
     end = end.replace(microsecond=0)
     if instant(start) >= end:
         raise ValueError('履歴の観測期間が不正です')
@@ -45,6 +46,7 @@ def collect_timeline(fetch_page, account_id, target, *, max_pages=40, as_of=None
             if token is None:
                 return {'account': ACCOUNT, 'target_date': target, 'posts': posts,
                         'read_until': end.isoformat(),
+                        'read_started_at': read_started.isoformat(),
                         'timeline_pages_complete': True, 'legacy_schedule_verified': False}
             if not isinstance(token, str) or not token or token in tokens or not data:
                 raise ValueError()

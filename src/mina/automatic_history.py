@@ -20,7 +20,12 @@ def build_automatic_history(database, snapshot, bootstrap, cutover, now):
     day = date.fromisoformat(target)
     first = day - timedelta(days=14)
     observed_until = instant(datetime.fromisoformat(snapshot['read_until']))
-    if not timedelta(seconds=30) <= instant(now) - observed_until <= timedelta(seconds=151):
+    read_started = instant(datetime.fromisoformat(snapshot['read_started_at']))
+    if not timedelta(0) <= instant(now) - read_started <= timedelta(minutes=2):
+        raise ValueError('履歴取得の開始時刻が古いか不正です')
+    # 当日準備の履歴範囲は当日0時で終わる。範囲の終端と取得の鮮度を混同しない。
+    expected_end = min(instant(datetime.combine(day, datetime.min.time(), JST)), read_started - timedelta(seconds=30))
+    if not timedelta(0) <= expected_end - observed_until <= timedelta(seconds=1):
         raise ValueError('履歴の実観測終端が古いか不正です')
     if cutover.get('account') != ACCOUNT or cutover.get('old_reservations_zero') is not True or cutover.get('old_generation_stopped') is not True or not isinstance(cutover.get('confirmed_by'), str) or not cutover['confirmed_by'].strip():
         raise ValueError('旧予約・旧生成停止の切替確認が必要です')

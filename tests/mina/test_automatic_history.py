@@ -4,7 +4,7 @@ import tempfile
 import json
 from dataclasses import replace
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from src.mina.automatic_history import build_automatic_history, refresh_history, prepare_history
@@ -35,6 +35,14 @@ class AutomaticHistoryTest(unittest.TestCase):
             snapshot['read_until'] = value
             with self.assertRaises(ValueError):
                 build_automatic_history(self.root/'db', snapshot, self.bootstrap, self.cutover, self.now)
+
+    def test_same_day_midnight_boundary_is_valid_only_with_fresh_read(self):
+        now = self.now + timedelta(days=1)
+        snapshot = collect_timeline(lambda *a, **k: {'data': [], 'meta': {'result_count': 0}},
+                                    '99', '2026-10-10', as_of=now)
+        self.assertTrue(build_automatic_history(self.root/'db', snapshot, self.bootstrap, self.cutover, now)['history_complete'])
+        with self.assertRaises(ValueError):
+            build_automatic_history(self.root/'db', snapshot, self.bootstrap, self.cutover, now + timedelta(minutes=3))
 
     def test_published_ledger_and_actual_timeline_produce_readiness(self):
         c = candidate()

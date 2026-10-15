@@ -85,7 +85,8 @@ class DiscordClient:
     def send(self, payload: dict):
         require_live()
         return request_json(f"https://discord.com/api/v10/channels/{self.channel}/messages",
-                            payload, {"Authorization": f"Bot {self.token}"})
+                            payload, {"Authorization": f"Bot {self.token}",
+                                      "User-Agent": "DiscordBot (https://github.com/t-katsumata1027/marketing-agent, 1.0)"})
 
 
 class XClient:

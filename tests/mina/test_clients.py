@@ -11,6 +11,12 @@ from src.mina.clients import DiscordClient, MealClient, OutcomeUnknown, request_
 
 
 class ClientTest(unittest.TestCase):
+    def test_discord_send_includes_bot_user_agent_without_retry(self):
+        with patch.dict(os.environ, {'MINA_LIVE_WRITES': 'true'}), patch('src.mina.clients.request_json') as send:
+            DiscordClient('private', '123').send({'content': '合成試験'})
+        send.assert_called_once()
+        self.assertTrue(send.call_args.args[2]['User-Agent'].startswith('DiscordBot ('))
+
     def test_preflight_omits_idempotency_and_image_and_accepts_specific_400(self):
         error = HTTPError('https://logeats.test', 400, 'bad request', {},
                           io.BytesIO(json.dumps({'error': 'Idempotency-KeyにはUUIDを指定してください。'}).encode()))
