@@ -94,8 +94,8 @@ def verify_image_reference(snapshot, ogp, share_url, host):
             raise ValueError('OGP別名の接続先が不正です')
     if (not re.fullmatch(r'/s/[a-z0-9_-]{4,32}', short.path) or short.query or
             api.path != '/share/' + short.path.rsplit('/', 1)[-1] + '/og-image' or
-            not re.fullmatch(r'/share/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}', page.path) or page.query or
-            html.path != page.path + '/og-image' or
+            not re.fullmatch(r'/share/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/og-image', html.path) or
+            page.query or page.path not in (short.path, html.path.removesuffix('/og-image')) or
             parse_qsl(api.query) != [('v', ogp['revision'])] or
             parse_qsl(html.query) != [('v', ogp['revision'])]):
         raise ValueError('OGPの正規別名・内容版が一致しません')

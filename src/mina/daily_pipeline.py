@@ -150,13 +150,14 @@ def resume_today_read_failure(store, directory, commit, root, host, ai, meal, ro
     check_evidence(evidence or {}, target, now)
     with store.transaction() as db:
         row = db.execute('SELECT state FROM preparation WHERE target_date=?', (target,)).fetchone()
-        if (not row or row['state'] != 'held:registration' or
+        if (not row or row['state'] not in ('held:registration', 'held:read_recovery') or
                 db.execute('SELECT 1 FROM candidates WHERE target_date=?', (target,)).fetchone() or
                 not db.execute("SELECT 1 FROM publication_exclusions WHERE target_date=? AND slot='breakfast'", (target,)).fetchone()):
             raise ValueError('当日朝食のOGP読取停止からだけ再照合できます')
         pending = list(db.execute("SELECT step FROM preparation_steps WHERE target_date=? AND state<>'complete'", (target,)))
         requests = list(db.execute('SELECT slot,operation,phase FROM mina_requests WHERE target_date=?', (target,)))
-        if ([r[0] for r in pending] != ['ogp_capture:breakfast'] or
+        review_started = db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND (step LIKE 'meal_review:%' OR step LIKE 'ogp_review:%')", (target,)).fetchone()
+        if (not pending or any(not (r[0].startswith('ogp_capture:breakfast') or r[0].startswith('read_recovery:')) for r in pending) or review_started or
                 [tuple(r) for r in requests] != [('breakfast','meal_register','complete')]):
             raise ValueError('保存成否不明や未完了の書込みを再開しません')
         db.execute("UPDATE preparation SET state='read_recovery_started' WHERE target_date=?", (target,))

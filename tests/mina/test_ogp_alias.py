@@ -27,3 +27,9 @@ class OgpAliasTests(unittest.TestCase):
    else:ogp['image_url']='https://other.example/og.png'
    with patch('src.mina.ogp.build_opener',return_value=opener),self.subTest(kind=kind),self.assertRaises(ValueError):
     verify_image_reference(snapshot,ogp,f'https://{HOST}/s/abcd1234',HOST)
+ def test_internal_rewrite_keeps_short_page_url_and_still_checks_both_pngs(self):
+  snapshot,ogp,opener,response=self.fixture()
+  snapshot['meta']['page_url']=f'https://{HOST}/s/abcd1234'
+  with patch('src.mina.ogp.build_opener',return_value=opener):
+   verify_image_reference(snapshot,ogp,f'https://{HOST}/s/abcd1234',HOST)
+  opener.open.assert_called_once()
