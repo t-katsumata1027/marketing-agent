@@ -120,3 +120,70 @@ def prepare_day(store, directory, history, evidence_path, commit, root, host, ai
         with store.transaction() as db:
             db.execute("UPDATE preparation SET state=? WHERE target_date=?", ('held:' + stage, target))
         raise RuntimeError('daily_preparation_held:' + stage) from None
+
+
+def resume_today_read_failure(store, directory, commit, root, host, ai, meal, round_key,
+                              clock=lambda: datetime.now(UTC), history_directory=None):
+    """朝食保存完了後のOGP読取失敗だけを、原記録を残した明示的な別工程で再照合する。"""
+    from .clients import MealClient
+    from .domain import Candidate, slot_time
+    from .m1_contract import verify_source
+    from .ogp import capture_ogp
+    from .preparation import fingerprint
+    MealClient.request_key(round_key)
+    now = instant(clock())
+    day = now.astimezone(JST).date()
+    target = day.isoformat()
+    deadline = slot_time(day, 'lunch')
+    if not slot_time(day, 'breakfast') <= now < deadline:
+        raise ValueError('当日再照合は朝食時刻経過後から昼食前までです')
+    commit = release_commit(root, commit)
+    base = Path(directory) / target
+    draft, saved = read_json(base/'draft.json'), read_json(base/'drive.json')
+    history_files = list(Path(history_directory or '/var/lib/mina-agent/history').glob('*.json'))
+    evidence = None
+    for path in sorted(history_files, reverse=True):
+        value = read_json(path)
+        if value.get('target_date') == target:
+            evidence = value
+            break
+    check_evidence(evidence or {}, target, now)
+    with store.transaction() as db:
+        row = db.execute('SELECT state FROM preparation WHERE target_date=?', (target,)).fetchone()
+        if (not row or row['state'] != 'held:registration' or
+                db.execute('SELECT 1 FROM candidates WHERE target_date=?', (target,)).fetchone() or
+                not db.execute("SELECT 1 FROM publication_exclusions WHERE target_date=? AND slot='breakfast'", (target,)).fetchone()):
+            raise ValueError('当日朝食のOGP読取停止からだけ再照合できます')
+        pending = list(db.execute("SELECT step FROM preparation_steps WHERE target_date=? AND state<>'complete'", (target,)))
+        requests = list(db.execute('SELECT slot,operation,phase FROM mina_requests WHERE target_date=?', (target,)))
+        if ([r[0] for r in pending] != ['ogp_capture:breakfast'] or
+                [tuple(r) for r in requests] != [('breakfast','meal_register','complete')]):
+            raise ValueError('保存成否不明や未完了の書込みを再開しません')
+        db.execute("UPDATE preparation SET state='read_recovery_started' WHERE target_date=?", (target,))
+    out = base / ('read-recovery-' + round_key)
+    out.mkdir(mode=0o700)
+    def within_deadline():
+        if instant(clock()) >= deadline:
+            raise ValueError('昼食前の準備期限を超過しました')
+    try:
+        # 新しい画像・朝食UUIDは生成せず、完了済みの同一入力・原本を既存台帳から再使用する。
+        journal = PreparationJournal(store)
+        reviewed = journal.run(target, 'read_recovery:' + round_key,
+            {'draft': fingerprint(draft), 'saved': fingerprint(saved), 'commit': commit},
+            lambda: register_day(store, draft, saved, out/'ogp', DeadlineClient(meal, within_deadline),
+                                 DeadlineClient(ai, within_deadline), host, capture_round=round_key))
+        write_artifact(out/'posts-reviewed.json', reviewed)
+        candidates = build_candidates(reviewed, evidence, commit, host, clock(), excluded_slots=('breakfast',))
+        for payload in candidates:
+            within_deadline()
+            verify_source(Candidate(**payload), meal, host, capture_ogp, clock=clock)
+        manifest = out/'candidates.json'
+        write_artifact(manifest, candidates)
+        within_deadline()
+        import_manifest(store, manifest, host, clock(), excluded_slots=('breakfast',))
+        store.preparation_done(target)
+        return {'target_date':target, 'state':'approval_ready', 'post_count':3}
+    except Exception:
+        with store.transaction() as db:
+            db.execute("UPDATE preparation SET state='held:read_recovery' WHERE target_date=?", (target,))
+        raise RuntimeError('当日の読取再照合を保留しました。自動再実行しません') from None

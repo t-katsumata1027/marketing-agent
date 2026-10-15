@@ -201,9 +201,11 @@ def verify_source(candidate, client, host, capture, now=None, clock=None, timer=
             binding.get('ogp_source_version') != ogp['source_state_version' if candidate.slot == 'daily' else 'source_result_version']):
         raise ValueError('承認したOGPの版・生成元版が不一致です')
     snapshot = capture(candidate.share_url, host)
-    if (snapshot['digest'] != candidate.ogp_sha256 or snapshot['meta']['og:image'] != ogp['image_url'] or
+    if (snapshot['digest'] != candidate.ogp_sha256 or
             snapshot['meta']['image_sha256'] != ogp['image_sha256']):
         raise ValueError('承認したOGPと現在の実画像が一致しません')
+    from .ogp import verify_image_reference
+    verify_image_reference(snapshot, ogp, candidate.share_url, host)
     # 実画像取得中の正本変更を、最後の対象日照会で検出する。
     final_state = client.day_state(candidate.target_date)
     if (validate_state(final_state, candidate.target_date, clock()) != current or

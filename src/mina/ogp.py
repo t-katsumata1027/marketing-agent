@@ -3,8 +3,9 @@
 import hashlib
 import io
 import json
+import re
 from html.parser import HTMLParser
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, parse_qsl
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 
@@ -42,6 +43,9 @@ def capture_ogp(url: str, host: str) -> dict:
         if "text/html" not in response.headers.get("Content-Type", ""):
             raise ValueError("共有ページがHTMLではありません")
         html = response.read(1024 * 1024 + 1)
+        page_url = response.geturl()
+        if not isinstance(page_url, str):
+            page_url = url
         if len(html) > 1024 * 1024:
             raise ValueError("共有ページが大きすぎます")
     parser = MetaParser()
@@ -72,10 +76,38 @@ def capture_ogp(url: str, host: str) -> dict:
             pixels.convert('RGB').save(preview, format='JPEG', quality=90)
     except Exception:
         raise ValueError('OGP画像の画素を確認できません') from None
-    meta = {**parser.meta, 'image_sha256': hashlib.sha256(raw).hexdigest(),
+    meta = {**parser.meta, 'page_url': page_url, 'image_sha256': hashlib.sha256(raw).hexdigest(),
             'image_size': len(raw), 'image_width': width, 'image_height': height}
     digest = hashlib.sha256(json.dumps(meta, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     return {'meta': meta, 'digest': digest, 'review_image': preview.getvalue()}
+
+
+def verify_image_reference(snapshot, ogp, share_url, host):
+    """短縮IDと長い共有IDの正規別名は、両実体の同一SHAを確認して採用する。"""
+    actual, expected = snapshot['meta']['og:image'], ogp['image_url']
+    if actual == expected:
+        return
+    short = urlsplit(share_url)
+    api, html, page = map(urlsplit, (expected, actual, snapshot['meta'].get('page_url', '')))
+    for parsed in (short, api, html, page):
+        if parsed.scheme != 'https' or parsed.hostname != host or parsed.username or parsed.password or parsed.port not in (None, 443) or parsed.fragment:
+            raise ValueError('OGP別名の接続先が不正です')
+    if (not re.fullmatch(r'/s/[a-z0-9_-]{4,32}', short.path) or short.query or
+            api.path != '/share/' + short.path.rsplit('/', 1)[-1] + '/og-image' or
+            not re.fullmatch(r'/share/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}', page.path) or page.query or
+            html.path != page.path + '/og-image' or
+            parse_qsl(api.query) != [('v', ogp['revision'])] or
+            parse_qsl(html.query) != [('v', ogp['revision'])]):
+        raise ValueError('OGPの正規別名・内容版が一致しません')
+    # 文字列の別名だけで同一と推測せず、API側URLのPNGも毎回再取得する。
+    with build_opener(SameHostRedirect(host)).open(Request(expected, headers={'User-Agent':'LogEats-Mina-Review/1.0'}), timeout=30) as response:
+        if response.headers.get('Content-Type', '').split(';')[0].strip().lower() != 'image/png':
+            raise ValueError('API側OGPがPNGではありません')
+        raw = response.read(4 * 1024 * 1024 + 1)
+    if (not raw or len(raw) > 4 * 1024 * 1024 or
+            hashlib.sha256(raw).hexdigest() != ogp['image_sha256'] or
+            snapshot['meta']['image_sha256'] != ogp['image_sha256']):
+        raise ValueError('OGP別名の実PNGが一致しません')
 
 
 def ogp_snapshot(url: str, host: str) -> tuple[dict, str]:

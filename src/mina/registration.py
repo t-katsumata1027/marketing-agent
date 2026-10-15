@@ -6,11 +6,11 @@ import uuid
 from datetime import UTC, date, datetime
 from pathlib import Path
 
-from .clients import OutcomeUnknown
+from .clients import OutcomeUnknown, MealClient
 from .domain import instant, slot_time
 from .generation import MEAL_SLOTS, validate_plan
 from .m1_contract import CONTRACT, completed_request, validate_state, validate_write
-from .ogp import capture_ogp
+from .ogp import capture_ogp, verify_image_reference
 from .preparation import PreparationJournal, fingerprint
 from .request_ledger import RequestLedger
 
@@ -37,9 +37,11 @@ def assert_day_state(state, target, completed, now):
         raise ValueError('対象日の既存記録・登録成否を照合できません') from None
 
 
-def register_day(store, draft, saved, directory, meal_client, ai, host, capture=capture_ogp):
+def register_day(store, draft, saved, directory, meal_client, ai, host, capture=capture_ogp, capture_round=None):
     """3食と日次を点検する。履歴・旧予約が未照合なら承認候補へ進めない。"""
     target = draft['target_date']
+    if capture_round is not None:
+        MealClient.request_key(capture_round)
     day = date.fromisoformat(target)
     validate_plan({'meals': draft['meals'], 'daily_comment': draft['daily_comment']})
     if draft.get('state') != 'draft_unreviewed' or saved.get('state') != 'images_drive_verified' or saved.get('target_date') != target or set(saved.get('images', {})) != set(MEAL_SLOTS):
@@ -75,15 +77,16 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
     def ogp(slot, normalized):
         def collect():
             captured = capture(normalized['share_url'], host)
-            if (captured['meta']['image_sha256'] != normalized['ogp']['image_sha256'] or
-                    captured['meta']['og:image'] != normalized['ogp']['image_url']):
+            if captured['meta']['image_sha256'] != normalized['ogp']['image_sha256']:
                 raise ValueError('共有カードとサーバー検証済みOGPが不一致です')
+            verify_image_reference(captured, normalized['ogp'], normalized['share_url'], host)
             path = directory / (slot + '-ogp.jpg')
             with path.open('xb') as file:
                 file.write(captured['review_image'])
             return {'meta': captured['meta'], 'digest': captured['digest'], 'path': str(path.resolve()),
                     'preview_sha256': hashlib.sha256(captured['review_image']).hexdigest()}
-        result = journal.run(target, 'ogp_capture:' + slot, {'share_url': normalized['share_url'], 'directory': str(directory.resolve())}, collect)
+        step = 'ogp_capture:' + slot + (':' + capture_round if capture_round else '')
+        result = journal.run(target, step, {'share_url': normalized['share_url'], 'directory': str(directory.resolve())}, collect)
         path = Path(result['path'])
         if path.is_symlink():
             raise ValueError('OGP点検画像の実体が必要です')

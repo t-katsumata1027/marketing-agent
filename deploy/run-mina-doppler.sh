@@ -14,7 +14,7 @@ export MINA_READ_REVIEW_ENABLED="${MINA_READ_REVIEW_ENABLED:-false}"
 export MINA_X_HISTORY_READ_ENABLED="${MINA_X_HISTORY_READ_ENABLED:-false}"
 export MINA_HISTORY_AUTO_ENABLED="${MINA_HISTORY_AUTO_ENABLED:-false}"
 case "${1:-}" in
-    doctor|status|handover-check|request-status|request-reconcile|rereview|rebind-review|prepare|prepare-today|draft|images|drive|register|notify|tick|daemon|serve|import|gateway) ;;
+    doctor|status|handover-check|request-status|request-reconcile|rereview|rebind-review|prepare|prepare-today|resume-today|draft|images|drive|register|notify|tick|daemon|serve|import|gateway) ;;
     *) echo 'みなの実行コマンドを指定してください' >&2; exit 2 ;;
 esac
 # キャッシュへの退避を無効化し、取得不能なら起動を止める。
