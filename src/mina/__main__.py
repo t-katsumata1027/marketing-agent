@@ -115,7 +115,7 @@ def cycle(store: Store, now: datetime):
 
 def main():
     parser = argparse.ArgumentParser(description="みなの日次運用と承認の検証")
-    parser.add_argument("command", choices=("status", "doctor", "handover-check", "inspect-handoff", "history-draft", "backup", "backup-artifacts", "backup-keygen", "backup-encrypt", "backup-decrypt", "backup-create-set", "backup-restore-set", "backup-upload", "backup-reconcile", "backup-run", "backup-status", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
+    parser.add_argument("command", choices=("status", "doctor", "handover-check", "inspect-handoff", "history-draft", "backup", "backup-artifacts", "backup-keygen", "backup-encrypt", "backup-decrypt", "backup-create-set", "backup-restore-set", "backup-upload", "backup-reconcile", "backup-run", "backup-status", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "prepare-today", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
     parser.add_argument("--database", default=os.getenv("MINA_DATABASE", "runtime/mina.sqlite3"))
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--draft", type=Path)
@@ -281,7 +281,7 @@ def main():
         from .codex_client import generation_client
         print(json.dumps(draft_day(args.date, args.history, args.output, generation_client()), ensure_ascii=False))
         return
-    if args.command == 'prepare':
+    if args.command in ('prepare', 'prepare-today'):
         if os.getenv('MINA_PREPARE_ENABLED', 'false').lower() != 'true':
             raise ValueError('日次準備は停止中です')
         if os.getenv('MINA_LIVE_WRITES', 'false').lower() != 'true':
@@ -328,7 +328,7 @@ def main():
                      os.getenv('MINA_SHARE_HOST', ''), args.output, lambda: datetime.now(UTC), capture_ogp,
                      read_json(args.draft), args.source_commit, Path(__file__).resolve().parents[2], evidence=read_json(args.evidence))
         print(json.dumps({'target_date': args.date, 'state': 'approval_pending', 'post_count': 4}))
-    elif args.command == 'prepare':
+    elif args.command in ('prepare', 'prepare-today'):
         from .daily_pipeline import prepare_day
         from .codex_client import generation_client
         from .clients import MealClient
@@ -338,9 +338,14 @@ def main():
         if os.getenv('MINA_HISTORY_AUTO_ENABLED', 'false').lower() == 'true':
             from .automatic_history import prepare_history
             now = datetime.now(UTC)
-            target = (now.astimezone(JST).date() + timedelta(days=1)).isoformat()
+            same_day = args.command == 'prepare-today'
+            target = (now.astimezone(JST).date() + timedelta(days=0 if same_day else 1)).isoformat()
+            if same_day:
+                from .domain import slot_time, date
+                if not slot_time(date.fromisoformat(target), 'breakfast') <= now < slot_time(date.fromisoformat(target), 'lunch'):
+                    raise ValueError('当日試行は朝食時刻経過後から昼食前までです')
             # 履歴取得も19時から20時の準備窓内に限定する。
-            if now.astimezone(JST).hour != 19:
+            if not same_day and now.astimezone(JST).hour != 19:
                 raise ValueError('自動履歴取得は19時の準備窓内だけです')
             base = Path(os.getenv('MINA_HISTORY_DIRECTORY', '/var/lib/mina-agent/history'))
             base.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -352,7 +357,8 @@ def main():
         result = prepare_day(store, args.output or Path(os.getenv('MINA_PREPARE_DIRECTORY', '/var/lib/mina-agent/daily')),
                              history, evidence, args.source_commit, Path(__file__).resolve().parents[2],
                              os.getenv('MINA_SHARE_HOST', ''), generation_client(), DriveClient.from_env(),
-                             MealClient(os.getenv('MINA_MEAL_API_BASE_URL', ''), os.getenv('MINA_AGENT_API_TOKEN', '')))
+                             MealClient(os.getenv('MINA_MEAL_API_BASE_URL', ''), os.getenv('MINA_AGENT_API_TOKEN', '')),
+                             same_day=args.command == 'prepare-today')
         print(json.dumps(result, ensure_ascii=False))
     elif args.command == "images":
         if not args.manifest or not args.output:

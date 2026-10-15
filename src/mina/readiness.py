@@ -76,9 +76,14 @@ def check_evidence(evidence, target, now):
     return entries
 
 
-def build_candidates(reviewed, evidence, commit, host, now):
+def build_candidates(reviewed, evidence, commit, host, now, excluded_slots=()):
     """APIの完成本文を変更せず、確認証跡を承認対象のハッシュへ含める。"""
     target = reviewed['target_date']
+    if excluded_slots:
+        from .domain import JST, slot_time
+        if (set(excluded_slots) != {'breakfast'} or target != instant(now).astimezone(JST).date().isoformat()
+                or instant(now) < slot_time(date.fromisoformat(target), 'breakfast')):
+            raise ValueError('当日の時間を過ぎた朝食だけを公開対象外にできます')
     entries = check_evidence(evidence, target, now)
     if reviewed.get('state') != 'posts_reviewed' or set(reviewed.get('posts', {})) != set(SLOTS):
         raise ValueError('点検済みの4投稿が必要です')
@@ -93,6 +98,8 @@ def build_candidates(reviewed, evidence, commit, host, now):
         post = reviewed['posts'][slot]
         if slot != 'daily' and post['menu'] in menus:
             raise ValueError('直前14日間の献立と重複しています')
+        if slot in excluded_slots:
+            continue
         source = {**post['approval_source'], 'readiness_sha256': evidence_hash,
                   'ogp_image_url': post['ogp']['image_url'], 'ogp_image_sha256': post['ogp']['image_sha256']}
         candidate = Candidate(target_date=target, slot=slot, **{k: post[k] for k in fields},

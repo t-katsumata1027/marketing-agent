@@ -40,12 +40,15 @@ def write_artifact(path, value):
 
 
 def prepare_day(store, directory, history, evidence_path, commit, root, host, ai, drive, meal,
-                clock=lambda: datetime.now(UTC)):
+                clock=lambda: datetime.now(UTC), same_day=False):
     """翌日だけを時間窓内で処理。再起動・競合実行では外部工程を重ねない。"""
     now = instant(clock())
-    target = (now.astimezone(JST).date() + timedelta(days=1)).isoformat()
-    deadline = approval_time(date.fromisoformat(target))
-    if not deadline - timedelta(hours=1) <= now < deadline:
+    target = (now.astimezone(JST).date() + timedelta(days=0 if same_day else 1)).isoformat()
+    from .domain import slot_time
+    excluded_slots = ('breakfast',) if same_day else ()
+    deadline = slot_time(date.fromisoformat(target), 'lunch') if same_day else approval_time(date.fromisoformat(target))
+    start = slot_time(date.fromisoformat(target), 'breakfast') if same_day else deadline - timedelta(hours=1)
+    if not start <= now < deadline:
         raise ValueError('翌日準備の開始可能時間は19時から20時直前です')
     evidence = read_json(evidence_path)
     check_evidence(evidence, target, now)
@@ -62,6 +65,12 @@ def prepare_day(store, directory, history, evidence_path, commit, root, host, ai
         if state == 'complete':
             return {'target_date': target, 'state': 'already_complete'}
         raise ValueError('準備の成否照合が必要です。自動再実行しません')
+    if same_day:
+        # 当日朝食は登録・日次集計だけに使い、後から候補として追加することも拒否する。
+        with store.transaction() as db:
+            if db.execute('SELECT 1 FROM candidates WHERE target_date=?', (target,)).fetchone():
+                raise ValueError('既存候補のある日は当日試行を開始しません')
+            db.execute("INSERT INTO publication_exclusions VALUES(?,'breakfast','本人指定・時刻経過のためX非公開')", (target,))
     directory = Path(directory) / target
     directory.mkdir(parents=True, exist_ok=True)
     stage = 'draft'
@@ -93,7 +102,7 @@ def prepare_day(store, directory, history, evidence_path, commit, root, host, ai
         write_artifact(directory / 'posts-reviewed.json', reviewed)
         within_deadline()
         stage = 'candidates'
-        candidates = build_candidates(reviewed, evidence, commit, host, clock())
+        candidates = build_candidates(reviewed, evidence, commit, host, clock(), excluded_slots=excluded_slots)
         # 全4件に対する正本・実OGP照合を取り込みの直前にも行う。
         from .domain import Candidate
         from .m1_contract import verify_source
@@ -103,9 +112,9 @@ def prepare_day(store, directory, history, evidence_path, commit, root, host, ai
         manifest = directory / 'candidates.json'
         write_artifact(manifest, candidates)
         within_deadline()
-        import_manifest(store, manifest, host, clock())
+        import_manifest(store, manifest, host, clock(), excluded_slots=excluded_slots)
         store.preparation_done(target)
-        return {'target_date': target, 'state': 'approval_ready', 'post_count': 4}
+        return {'target_date': target, 'state': 'approval_ready', 'post_count': len(candidates)}
     except Exception:
         # 秘密値や外部応答を保存せず、停止した工程だけを残す。
         with store.transaction() as db:

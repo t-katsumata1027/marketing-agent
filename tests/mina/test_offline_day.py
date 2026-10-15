@@ -12,7 +12,7 @@ from unittest.mock import Mock, patch
 from PIL import Image
 
 from src.mina.daily_pipeline import prepare_day
-from src.mina.domain import ACCOUNT, Candidate, SLOTS
+from src.mina.domain import ACCOUNT, Candidate, SLOTS, JST
 from src.mina.m1_contract import verify_source
 from src.mina.runtime import notify_day, publish_due, send_notifications
 from src.mina.store import Store
@@ -23,6 +23,12 @@ from tests.mina.test_readiness import evidence
 
 class OfflineDayTest(unittest.TestCase):
     def test_full_day_uses_real_pipeline_and_local_ledger_without_network(self):
+        self.exercise_day()
+
+    def test_same_day_registers_three_meals_but_never_publishes_breakfast(self):
+        self.exercise_day(same_day=True)
+
+    def exercise_day(self, same_day=False):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             store = Store(root/'db')
@@ -42,7 +48,7 @@ class OfflineDayTest(unittest.TestCase):
             drive.verify.side_effect = lambda key, raw, filename: {'verified':True,'sha256':hashlib.sha256(raw).hexdigest()}
             meal = helper.client()
             state_call, request_call = meal.day_state.side_effect, meal.request_state.side_effect
-            current = [NOW]
+            current = [datetime(2026, 10, 8, 9, 30, tzinfo=JST) if same_day else NOW]
             def state(target):
                 value = state_call(target)
                 value['checked_at'] = current[0].isoformat()
@@ -67,8 +73,8 @@ class OfflineDayTest(unittest.TestCase):
                  patch('src.mina.registration.datetime', Clock), \
                  patch('src.mina.ogp.capture_ogp', side_effect=capture):
                 args = (store,root/'daily',history,history,'a'*40,root,host,ai,drive,meal)
-                self.assertEqual(prepare_day(*args,clock=lambda:current[0])['state'],'approval_ready')
-                self.assertEqual(prepare_day(*args,clock=lambda:current[0])['state'],'already_complete')
+                self.assertEqual(prepare_day(*args,clock=lambda:current[0],same_day=same_day)['state'],'approval_ready')
+                self.assertEqual(prepare_day(*args,clock=lambda:current[0],same_day=same_day)['state'],'already_complete')
                 self.assertEqual(ai.image.call_count,3)
                 self.assertEqual(ai.review_image.call_count,3)
                 self.assertEqual(ai.review_meal.call_count,3)
@@ -80,9 +86,12 @@ class OfflineDayTest(unittest.TestCase):
                 notify_day(store,TARGET,NOW)
                 self.assertEqual(store.issue_cards(TARGET,NOW),[])
                 cards = store.issue_cards(TARGET,NOTIFY)
-                self.assertEqual(len(cards),4)
+                expected = 3 if same_day else 4
+                self.assertEqual(len(cards),expected)
+                if same_day:
+                    self.assertIsNone(store.get(TARGET, 'breakfast'))
                 discord = Mock()
-                self.assertEqual(send_notifications(store,discord),4)
+                self.assertEqual(send_notifications(store,discord),expected)
                 for card in cards:
                     self.assertEqual(store.decide(card['components'][0]['components'][0]['custom_id'],
                                                  '合成承認者',NOTIFY),'approved')
@@ -97,6 +106,6 @@ class OfflineDayTest(unittest.TestCase):
                     self.assertEqual(publish_due(store,x,current[0],host,
                         lambda c:verify_source(c,meal,host,capture,clock=lambda:current[0]),
                         clock=lambda:current[0]),0)
-                self.assertEqual(x.publish.call_count,4)
+                self.assertEqual(x.publish.call_count,expected)
                 x.verify_account.assert_called_with(ACCOUNT)
                 self.assertEqual({r['state'] for r in store.list_day(TARGET)},{'published'})

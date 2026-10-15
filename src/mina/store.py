@@ -38,6 +38,9 @@ class Store:
                 CREATE TABLE IF NOT EXISTS cycle_health (
                     singleton INTEGER PRIMARY KEY CHECK(singleton=1), checked REAL NOT NULL,
                     last_success REAL, consecutive_failures INTEGER NOT NULL, mode TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS publication_exclusions (
+                    target_date TEXT NOT NULL, slot TEXT NOT NULL, reason TEXT NOT NULL,
+                    PRIMARY KEY(target_date,slot));
             """)
 
     @contextmanager
@@ -74,6 +77,9 @@ class Store:
         with self.transaction() as db:
             revisions = []
             for candidate in candidates:
+                if db.execute('SELECT 1 FROM publication_exclusions WHERE target_date=? AND slot=?',
+                              (candidate.target_date, candidate.slot)).fetchone():
+                    raise ValueError('本人指定により公開しない枠です')
                 row = db.execute("SELECT * FROM candidates WHERE target_date=? AND slot=?", (candidate.target_date, candidate.slot)).fetchone()
                 if expected_digests is not None and (not row or row['digest'] != expected_digests.get(candidate.slot) or
                         row['state'] not in ('changes_requested', 'approval_pending')):
@@ -108,7 +114,7 @@ class Store:
                 nonce = secrets.token_urlsafe(24)
                 key = f"{target_date}|{row['slot']}|{row['revision']}|{nonce}"
                 c = Candidate(**json.loads(row["payload"]))
-                card = {"content": f"翌日投稿の承認依頼：{target_date} {c.slot}（JST {c.scheduled_at.astimezone(JST):%H:%M}）\n{c.content}",
+                card = {"content": f"投稿の承認依頼：{target_date} {c.slot}（JST {c.scheduled_at.astimezone(JST):%H:%M}）\n{c.content}",
                         "allowed_mentions": {"parse": []},
                         "embeds": [{"title": "品質確認済みの候補", "description": c.menu,
                                     "fields": [{"name": "栄養の目安", "value": json.dumps(c.nutrition, ensure_ascii=False)},
@@ -213,7 +219,9 @@ class Store:
         if instant(now) < approval_time(date.fromisoformat(target_date)):
             return
         present = {r["slot"] for r in self.list_day(target_date)}
-        missing = sorted(set(SLOTS) - present)
+        with self.transaction() as db:
+            excluded = {r[0] for r in db.execute('SELECT slot FROM publication_exclusions WHERE target_date=?', (target_date,))}
+        missing = sorted(set(SLOTS) - present - excluded)
         if not missing:
             return
         payload = {"content": f"翌日{target_date}の候補準備を保留しています。未完成枠：{'、'.join(missing)}。品質確認後に承認依頼を追加します。", "allowed_mentions": {"parse": []}}

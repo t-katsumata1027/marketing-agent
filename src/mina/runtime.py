@@ -10,15 +10,25 @@ from .domain import ACCOUNT, Candidate, JST, SLOTS, instant
 from .store import Store
 
 
-def import_manifest(store: Store, path: Path, host: str, now: datetime, expected_digests=None):
+def import_manifest(store: Store, path: Path, host: str, now: datetime, expected_digests=None, excluded_slots=()):
     """独立レビュー済み成果物を取り込み、元の版を保存する。"""
     payload = json.loads(path.read_text(encoding="utf-8-sig"))
-    if not isinstance(payload, list) or len(payload) != 4:
+    if excluded_slots:
+        if set(excluded_slots) != {'breakfast'}:
+            raise ValueError('当日朝食以外の公開除外は許可されていません')
+        today = instant(now).astimezone(JST).date().isoformat()
+        with store.transaction() as db:
+            if not db.execute("SELECT 1 FROM publication_exclusions WHERE target_date=? AND slot='breakfast'", (today,)).fetchone():
+                raise ValueError('当日の朝食非公開指定が必要です')
+    expected_slots = set(SLOTS) - set(excluded_slots)
+    if not isinstance(payload, list) or len(payload) != len(expected_slots):
         raise ValueError("候補ファイルには翌日4枠が必要です")
     candidates = [Candidate(**entry) for entry in payload]
-    if len({c.target_date for c in candidates}) != 1 or {c.slot for c in candidates} != set(SLOTS):
+    if len({c.target_date for c in candidates}) != 1 or {c.slot for c in candidates} != expected_slots:
         raise ValueError("同じ日付の4枠が必要です")
     target = candidates[0].target_date
+    if excluded_slots and target != today:
+        raise ValueError('当日以外へ朝食除外を適用できません')
     history_start = instant(now) - timedelta(days=14)
     with store.transaction() as db:
         history = db.execute("SELECT payload FROM candidates WHERE target_date<>? AND scheduled>=? AND scheduled<?", (target, history_start.timestamp(), candidates[0].scheduled_at.timestamp())).fetchall()
