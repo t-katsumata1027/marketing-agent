@@ -71,6 +71,10 @@ def publish_due(store: Store, client, now: datetime, host: str, preflight, clock
     count = 0
     for row in store.claim_due(now):
         try:
+            from .buffer_publisher import publication_client
+            publisher = publication_client(store, row, client)
+            if publisher is not client:
+                publisher.verify_account(ACCOUNT)
             c = Candidate(**json.loads(row["payload"]))
             if c.digest != row["digest"]:
                 raise ValueError("成果物ハッシュが一致しません")
@@ -100,11 +104,13 @@ def publish_due(store: Store, client, now: datetime, host: str, preflight, clock
                         raise ValueError('公開直前の照合証跡が古いか不正です')
                 if instant(datetime.fromisoformat(proof['expires_at'])) <= sending_at:
                     raise ValueError('送信直前にOGPが失効しました')
+            if publisher is not client:
+                publisher.proof = proof
         except Exception:
             store.stop_before_publish(row, now)
             continue
         try:
-            x_id = client.publish(c.content)
+            x_id = publisher.publish(c.content)
             if not isinstance(x_id, str) or not x_id.isdigit():
                 raise ValueError("公開IDが不正です")
             store.finish(row, x_id, now)

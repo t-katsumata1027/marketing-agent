@@ -47,6 +47,12 @@ class Store:
                 CREATE TABLE IF NOT EXISTS preparation_progress (
                     target_date TEXT PRIMARY KEY, step TEXT NOT NULL, status TEXT NOT NULL,
                     reasons TEXT NOT NULL, updated REAL NOT NULL);
+                CREATE TABLE IF NOT EXISTS buffer_publication (
+                    singleton INTEGER PRIMARY KEY CHECK(singleton=1), target_date TEXT NOT NULL,
+                    slot TEXT NOT NULL CHECK(slot='breakfast'), revision INTEGER NOT NULL,
+                    digest TEXT NOT NULL, channel_id TEXT NOT NULL, service_id TEXT NOT NULL,
+                    state TEXT NOT NULL, post_id TEXT, request_json TEXT, response_json TEXT,
+                    attempted REAL, proof_json TEXT);
             """)
 
     @contextmanager

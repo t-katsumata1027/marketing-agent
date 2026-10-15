@@ -102,6 +102,9 @@ def cycle(store: Store, now: datetime):
     sent = send_notifications(store, DiscordClient(os.environ["DISCORD_BOT_TOKEN"], os.environ["DISCORD_ALLOWED_CHANNEL_ID"]))
     host = os.environ["MINA_SHARE_HOST"]
     published = 0
+    if status['publish_enabled']:
+        from .buffer_publisher import recover_publication
+        recover_publication(store, now)
     if status["publish_enabled"] and store.has_due(now):
         # 公開開始には承認設定も必須。確認用PINGだけで公開を有効にしない。
         policy_from_env()
