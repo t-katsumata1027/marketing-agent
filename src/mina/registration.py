@@ -13,6 +13,7 @@ from .m1_contract import CONTRACT, completed_request, validate_state, validate_w
 from .ogp import capture_ogp, verify_image_reference
 from .preparation import PreparationJournal, fingerprint
 from .request_ledger import RequestLedger
+from .preparation_status import QualityHold
 
 
 def assert_day_state(state, target, completed, now):
@@ -168,11 +169,11 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
                 {'image_sha256':info['sha256'],'meal':meal,'response':response,'ogp_digest':captured['digest'],'policy_sha256':meal_review_policy_sha256()},
                 lambda:ai.review_meal(raw, meal, response, captured['meta']))
         if review != {'status': 'publishable', 'reason_codes': []}:
-            raise ValueError('解析結果の独立レビューが保留です')
+            raise QualityHold('解析結果の独立レビューが保留です','meal_review:'+slot,review.get('reason_codes',()))
         ogp_review = journal.run(target, 'ogp_review:' + slot, {'image_sha256': info['sha256'], 'normalized': normalized, 'ogp_digest': captured['digest']},
                                  lambda: ai.review_ogp([preview, raw], {**normalized, 'target_date': target, 'slot': slot}, captured['meta']))
         if ogp_review != {'status': 'publishable', 'reason_codes': []}:
-            raise ValueError('OGPの実画像レビューが保留です')
+            raise QualityHold('OGPの実画像レビューが保留です','ogp_review:'+slot,ogp_review.get('reason_codes',()))
         outputs[slot] = {**normalized, 'menu': meal['menu'], 'image_sha256': info['sha256'],
                          'ogp_sha256': captured['digest'], 'api_quality': 'pass', 'secondary_review': 'publishable', 'ogp_verified': True,
                          'approval_source': {'request_key': key, 'operation': operation, 'input_hash': input_hash,
@@ -181,7 +182,7 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
                             'ogp_revision': normalized['ogp']['revision'], 'ogp_source_version': normalized['source_version']}}
     total = sum(value['nutrition']['calories'] for value in outputs.values())
     if not 1800 <= total <= 2000:
-        raise ValueError('実解析の3食合計が1800〜2000kcalから外れています')
+        raise QualityHold('実解析の3食合計が1800〜2000kcalから外れています','meal_review:daily',('daily_energy_out_of_range',))
     check_state()
     daily_inputs = {'date': target, 'comment': draft['daily_comment'], 'meals': completed}
     request = journal.run(target, 'daily_request_key', daily_inputs,
@@ -202,7 +203,7 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
     review = journal.run(target, 'ogp_review:daily', {'normalized': daily, 'ogp_digest': captured['digest'], 'images': {slot: saved['images'][slot]['sha256'] for slot in MEAL_SLOTS}},
                          lambda: ai.review_ogp([preview, *(images[slot] for slot in MEAL_SLOTS)], {**daily, 'target_date': target, 'slot': 'daily', 'meal_count': 3}, captured['meta']))
     if review != {'status': 'publishable', 'reason_codes': []}:
-        raise ValueError('日次OGPの実画像レビューが保留です')
+        raise QualityHold('日次OGPの実画像レビューが保留です','ogp_review:daily',review.get('reason_codes',()))
     outputs['daily'] = {**daily, 'menu': ' / '.join(outputs[slot]['menu'] for slot in MEAL_SLOTS),
                         'api_quality': 'pass', 'secondary_review': 'publishable',
                         'ogp_sha256': captured['digest'], 'ogp_verified': True, 'meal_count': 3,

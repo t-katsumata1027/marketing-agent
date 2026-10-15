@@ -86,7 +86,8 @@ def resume_preparation(store, directory, target, round_key, root, commit, host, 
         import_manifest(store,manifest,host,clock())
         store.preparation_done(target)
         return {'target_date':target,'state':'approval_ready','post_count':4}
-    except Exception:
+    except Exception as error:
         with store.transaction() as db:
             db.execute("UPDATE preparation SET state='held:explicit_resume' WHERE target_date=?",(target,))
+        store.record_preparation_failure(target,'registration',error,clock())
         raise RuntimeError('翌日準備の再開を保留しました。自動再実行しません') from None

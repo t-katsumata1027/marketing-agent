@@ -10,6 +10,7 @@ from .preparation import PreparationJournal, prepare_images, save_images_to_driv
 from .readiness import build_candidates, check_evidence, read_json, release_commit
 from .registration import register_day
 from .runtime import import_manifest
+from .preparation_status import PreparationDeadline
 
 
 class DeadlineClient:
@@ -77,7 +78,7 @@ def prepare_day(store, directory, history, evidence_path, commit, root, host, ai
     try:
         def within_deadline():
             if instant(clock()) >= deadline:
-                raise ValueError('20時の準備期限を超過しました')
+                raise PreparationDeadline('準備期限を超過しました')
         ai, drive, meal = (DeadlineClient(client, within_deadline) for client in (ai, drive, meal))
         journal = PreparationJournal(store)
         draft_path = directory / 'draft.json'
@@ -98,10 +99,11 @@ def prepare_day(store, directory, history, evidence_path, commit, root, host, ai
         def capture(url, allowed_host):
             within_deadline()
             return capture_ogp(url, allowed_host)
-        reviewed = register_day(store, draft, saved, directory / 'ogp', meal, ai, host, capture=capture)
+        reviewed = register_day(store, draft, saved, directory / 'ogp', meal, ai, host, capture=capture,allow_correction=True)
         write_artifact(directory / 'posts-reviewed.json', reviewed)
         within_deadline()
         stage = 'candidates'
+        store.record_preparation_progress(target,'candidates','reviewing',now=clock())
         candidates = build_candidates(reviewed, evidence, commit, host, clock(), excluded_slots=excluded_slots)
         # 全4件に対する正本・実OGP照合を取り込みの直前にも行う。
         from .domain import Candidate
@@ -115,10 +117,11 @@ def prepare_day(store, directory, history, evidence_path, commit, root, host, ai
         import_manifest(store, manifest, host, clock(), excluded_slots=excluded_slots)
         store.preparation_done(target)
         return {'target_date': target, 'state': 'approval_ready', 'post_count': len(candidates)}
-    except Exception:
+    except Exception as error:
         # 秘密値や外部応答を保存せず、停止した工程だけを残す。
         with store.transaction() as db:
             db.execute("UPDATE preparation SET state=? WHERE target_date=?", ('held:' + stage, target))
+        store.record_preparation_failure(target,stage,error,clock())
         raise RuntimeError('daily_preparation_held:' + stage) from None
 
 

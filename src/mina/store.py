@@ -44,6 +44,9 @@ class Store:
                 CREATE TABLE IF NOT EXISTS publication_exceptions (
                     target_date TEXT NOT NULL, slot TEXT NOT NULL, until_at TEXT NOT NULL,
                     reason TEXT NOT NULL, PRIMARY KEY(target_date,slot));
+                CREATE TABLE IF NOT EXISTS preparation_progress (
+                    target_date TEXT PRIMARY KEY, step TEXT NOT NULL, status TEXT NOT NULL,
+                    reasons TEXT NOT NULL, updated REAL NOT NULL);
             """)
 
     @contextmanager
@@ -239,12 +242,68 @@ class Store:
         present = {r["slot"] for r in self.list_day(target_date)}
         with self.transaction() as db:
             excluded = {r[0] for r in db.execute('SELECT slot FROM publication_exclusions WHERE target_date=?', (target_date,))}
-        missing = sorted(set(SLOTS) - present - excluded)
+        missing = [LABELS[slot] for slot in SLOTS if slot not in present and slot not in excluded]
         if not missing:
             return
-        payload = {"content": f"翌日{target_date}の候補準備を保留しています。未完成枠：{'、'.join(missing)}。品質確認後に承認依頼を追加します。", "allowed_mentions": {"parse": []}}
+        with self.transaction() as db:
+            progress=db.execute('SELECT * FROM preparation_progress WHERE target_date=?',(target_date,)).fetchone()
+            prep=db.execute('SELECT state FROM preparation WHERE target_date=?',(target_date,)).fetchone()
+        if progress and progress['status'] in ('quality_hold','reconciliation_required','stopped'):
+            self.queue_preparation_hold(target_date,now)
+            return
+        from .preparation_status import describe_step
+        if progress and prep and prep['state'] in ('started','resuming:registration','read_recovery_started'):
+            label={'correcting':'訂正・再点検中','reviewing':'点検中'}.get(progress['status'],'処理中')
+            fresh=0 <= instant(now).timestamp()-progress['updated'] <= 180
+            message=(f'翌日{target_date}の候補は{label}です。最終進捗：{describe_step(progress["step"])}。'
+                     if fresh else f'翌日{target_date}の準備は進捗更新の確認が必要です。最終進捗：{describe_step(progress["step"])}。')
+            message+=f'未完成枠：{"、".join(missing)}。完了・合格した場合に承認依頼へ進みます。停止後の自動再開は行いません。'
+        else:
+            message=f'翌日{target_date}の候補準備は確認・対応が必要です。未完成枠：{"、".join(missing)}。自動再開しません。実行記録を照合してください。'
+        payload = {"content": message, "allowed_mentions": {"parse": []}}
         with self.transaction() as db:
             db.execute("INSERT OR IGNORE INTO notices(target_date,slot,revision,kind,payload,created) VALUES(?,'all',0,'delay',?,?)", (target_date, json.dumps(payload, ensure_ascii=False), instant(now).timestamp()))
+
+    def record_preparation_progress(self,target,step,status,reasons=(),now=None):
+        """要求台帳を変更せず、通知用の工程状態だけを記録する。"""
+        from datetime import UTC
+        from .preparation_status import REASONS
+        if status not in ('running','reviewing','correcting','quality_hold','reconciliation_required','stopped','complete'):
+            raise ValueError('準備状態の分類が不正です')
+        safe_reasons=[code for code in reasons if code in REASONS or code in ('deadline_exceeded','unconfirmed')]
+        with self.transaction() as db:
+            db.execute('INSERT INTO preparation_progress VALUES(?,?,?,?,?) ON CONFLICT(target_date) DO UPDATE SET step=excluded.step,status=excluded.status,reasons=excluded.reasons,updated=excluded.updated',
+                (target,step,status,json.dumps(safe_reasons),instant(now or datetime.now(UTC)).timestamp()))
+
+    def record_preparation_failure(self,target,stage,error,now):
+        """品質保留は理由を残し、その他の未確認工程は安全側で停止して即時通知する。"""
+        from .preparation_status import QualityHold,PreparationDeadline
+        with self.transaction() as db:
+            progress=db.execute('SELECT step FROM preparation_progress WHERE target_date=?',(target,)).fetchone()
+        step=progress['step'] if progress else stage
+        if isinstance(error,QualityHold):
+            step,status,reasons=error.step,'quality_hold',error.reason_codes
+        elif isinstance(error,PreparationDeadline):
+            status,reasons='stopped',('deadline_exceeded',)
+        else:
+            status,reasons='reconciliation_required',('unconfirmed',)
+        self.record_preparation_progress(target,step,status,reasons,now)
+        self.queue_preparation_hold(target,now)
+
+    def queue_preparation_hold(self,target,now):
+        """同じ停止は一度だけ通知し、本文・資格情報・UUIDを含めない。"""
+        from .preparation_status import REASONS,describe_step
+        with self.transaction() as db:
+            row=db.execute('SELECT * FROM preparation_progress WHERE target_date=?',(target,)).fetchone()
+            if not row or row['status'] not in ('quality_hold','reconciliation_required','stopped'):
+                return
+            reasons=json.loads(row['reasons'])
+            label={'quality_hold':'品質点検で停止','reconciliation_required':'成否・正本の照合が必要','stopped':'準備を停止'}[row['status']]
+            explanation='、'.join(REASONS.get(code,{'deadline_exceeded':'準備期限を超過','unconfirmed':'工程の完了を確認できない'}.get(code,'確認が必要')) for code in reasons) or '品質の確認を完了できない'
+            message=f'{target}の候補準備：{label}。対象：{describe_step(row["step"])}。理由：{explanation}。自動再開しません。保存済み記録を再登録せず、照合・対応が必要です。'
+            revision=int(hashlib.sha256(json.dumps([row['step'],row['status'],reasons]).encode()).hexdigest()[:8],16)
+            db.execute("INSERT OR IGNORE INTO notices(target_date,slot,revision,kind,payload,created) VALUES(?,'all',?,'preparation_hold',?,?)",
+                (target,revision,json.dumps({'content':message,'allowed_mentions':{'parse':[]}},ensure_ascii=False),instant(now).timestamp()))
 
     def queue_history_hold(self, target_date: str, now: datetime):
         """履歴の不明点をまとめ、秘密値を含めず一度だけ通知待ちへ保存する。"""
@@ -267,6 +326,7 @@ class Store:
     def preparation_done(self, target_date: str):
         with self.transaction() as db:
             db.execute("UPDATE preparation SET state='complete' WHERE target_date=?", (target_date,))
+            db.execute("UPDATE preparation_progress SET status='complete' WHERE target_date=?",(target_date,))
 
     def hold_day(self, target_date, expected_digests):
         """再点検前に旧承認を失効する。送信開始済みや別版は変更しない。"""

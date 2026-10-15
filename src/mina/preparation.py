@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .clients import OutcomeUnknown
 from .generation import MEAL_SLOTS, validate_plan, IMAGE_STYLE, meal_image_description, image_review_policy_sha256
+from .preparation_status import QualityHold,PreparationDeadline,step_status
 
 
 def fingerprint(value):
@@ -33,8 +34,14 @@ class PreparationJournal:
                     raise ValueError("準備対象の版が変わっています。既存の外部状態を照合してください")
                 if previous["state"] == "complete":
                     return json.loads(previous["result"])
+                if previous['state']=='held':
+                    held=json.loads(previous['result'])
+                    raise QualityHold('保存済み工程の品質保留を保持しています',held['step'],held['reason_codes'])
+                if previous['state']=='stopped':
+                    raise PreparationDeadline('準備期限による工程停止を保持しています')
                 raise OutcomeUnknown("preparation_reconciliation_required")
             db.execute("INSERT INTO preparation_steps VALUES(?,?,?,'started',NULL,?)", (target, step, digest, datetime.now(UTC).timestamp()))
+        self.store.record_preparation_progress(target,step,step_status(step))
         try:
             result = operation()
             raw = json.dumps(result, ensure_ascii=False, allow_nan=False)
@@ -43,6 +50,16 @@ class PreparationJournal:
             with self.store.transaction() as db:
                 db.execute("UPDATE preparation_steps SET state='complete',result=? WHERE target_date=? AND step=? AND state='started'", (raw, target, step))
             return result
+        except PreparationDeadline:
+            with self.store.transaction() as db:
+                db.execute("UPDATE preparation_steps SET state='stopped',result=? WHERE target_date=? AND step=? AND state='started'",
+                    (json.dumps({'classification':'deadline_exceeded','step':step}),target,step))
+            raise
+        except QualityHold as error:
+            with self.store.transaction() as db:
+                db.execute("UPDATE preparation_steps SET state='held',result=? WHERE target_date=? AND step=? AND state='started'",
+                    (json.dumps({'classification':'quality_hold','step':error.step,'reason_codes':error.reason_codes}),target,step))
+            raise
         except Exception:
             with self.store.transaction() as db:
                 db.execute("UPDATE preparation_steps SET state='outcome_unknown' WHERE target_date=? AND step=? AND state='started'", (target, step))
@@ -88,7 +105,7 @@ def prepare_images(store, draft_path: Path, directory: Path, client):
                               "review_policy_sha256": image_review_policy_sha256()},
                              lambda: client.review_image(raw, meal))
         if review["status"] != "image_acceptable" or review["reason_codes"]:
-            raise ValueError("画像の事前点検で保留になりました")
+            raise QualityHold("画像の事前点検で保留になりました",'image_review:'+slot,review.get('reason_codes',()))
         outputs[slot] = {**image, "image_review": review}
     return {"target_date": target, "state": "images_reviewed", "images": outputs}
 
