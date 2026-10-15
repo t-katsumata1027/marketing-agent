@@ -40,15 +40,23 @@ def resume_preparation(store, directory, target, round_key, root, commit, host, 
         requests=list(db.execute('SELECT slot,operation,phase FROM mina_requests WHERE target_date=?',(target,)))
         hold=db.execute("SELECT result FROM preparation_steps WHERE target_date=? AND step='meal_review:breakfast' AND state='complete'",(target,)).fetchone()
         verdict=json.loads(hold['result']) if hold else {}
-        if (not prep or prep['state']!='held:registration' or
-                [tuple(r) for r in requests]!=[('breakfast','meal_register','complete')] or
-                verdict.get('status')!='hold' or not verdict.get('reason_codes') or
-                not set(verdict['reason_codes']) <= {'nutrition_semantic_mismatch','image_analysis_mismatch'} or
-                db.execute('SELECT 1 FROM candidates WHERE target_date=?',(target,)).fetchone() or
-                db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND state<>'complete'",(target,)).fetchone() or
-                db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND step LIKE 'ogp_review:%'",(target,)).fetchone()):
+        request_rows={tuple(r) for r in requests}
+        pending=[tuple(r) for r in db.execute("SELECT step,state FROM preparation_steps WHERE target_date=? AND state<>'complete'",(target,))]
+        original_case=(prep and prep['state']=='held:registration' and
+                request_rows=={('breakfast','meal_register','complete')} and len(requests)==1 and
+                verdict.get('status')=='hold' and bool(verdict.get('reason_codes')) and
+                set(verdict['reason_codes']) <= {'nutrition_semantic_mismatch','image_analysis_mismatch'} and
+                not pending and not db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND step LIKE 'ogp_review:%'",(target,)).fetchone())
+        context_hold=db.execute("SELECT result FROM preparation_steps WHERE target_date=? AND step='meal_review:lunch:corrected' AND state='complete'",(target,)).fetchone()
+        context_case=(prep and prep['state']=='held:explicit_resume' and len(requests)==4 and
+                request_rows=={(s,op,'complete') for s in ('breakfast','lunch') for op in ('meal_register','meal_correction')} and
+                pending==[('explicit_preparation_resume','outcome_unknown')] and context_hold and
+                json.loads(context_hold['result'])=={'status':'hold','reason_codes':['context_mismatch']} and
+                not db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND step='ogp_review:lunch'",(target,)).fetchone())
+        if (not (original_case or context_case) or db.execute('SELECT 1 FROM candidates WHERE target_date=?',(target,)).fetchone()):
             raise ValueError('朝食保存完了・栄養点検保留以外は再開しません。未知状態は照合が必要です')
-        if db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND step='explicit_preparation_resume'",(target,)).fetchone():
+        marker='publication_context_resume' if context_case else 'explicit_preparation_resume'
+        if db.execute('SELECT 1 FROM preparation_steps WHERE target_date=? AND step=?',(target,marker)).fetchone():
             raise ValueError('再開は既に開始済みです。自動反復しません')
         db.execute("UPDATE preparation SET state='resuming:registration' WHERE target_date=?",(target,))
     journal=PreparationJournal(store)
@@ -61,10 +69,11 @@ def resume_preparation(store, directory, target, round_key, root, commit, host, 
         return capture(url,allowed_host)
     try:
         # 既存の朝食POST・画像・Drive保存・保留結果を再利用し、新しい訂正だけを別UUIDで実行する。
-        reviewed=journal.run(target,'explicit_preparation_resume',
+        reviewed=journal.run(target,marker,
             {'round':round_key,'commit':commit,'draft':fingerprint(draft),'saved':fingerprint(saved)},
-            lambda:register_day(store,draft,saved,base/'ogp',DeadlineClient(meal,within_deadline),
-                                DeadlineClient(ai,within_deadline),host,capture=checked_capture,allow_correction=True))
+            lambda:register_day(store,draft,saved,(base/('context-resume-'+round_key)/'ogp') if context_case else base/'ogp',
+                                DeadlineClient(meal,within_deadline),DeadlineClient(ai,within_deadline),host,
+                                capture=checked_capture,allow_correction=True,capture_round=round_key if context_case else None))
         write_artifact(base/'posts-reviewed.json',reviewed)
         check_evidence(evidence,target,clock())
         candidates=build_candidates(reviewed,evidence,commit,host,clock())

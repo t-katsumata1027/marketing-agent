@@ -58,7 +58,20 @@ MEAL_REVIEW_SCOPE = ('この工程は元の食事画像と食品・分量・栄�
 def meal_review_policy_sha256():
     """食品解析点検の担当範囲・判定形式も独立して固定する。"""
     return hashlib.sha256(json.dumps({'instructions':REVIEW_INSTRUCTIONS,'scope':MEAL_REVIEW_SCOPE,
-        'style':IMAGE_STYLE,'schema':review_schema('publishable')},ensure_ascii=False,sort_keys=True).encode()).hexdigest()
+        'style':IMAGE_STYLE,'schema':review_schema('publishable'),'publication_context_version':1},ensure_ascii=False,sort_keys=True).encode()).hexdigest()
+
+
+def publication_context(api_response):
+    """APIのUTC表記をJSTの予約投稿日時へ変換し、点検時の日付・区分の混同を防ぐ。"""
+    from .domain import JST, instant
+    result = api_response.get('result',api_response)
+    meal = result['meal']
+    local = instant(datetime.fromisoformat(meal['logged_at'])).astimezone(JST)
+    return {'timezone':'Asia/Tokyo','meal_logged_at_jst':local.isoformat(),
+            'target_date_jst':local.date().isoformat(),'weekday_jst':'月火水木金土日'[local.weekday()],
+            'meal_type':meal['meal_type'],
+            'publication_date_jst':local.date().isoformat(),
+            'purpose':'対象日向けの予約候補。日付・曜日・朝昼夕と本文の「今日」は、このJST対象日・食事区分を基準に点検する。実公開時刻は承認カードに別途固定する。'}
 
 
 def image_review_policy_sha256():
@@ -177,6 +190,7 @@ class OpenAIClient:
         instructions = REVIEW_INSTRUCTIONS
         if api_response is not None:
             instructions += '\n' + MEAL_REVIEW_SCOPE
+            context['publication_context'] = publication_context(api_response)
         content = [{"type": "input_text", "text": json.dumps(context, ensure_ascii=False)},
                    {"type": "input_image", "image_url": "data:image/jpeg;base64," + base64.b64encode(raw).decode("ascii"), "detail": "high"}]
         result = self.structured(instructions, content, review_schema(positive), "mina_independent_review",

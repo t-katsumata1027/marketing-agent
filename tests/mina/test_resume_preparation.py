@@ -69,3 +69,21 @@ class ResumePreparationTests(unittest.TestCase):
             root=Path(tmp);store,history=self.setup(root);register=Mock()
             with self.assertRaises(ValueError):self.invoke(root,store,history,register,datetime(2026,10,7,23,tzinfo=JST))
             register.assert_not_called()
+
+    def test_known_saved_corrections_allow_one_context_review_without_resending(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);store,history=self.setup(root);register=Mock(return_value=reviewed())
+            requests=RequestLedger(store);journal=PreparationJournal(store)
+            for index,(slot,operation) in enumerate((('breakfast','meal_correction'),('lunch','meal_register'),('lunch','meal_correction')),2):
+                key=f'{index:08d}-1111-4111-8111-111111111111'
+                requests.prepare(key,operation,TARGET,slot,{})
+                requests.record(key,'complete',{'persistence':'saved'})
+            journal.run(TARGET,'meal_review:lunch:corrected',{},lambda:{'status':'hold','reason_codes':['context_mismatch']})
+            with self.assertRaises(ValueError):
+                journal.run(TARGET,'explicit_preparation_resume',{},lambda:(_ for _ in ()).throw(ValueError('文脈保留')))
+            with store.transaction() as db:db.execute("UPDATE preparation SET state='held:explicit_resume'")
+            self.assertEqual(self.invoke(root,store,history,register)['post_count'],4)
+            self.assertEqual(register.call_args.kwargs['capture_round'],KEY)
+            with store.transaction() as db:
+                self.assertEqual(db.execute('SELECT count(*) FROM mina_requests').fetchone()[0],4)
+                self.assertEqual(db.execute("SELECT state FROM preparation_steps WHERE step='explicit_preparation_resume'").fetchone()[0],'outcome_unknown')
