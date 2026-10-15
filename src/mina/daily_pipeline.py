@@ -158,6 +158,7 @@ def resume_today_read_failure(store, directory, commit, root, host, ai, meal, ro
         requests = list(db.execute('SELECT slot,operation,phase FROM mina_requests WHERE target_date=?', (target,)))
         review_started = db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND (step LIKE 'meal_review:%' OR step LIKE 'ogp_review:%')", (target,)).fetchone()
         correction_allowed = False
+        plan_context_review = False
         request_rows = [tuple(r) for r in requests]
         original_only = request_rows == [('breakfast','meal_register','complete')]
         known_correction = (len(request_rows) == 2 and ('breakfast','meal_register','complete') in request_rows and
@@ -172,6 +173,14 @@ def resume_today_read_failure(store, directory, commit, root, host, ai, meal, ro
                 previous = json.loads(corrected_review['result'])
                 scope_review_allowed = (previous.get('status') == 'hold' and previous.get('reason_codes') == ['share_ogp_mismatch'] and
                     not db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND step LIKE 'meal_review:breakfast:corrected:%'", (target,)).fetchone())
+            if known_correction and not scope_review_allowed:
+                latest = db.execute("SELECT state,result FROM preparation_steps WHERE target_date=? AND step LIKE 'meal_review:breakfast:corrected:%' ORDER BY started DESC LIMIT 1", (target,)).fetchone()
+                last_outcome = json.loads(latest['result']) if latest and latest['state'] == 'complete' else {}
+                if (last_outcome.get('status') == 'hold' and bool(last_outcome.get('reason_codes')) and
+                        set(last_outcome['reason_codes']) <= {'image_analysis_mismatch','nutrition_semantic_mismatch'} and
+                        not db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND step='plan_context_review:breakfast'", (target,)).fetchone()):
+                    scope_review_allowed = True
+                    plan_context_review = True
             correction_allowed = (outcome.get('status') == 'hold' and bool(outcome.get('reason_codes')) and
                 set(outcome['reason_codes']) <= {'image_analysis_mismatch','nutrition_semantic_mismatch'} and
                 scope_review_allowed and not db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND step LIKE 'ogp_review:%'", (target,)).fetchone() and
@@ -183,6 +192,10 @@ def resume_today_read_failure(store, directory, commit, root, host, ai, meal, ro
                 not (original_only or (allow_correction and known_correction))):
             raise ValueError('保存成否不明や未完了の書込みを再開しません')
         db.execute("UPDATE preparation SET state='read_recovery_started' WHERE target_date=?", (target,))
+        if plan_context_review:
+            from .generation import meal_review_policy_sha256
+            db.execute("INSERT INTO preparation_steps VALUES(?,'plan_context_review:breakfast',?,'complete',?,?)",
+                (target,meal_review_policy_sha256(),json.dumps({'policy_sha256':meal_review_policy_sha256(),'round':round_key}),now.timestamp()))
     out = base / ('read-recovery-' + round_key)
     out.mkdir(mode=0o700)
     def within_deadline():
