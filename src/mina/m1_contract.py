@@ -116,11 +116,16 @@ def validate_result(result, slot, target, host, logged_at=None, input_comment=No
         raise ValueError('M1の正本結果・正規化コメント・完成本文が不整合です') from None
 
 
-def validate_write(response, slot, target, host, **kwargs):
+def validate_write(response, slot, target, host, operation=None, **kwargs):
     """互換コピーが新resultと違う場合や、旧応答だけの場合は止める。"""
     try:
         result = response['result']
-        keys = ('date', 'meal_count', 'summary', 'share', 'x') if slot == 'daily' else ('analysis', 'meal', 'quality', 'share', 'x')
+        operation = operation or ('daily_share' if slot == 'daily' else 'meal_register')
+        if operation not in (('daily_share',) if slot == 'daily' else ('meal_register','meal_correction')):
+            raise ValueError()
+        keys = ('date', 'meal_count', 'summary', 'share', 'x') if slot == 'daily' else ('analysis', 'quality', 'share', 'x') if operation == 'meal_correction' else ('analysis', 'meal', 'quality', 'share', 'x')
+        if operation == 'meal_correction' and 'meal' in response and response['meal'] != result['meal']:
+            raise ValueError()
         for key in keys:
             if key == 'x':
                 if any(response[key][field] != result[key][field] for field in ('text', 'intent_url')):

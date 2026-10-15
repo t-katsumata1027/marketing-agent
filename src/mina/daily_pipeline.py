@@ -158,20 +158,24 @@ def resume_today_read_failure(store, directory, commit, root, host, ai, meal, ro
         requests = list(db.execute('SELECT slot,operation,phase FROM mina_requests WHERE target_date=?', (target,)))
         review_started = db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND (step LIKE 'meal_review:%' OR step LIKE 'ogp_review:%')", (target,)).fetchone()
         correction_allowed = False
+        request_rows = [tuple(r) for r in requests]
+        original_only = request_rows == [('breakfast','meal_register','complete')]
+        known_correction = (len(request_rows) == 2 and ('breakfast','meal_register','complete') in request_rows and
+            any(row in request_rows for row in [('breakfast','meal_correction','response_received'),('breakfast','meal_correction','complete')]) and
+            db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND step='meal_correction:breakfast' AND state='complete'", (target,)).fetchone())
         if allow_correction:
             held = db.execute("SELECT result FROM preparation_steps WHERE target_date=? AND step='meal_review:breakfast' AND state='complete'", (target,)).fetchone()
             outcome = json.loads(held[0]) if held else {}
             correction_allowed = (outcome.get('status') == 'hold' and bool(outcome.get('reason_codes')) and
                 set(outcome['reason_codes']) <= {'image_analysis_mismatch','nutrition_semantic_mismatch'} and
-                not db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND (step LIKE 'ogp_review:%' OR step LIKE 'meal_correction:%')", (target,)).fetchone())
+                not db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND (step LIKE 'ogp_review:%' OR step='meal_review:breakfast:corrected')", (target,)).fetchone() and
+                (original_only or known_correction))
             if not correction_allowed:
                 raise ValueError('食品・量の誤認による保留だけを一度訂正できます')
-        if (not pending or any(not (r[0].startswith('ogp_capture:breakfast') or r[0].startswith('read_recovery:')) for r in pending) or review_started or
-                [tuple(r) for r in requests] != [('breakfast','meal_register','complete')]):
-            if not (correction_allowed and pending and
-                    all(r[0].startswith(('ogp_capture:breakfast','read_recovery:')) for r in pending) and
-                    [tuple(r) for r in requests] == [('breakfast','meal_register','complete')]):
-                raise ValueError('保存成否不明や未完了の書込みを再開しません')
+        if (not pending or any(not r[0].startswith(('ogp_capture:breakfast','read_recovery:')) for r in pending) or
+                (review_started and not correction_allowed) or
+                not (original_only or (allow_correction and known_correction))):
+            raise ValueError('保存成否不明や未完了の書込みを再開しません')
         db.execute("UPDATE preparation SET state='read_recovery_started' WHERE target_date=?", (target,))
     out = base / ('read-recovery-' + round_key)
     out.mkdir(mode=0o700)

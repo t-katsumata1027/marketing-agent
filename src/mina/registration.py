@@ -70,6 +70,28 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
                 if row['state'] != 'complete':
                     raise OutcomeUnknown('preparation_reconciliation_required')
                 completed[slot] = json.loads(row['result'])
+    corrections = {}
+    if allow_correction:
+        for slot in MEAL_SLOTS:
+            with store.transaction() as db:
+                row = db.execute('SELECT state,result FROM preparation_steps WHERE target_date=? AND step=?', (target, 'meal_correction:' + slot)).fetchone()
+                key_row = db.execute('SELECT result FROM preparation_steps WHERE target_date=? AND step=?', (target, 'correction_key:' + slot)).fetchone()
+            if not row:
+                continue
+            if row['state'] != 'complete' or not key_row or slot not in completed:
+                raise OutcomeUnknown('訂正要求の成否確認が必要です')
+            response, key = json.loads(row['result']), json.loads(key_row['result'])['key']
+            record = requests.restore(key)
+            if record['phase'] not in ('response_received','complete'):
+                raise OutcomeUnknown('成否不明の訂正は再開しません')
+            validate_write(response, slot, target, host, operation='meal_correction', logged_at=slot_time(day,slot).isoformat(), input_comment=draft['meals'][slot]['comment'])
+            completed_request(meal_client.request_state(key,'meal_correction'), key,'meal_correction',response['result'])
+            if (response['result']['image_sha256'] != hashlib.sha256(images[slot]).hexdigest() or
+                    response['result']['stored_image_sha256'] != completed[slot]['result']['stored_image_sha256']):
+                raise ValueError('訂正済み結果の画像証跡が変わっています')
+            requests.record(key,'complete',{'persistence':'saved','stage':'completed'})
+            corrections[slot] = (response,key)
+            completed[slot] = response
 
     def check_state():
         return assert_day_state(meal_client.day_state(target), target, completed, datetime.now(UTC))
@@ -101,40 +123,44 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
         meal, info, raw = draft['meals'][slot], saved['images'][slot], images[slot]
         logged = slot_time(day, slot).isoformat()
         inputs = {'sha256': info['sha256'], 'logged_at': logged, 'comment': meal['comment']}
-        request = journal.run(target, 'meal_request_key:' + slot, inputs,
-                              lambda: {'key': str(uuid.uuid4()), 'expected_state_version': check_state()})
-        key = request['key']
-        payload = {'contract_version': CONTRACT, 'meal_type': slot, 'logged_at': logged, 'comment': meal['comment'],
-                   'expected_state_version': request['expected_state_version'], 'filename': f'{target}-{slot}.jpg'}
-        requests.prepare(key, 'meal_register', target, slot, payload, raw)
-        def register():
-            if check_state() != request['expected_state_version']:
-                raise ValueError('送信前に期待する正本版が変更されています')
-            return meal_client.register(raw, f'{target}-{slot}.jpg', slot, logged, meal['comment'], request_key=key,
-                                        expected_state_version=request['expected_state_version'])
-        response = journal.run(target, 'meal_register:' + slot,
-                               inputs, lambda: requests.execute_once(key, meal_client, register))
+        operation = 'meal_correction' if slot in corrections else 'meal_register'
+        if slot in corrections:
+            response, key = corrections[slot]
+        else:
+            request = journal.run(target, 'meal_request_key:' + slot, inputs,
+                                  lambda: {'key': str(uuid.uuid4()), 'expected_state_version': check_state()})
+            key = request['key']
+            payload = {'contract_version': CONTRACT, 'meal_type': slot, 'logged_at': logged, 'comment': meal['comment'],
+                       'expected_state_version': request['expected_state_version'], 'filename': f'{target}-{slot}.jpg'}
+            requests.prepare(key, 'meal_register', target, slot, payload, raw)
+            def register():
+                if check_state() != request['expected_state_version']:
+                    raise ValueError('送信前に期待する正本版が変更されています')
+                return meal_client.register(raw, f'{target}-{slot}.jpg', slot, logged, meal['comment'], request_key=key,
+                                            expected_state_version=request['expected_state_version'])
+            response = journal.run(target, 'meal_register:' + slot,
+                                   inputs, lambda: requests.execute_once(key, meal_client, register))
         completed[slot] = response
-        normalized = validate_write(response, slot, target, host, logged_at=logged, input_comment=meal['comment'])
+        normalized = validate_write(response, slot, target, host, operation=operation, logged_at=logged, input_comment=meal['comment'])
         if response['result']['image_sha256'] != info['sha256']:
             raise ValueError('登録入力画像の版が一致しません')
-        lookup = meal_client.request_state(key, 'meal_register')
-        input_hash = completed_request(lookup, key, 'meal_register', response['result'])
+        lookup = meal_client.request_state(key, operation)
+        input_hash = completed_request(lookup, key, operation, response['result'])
         requests.record(key, 'complete', {'persistence': 'saved', 'stage': 'completed'})
-        if lookup.get('image_sha256') != info['sha256']:
+        if operation == 'meal_register' and lookup.get('image_sha256') != info['sha256']:
             raise ValueError('要求照会の入力画像版が不一致です')
-        captured, preview = ogp(slot, normalized)
-        review = journal.run(target, 'meal_review:' + slot, {'image_sha256': info['sha256'], 'meal': meal, 'response': response, 'ogp_digest': captured['digest']},
+        variant = ':corrected' if operation == 'meal_correction' else ''
+        captured, preview = ogp(slot, normalized, '-corrected' if variant else '')
+        review = journal.run(target, 'meal_review:' + slot + variant, {'image_sha256': info['sha256'], 'meal': meal, 'response': response, 'ogp_digest': captured['digest']},
                              lambda: ai.review_meal(raw, meal, response, captured['meta']))
-        operation = 'meal_register'
-        if (allow_correction and review.get('status') == 'hold' and review.get('reason_codes') and
+        if (allow_correction and operation == 'meal_register' and review.get('status') == 'hold' and review.get('reason_codes') and
                 set(review['reason_codes']) <= {'image_analysis_mismatch','nutrition_semantic_mismatch'}):
             from .correction import correct_meal_once
             original = response
             response, key = correct_meal_once(journal, requests, meal_client, ai, check_state, target, slot, meal, raw, original, host)
             operation = 'meal_correction'
             completed[slot] = response
-            normalized = validate_write(response, slot, target, host, logged_at=logged, input_comment=meal['comment'])
+            normalized = validate_write(response, slot, target, host, operation=operation, logged_at=logged, input_comment=meal['comment'])
             input_hash = completed_request(meal_client.request_state(key, operation), key, operation, response['result'])
             captured, preview = ogp(slot, normalized, '-corrected')
             review = journal.run(target, 'meal_review:' + slot + ':corrected',

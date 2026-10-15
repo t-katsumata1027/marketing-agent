@@ -38,7 +38,7 @@ def correct_meal_once(journal,requests,client,ai,check_state,target,slot,meal,im
         if check_state()!=key_record['expected_state_version']:raise ValueError('訂正前に正本版が変わりました')
         return client.json_write('/api/internal/mina/meals',payload,method='PATCH',request_key=key)
     response=journal.run(target,'meal_correction:'+slot,payload,lambda:requests.execute_once(key,client,send))
-    validate_write(response,slot,target,host,logged_at=original['result']['meal']['logged_at'],input_comment=payload['comment'])
+    validate_write(response,slot,target,host,operation='meal_correction',logged_at=original['result']['meal']['logged_at'],input_comment=payload['comment'])
     completed_request(client.request_state(key,'meal_correction'),key,'meal_correction',response['result'])
     if (response['result']['image_sha256']!=inputs['image_sha256'] or
             response['result']['stored_image_sha256']!=original['result']['stored_image_sha256']):
