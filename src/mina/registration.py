@@ -37,7 +37,7 @@ def assert_day_state(state, target, completed, now):
         raise ValueError('対象日の既存記録・登録成否を照合できません') from None
 
 
-def register_day(store, draft, saved, directory, meal_client, ai, host, capture=capture_ogp, capture_round=None):
+def register_day(store, draft, saved, directory, meal_client, ai, host, capture=capture_ogp, capture_round=None, allow_correction=False):
     """3食と日次を点検する。履歴・旧予約が未照合なら承認候補へ進めない。"""
     target = draft['target_date']
     if capture_round is not None:
@@ -74,18 +74,18 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
     def check_state():
         return assert_day_state(meal_client.day_state(target), target, completed, datetime.now(UTC))
 
-    def ogp(slot, normalized):
+    def ogp(slot, normalized, variant=''):
         def collect():
             captured = capture(normalized['share_url'], host)
             if captured['meta']['image_sha256'] != normalized['ogp']['image_sha256']:
                 raise ValueError('共有カードとサーバー検証済みOGPが不一致です')
             verify_image_reference(captured, normalized['ogp'], normalized['share_url'], host)
-            path = directory / (slot + '-ogp.jpg')
+            path = directory / (slot + variant + '-ogp.jpg')
             with path.open('xb') as file:
                 file.write(captured['review_image'])
             return {'meta': captured['meta'], 'digest': captured['digest'], 'path': str(path.resolve()),
                     'preview_sha256': hashlib.sha256(captured['review_image']).hexdigest()}
-        step = 'ogp_capture:' + slot + (':' + capture_round if capture_round else '')
+        step = 'ogp_capture:' + slot + (':' + capture_round if capture_round else '') + variant
         result = journal.run(target, step, {'share_url': normalized['share_url'], 'directory': str(directory.resolve())}, collect)
         path = Path(result['path'])
         if path.is_symlink():
@@ -126,6 +126,20 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
         captured, preview = ogp(slot, normalized)
         review = journal.run(target, 'meal_review:' + slot, {'image_sha256': info['sha256'], 'meal': meal, 'response': response, 'ogp_digest': captured['digest']},
                              lambda: ai.review_meal(raw, meal, response, captured['meta']))
+        operation = 'meal_register'
+        if (allow_correction and review.get('status') == 'hold' and review.get('reason_codes') and
+                set(review['reason_codes']) <= {'image_analysis_mismatch','nutrition_semantic_mismatch'}):
+            from .correction import correct_meal_once
+            original = response
+            response, key = correct_meal_once(journal, requests, meal_client, ai, check_state, target, slot, meal, raw, original, host)
+            operation = 'meal_correction'
+            completed[slot] = response
+            normalized = validate_write(response, slot, target, host, logged_at=logged, input_comment=meal['comment'])
+            input_hash = completed_request(meal_client.request_state(key, operation), key, operation, response['result'])
+            captured, preview = ogp(slot, normalized, '-corrected')
+            review = journal.run(target, 'meal_review:' + slot + ':corrected',
+                {'image_sha256':info['sha256'],'meal':meal,'response':response,'ogp_digest':captured['digest']},
+                lambda:ai.review_meal(raw, meal, response, captured['meta']))
         if review != {'status': 'publishable', 'reason_codes': []}:
             raise ValueError('解析結果の独立レビューが保留です')
         ogp_review = journal.run(target, 'ogp_review:' + slot, {'image_sha256': info['sha256'], 'normalized': normalized, 'ogp_digest': captured['digest']},
@@ -134,7 +148,7 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
             raise ValueError('OGPの実画像レビューが保留です')
         outputs[slot] = {**normalized, 'menu': meal['menu'], 'image_sha256': info['sha256'],
                          'ogp_sha256': captured['digest'], 'api_quality': 'pass', 'secondary_review': 'publishable', 'ogp_verified': True,
-                         'approval_source': {'request_key': key, 'operation': 'meal_register', 'input_hash': input_hash,
+                         'approval_source': {'request_key': key, 'operation': operation, 'input_hash': input_hash,
                             'result_sha256': normalized['result_sha256'], 'result_version': response['result']['result_version'],
                             'stored_image_sha256': response['result']['stored_image_sha256'],
                             'ogp_revision': normalized['ogp']['revision'], 'ogp_source_version': normalized['source_version']}}

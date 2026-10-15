@@ -123,7 +123,7 @@ def prepare_day(store, directory, history, evidence_path, commit, root, host, ai
 
 
 def resume_today_read_failure(store, directory, commit, root, host, ai, meal, round_key,
-                              clock=lambda: datetime.now(UTC), history_directory=None):
+                              clock=lambda: datetime.now(UTC), history_directory=None, allow_correction=False):
     """朝食保存完了後のOGP読取失敗だけを、原記録を残した明示的な別工程で再照合する。"""
     from .clients import MealClient
     from .domain import Candidate, slot_time
@@ -157,9 +157,21 @@ def resume_today_read_failure(store, directory, commit, root, host, ai, meal, ro
         pending = list(db.execute("SELECT step FROM preparation_steps WHERE target_date=? AND state<>'complete'", (target,)))
         requests = list(db.execute('SELECT slot,operation,phase FROM mina_requests WHERE target_date=?', (target,)))
         review_started = db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND (step LIKE 'meal_review:%' OR step LIKE 'ogp_review:%')", (target,)).fetchone()
+        correction_allowed = False
+        if allow_correction:
+            held = db.execute("SELECT result FROM preparation_steps WHERE target_date=? AND step='meal_review:breakfast' AND state='complete'", (target,)).fetchone()
+            outcome = json.loads(held[0]) if held else {}
+            correction_allowed = (outcome.get('status') == 'hold' and bool(outcome.get('reason_codes')) and
+                set(outcome['reason_codes']) <= {'image_analysis_mismatch','nutrition_semantic_mismatch'} and
+                not db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND (step LIKE 'ogp_review:%' OR step LIKE 'meal_correction:%')", (target,)).fetchone())
+            if not correction_allowed:
+                raise ValueError('食品・量の誤認による保留だけを一度訂正できます')
         if (not pending or any(not (r[0].startswith('ogp_capture:breakfast') or r[0].startswith('read_recovery:')) for r in pending) or review_started or
                 [tuple(r) for r in requests] != [('breakfast','meal_register','complete')]):
-            raise ValueError('保存成否不明や未完了の書込みを再開しません')
+            if not (correction_allowed and pending and
+                    all(r[0].startswith(('ogp_capture:breakfast','read_recovery:')) for r in pending) and
+                    [tuple(r) for r in requests] == [('breakfast','meal_register','complete')]):
+                raise ValueError('保存成否不明や未完了の書込みを再開しません')
         db.execute("UPDATE preparation SET state='read_recovery_started' WHERE target_date=?", (target,))
     out = base / ('read-recovery-' + round_key)
     out.mkdir(mode=0o700)
@@ -170,9 +182,9 @@ def resume_today_read_failure(store, directory, commit, root, host, ai, meal, ro
         # 新しい画像・朝食UUIDは生成せず、完了済みの同一入力・原本を既存台帳から再使用する。
         journal = PreparationJournal(store)
         reviewed = journal.run(target, 'read_recovery:' + round_key,
-            {'draft': fingerprint(draft), 'saved': fingerprint(saved), 'commit': commit},
+            {'draft': fingerprint(draft), 'saved': fingerprint(saved), 'commit': commit, 'allow_correction':allow_correction},
             lambda: register_day(store, draft, saved, out/'ogp', DeadlineClient(meal, within_deadline),
-                                 DeadlineClient(ai, within_deadline), host, capture_round=round_key))
+                                 DeadlineClient(ai, within_deadline), host, capture_round=round_key, allow_correction=allow_correction))
         write_artifact(out/'posts-reviewed.json', reviewed)
         candidates = build_candidates(reviewed, evidence, commit, host, clock(), excluded_slots=('breakfast',))
         for payload in candidates:
