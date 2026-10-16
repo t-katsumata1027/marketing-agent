@@ -1,0 +1,24 @@
+[Unit]
+Description=みなの翌日4投稿を準備
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=mina-agent
+Group=mina-agent
+WorkingDirectory=/opt/marketing-agent
+EnvironmentFile=/etc/marketing-agent/mina.env
+EnvironmentFile=/etc/marketing-agent/doppler.env
+ExecStart=/bin/sh /opt/marketing-agent/deploy/run-mina-doppler.sh prepare
+TimeoutStartSec=3300
+KillMode=control-group
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/mina-agent
+MemoryMax=2G
+CPUQuota=200%
+
