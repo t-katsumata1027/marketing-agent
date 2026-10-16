@@ -112,13 +112,15 @@ def cycle(store: Store, now: datetime):
         from .clients import MealClient
         from .ogp import capture_ogp
         meal_client = MealClient(os.getenv('MINA_MEAL_API_BASE_URL', ''), os.getenv('MINA_AGENT_API_TOKEN', ''))
-        published = publish_due(store, XClient(), now, host, lambda c: verify_source(c, meal_client, host, capture_ogp))
-    return {"mode": "live", "notices_sent": sent, "published": published}
+        from .source_audit import verify_audited
+        published = publish_due(store, XClient(), now, host, lambda c: verify_audited(c, meal_client, host, capture_ogp,store))
+    store.audit.maintain(now)
+    return {"mode": "live", "notices_sent": sent, "published": published,'business':store.business_health(now)}
 
 
 def main():
     parser = argparse.ArgumentParser(description="みなの日次運用と承認の検証")
-    parser.add_argument("command", choices=("status", "doctor", "handover-check", "inspect-handoff", "history-draft", "backup", "backup-artifacts", "backup-keygen", "backup-encrypt", "backup-decrypt", "backup-create-set", "backup-restore-set", "backup-upload", "backup-reconcile", "backup-run", "backup-status", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "prepare-today", "resume-today", "correct-today", "finalize-today", "resume-preparation", "resume-images", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
+    parser.add_argument("command", choices=("status", "events", "doctor", "handover-check", "inspect-handoff", "history-draft", "backup", "backup-artifacts", "backup-keygen", "backup-encrypt", "backup-decrypt", "backup-create-set", "backup-restore-set", "backup-upload", "backup-reconcile", "backup-run", "backup-status", "verify-artifacts", "request-status", "request-reconcile", "rereview", "rebind-review", "prepare", "prepare-today", "resume-today", "correct-today", "finalize-today", "resume-preparation", "resume-images", "draft", "images", "drive", "register", "import", "notify", "tick", "daemon", "serve", "gateway"))
     parser.add_argument("--database", default=os.getenv("MINA_DATABASE", "runtime/mina.sqlite3"))
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--draft", type=Path)
@@ -133,6 +135,7 @@ def main():
     parser.add_argument('--backup-sha256')
     parser.add_argument('--backup-filename')
     parser.add_argument('--operation', choices=('meal_register', 'meal_correction', 'daily_share'), default='meal_register')
+    parser.add_argument('--slot', choices=('breakfast','lunch','dinner','daily'))
     parser.add_argument("--date")
     parser.add_argument("--history", type=Path)
     parser.add_argument('--evidence', type=Path)
@@ -141,6 +144,10 @@ def main():
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
+    if args.command == 'events':
+        from .audit import read_events
+        print(json.dumps(read_events(args.database,args.date or datetime.now(UTC).astimezone(JST).date().isoformat(),args.slot),ensure_ascii=False))
+        return
     if args.command == 'backup-status':
         if not args.output:
             parser.error('--outputにバックアップの保護保存先を指定してください')
@@ -296,6 +303,7 @@ def main():
         if not Path(args.database).is_file():
             raise ValueError('既存の運用台帳が必要です')
     store = Store(args.database)
+    store.audit.emit('system',None,None,None,'launch','started')
     now = datetime.now(UTC)
     if args.command == 'request-reconcile':
         if not args.request_key:
@@ -479,8 +487,14 @@ def main():
                 result = cycle(store, datetime.now(UTC))
                 succeeded, mode = True, result['mode']
                 print(json.dumps(result), flush=True)
-            except Exception:
-                print('{"event":"mina_cycle_failed"}', flush=True)
+            except Exception as error:
+                from .audit import safe_failure,AuditUnavailable
+                reason,details=safe_failure(error)
+                print(json.dumps({'event':'mina_cycle_failed','reason':reason,'details':details}),flush=True)
+                try:
+                    store.audit.emit('system',None,None,None,'cycle','failed',reason,details)
+                except AuditUnavailable:
+                    pass
             try:
                 store.record_cycle_health(succeeded, datetime.now(UTC), mode)
             except Exception:
@@ -490,4 +504,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as error:
+        from .audit import safe_failure
+        reason,details=safe_failure(error)
+        print(json.dumps({'event':'mina_command_failed','reason':reason,'details':details}),flush=True)
+        raise SystemExit(1) from None

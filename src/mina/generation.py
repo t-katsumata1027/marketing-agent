@@ -58,7 +58,7 @@ MEAL_REVIEW_SCOPE = ('この工程は元の食事画像と食品・分量・栄�
 def meal_review_policy_sha256():
     """食品解析点検の担当範囲・判定形式も独立して固定する。"""
     return hashlib.sha256(json.dumps({'instructions':REVIEW_INSTRUCTIONS,'scope':MEAL_REVIEW_SCOPE,
-        'style':IMAGE_STYLE,'schema':review_schema('publishable'),'publication_context_version':1},ensure_ascii=False,sort_keys=True).encode()).hexdigest()
+        'style':IMAGE_STYLE,'schema':review_schema('publishable',True),'publication_context_version':1,'diagnostics_version':1},ensure_ascii=False,sort_keys=True).encode()).hexdigest()
 
 
 def publication_context(api_response):
@@ -76,7 +76,7 @@ def publication_context(api_response):
 
 def image_review_policy_sha256():
     """実際の点検指示・スタイル・判定形式を工程版へ固定する。"""
-    policy={"instructions":REVIEW_INSTRUCTIONS,"style":IMAGE_STYLE,"schema":review_schema("image_acceptable")}
+    policy={"instructions":REVIEW_INSTRUCTIONS,"style":IMAGE_STYLE,"schema":review_schema("image_acceptable",True),'diagnostics_version':1}
     return hashlib.sha256(json.dumps(policy,ensure_ascii=False,sort_keys=True,separators=(",", ":")).encode()).hexdigest()
 
 
@@ -94,9 +94,27 @@ REVIEW_REASONS = ("image_analysis_mismatch", "nutrition_semantic_mismatch", "exp
                   "health_claim", "context_mismatch", "copy_repetition", "share_ogp_mismatch")
 
 
-def review_schema(positive):
-    return object_schema({"status": {"type": "string", "enum": [positive, "hold"]},
-                          "reason_codes": {"type": "array", "items": {"type": "string", "enum": list(REVIEW_REASONS)}}})
+def review_schema(positive, detailed=False):
+    properties={"status": {"type": "string", "enum": [positive, "hold"]},
+                "reason_codes": {"type": "array", "items": {"type": "string", "enum": list(REVIEW_REASONS)}}}
+    if detailed:
+        from .review_diagnostics import finding_schema
+        properties['findings']=finding_schema()
+    return object_schema(properties)
+
+
+def review_observations(client,result,raw,stage):
+    """判定形式は維持し、観測事実は別の保護された運用記録へ渡す。"""
+    from .review_diagnostics import validate_findings
+    if not isinstance(result,dict):
+        raise ValueError('点検結果の形式が不正です')
+    findings=validate_findings(result.pop('findings',[]))
+    if result.get('status')!='hold' and findings:
+        raise ValueError('合格判定と不一致の観測事実が矛盾しています')
+    if result.get('status')=='hold' and not findings:
+        findings=[{'code':'uncertain','region':'unknown','food_index':-1,'expected':None,'observed':None,'unit':'none'}]
+    client.last_review_evidence={'image_sha256':hashlib.sha256(raw).hexdigest(),'stage':stage,'findings':findings}
+    return result
 
 
 class OpenAIClient:
@@ -171,10 +189,12 @@ class OpenAIClient:
         """先頭のOGP画像を、続く元画像と正本数値へ独立に突合する。"""
         if not 2 <= len(images) <= 4 or any(not raw.startswith(b'\xff\xd8\xff') or not 0 < len(raw) <= 4 * 1024 * 1024 for raw in images):
             raise ValueError('OGPと元画像のJPEGが必要です')
-        instructions = OGP_REVIEW_INSTRUCTIONS
+        self.last_review_evidence=None
+        instructions = OGP_REVIEW_INSTRUCTIONS + '\n保留の観測事実をfindingsへ記録する。画面位置と差だけを構造化し、内部思考や自由文は返さない。不明な数値はnull、食品番号が不明なら-1、合格時は空配列。'
         content = [{'type': 'input_text', 'text': json.dumps({'expected': expected, 'ogp_meta': ogp_meta}, ensure_ascii=False)}]
         content.extend({'type': 'input_image', 'image_url': 'data:image/jpeg;base64,' + base64.b64encode(raw).decode('ascii'), 'detail': 'high'} for raw in images)
-        result = self.structured(instructions, content, review_schema('publishable'), 'mina_ogp_review')
+        result = self.structured(instructions, content, review_schema('publishable',True), 'mina_ogp_review')
+        result = review_observations(self,result,images[0],'ogp_review')
         if (not isinstance(result, dict) or set(result) != {'status', 'reason_codes'} or
                 result['status'] not in ('publishable', 'hold') or not isinstance(result['reason_codes'], list) or
                 any(code not in REVIEW_REASONS for code in result['reason_codes']) or
@@ -183,18 +203,20 @@ class OpenAIClient:
         return result
 
     def _review(self, raw, meal, api_response, ogp_meta, positive):
+        self.last_review_evidence=None
         if not raw.startswith(b"\xff\xd8\xff") or not 0 < len(raw) <= 4 * 1024 * 1024:
             raise ValueError("点検用JPEGの形式・容量が不正です")
         context = {"planned_meal": meal, "analysis_response": api_response, "ogp_meta": ogp_meta,
                    "style": IMAGE_STYLE}
-        instructions = REVIEW_INSTRUCTIONS
+        instructions = REVIEW_INSTRUCTIONS + '\n保留の具体的な観測事実をfindingsへ記録する。器の見切れ方向、欠落した食品の計画上の0始まり番号、比較できる量や栄養値だけを記載し、内部思考や自由文は返さない。不明な数値はnull、食品番号が不明なら-1、合格時は空配列。'
         if api_response is not None:
             instructions += '\n' + MEAL_REVIEW_SCOPE
             context['publication_context'] = publication_context(api_response)
         content = [{"type": "input_text", "text": json.dumps(context, ensure_ascii=False)},
                    {"type": "input_image", "image_url": "data:image/jpeg;base64," + base64.b64encode(raw).decode("ascii"), "detail": "high"}]
-        result = self.structured(instructions, content, review_schema(positive), "mina_independent_review",
+        result = self.structured(instructions, content, review_schema(positive,True), "mina_independent_review",
                                  model=os.getenv("MINA_REVIEW_MODEL", "gpt-5.5"))
+        result = review_observations(self,result,raw,'image_review' if api_response is None else 'meal_review')
         if set(result) != {"status", "reason_codes"} or result["status"] not in (positive, "hold") or not isinstance(result["reason_codes"], list) or any(code not in REVIEW_REASONS for code in result["reason_codes"]):
             raise ValueError("独立レビューの判定形式が不正です")
         if result["status"] == positive and result["reason_codes"]:

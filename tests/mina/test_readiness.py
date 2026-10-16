@@ -167,7 +167,7 @@ class ReadinessTest(unittest.TestCase):
                 return {'state': 'draft_unreviewed'}
             with patch('src.mina.daily_pipeline.release_commit', return_value='a' * 40), \
                  patch('src.mina.daily_pipeline.draft_day', side_effect=draft) as generation, \
-                 patch('src.mina.daily_pipeline.prepare_images', return_value={}), \
+                 patch('src.mina.automatic_repair.AutomaticImageRepair.images', return_value={}), \
                  patch('src.mina.daily_pipeline.save_images_to_drive', return_value={}), \
                  patch('src.mina.daily_pipeline.register_day', return_value=reviewed()), \
                  patch('src.mina.m1_contract.verify_source'):

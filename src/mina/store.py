@@ -60,6 +60,10 @@ class Store:
                 CREATE TABLE IF NOT EXISTS buffer_api_usage (
                     id INTEGER PRIMARY KEY, requested REAL NOT NULL, operation TEXT NOT NULL);
             """)
+            from .audit import SCHEMA, AuditLog
+            db.executescript(SCHEMA)
+            if 'invocation' not in {row[1] for row in db.execute('PRAGMA table_info(operation_events)')}:
+                db.execute("ALTER TABLE operation_events ADD COLUMN invocation TEXT NOT NULL DEFAULT ''")
             # 朝食一件限定だった旧表を、実公開の行をそのまま保って複数枠へ拡張する。
             db.execute('BEGIN IMMEDIATE')
             schema = db.execute("SELECT sql FROM sqlite_master WHERE name='buffer_publication'").fetchone()[0]
@@ -72,6 +76,7 @@ class Store:
                     response_json TEXT, attempted REAL, proof_json TEXT, UNIQUE(target_date,slot))''')
                 db.execute('INSERT INTO buffer_publication SELECT * FROM buffer_publication_single_legacy')
                 db.execute('DROP TABLE buffer_publication_single_legacy')
+        self.audit = AuditLog(self)
 
     @contextmanager
     def transaction(self):
@@ -245,19 +250,34 @@ class Store:
         """期限内の承認済み投稿を確保。送信不明は再確保しない。"""
         ts = instant(now).timestamp()
         with self.transaction() as db:
-            db.execute("UPDATE candidates SET state='expired',nonce_hash=NULL WHERE state IN ('approval_pending','approved') AND scheduled<?", (ts - grace_seconds,))
-            rows = db.execute("SELECT * FROM candidates WHERE state='approved' AND scheduled<=? AND scheduled>=? ORDER BY scheduled", (ts, ts - grace_seconds)).fetchall()
+            self.expire_due(db,now,grace_seconds)
+            rows = db.execute("""SELECT * FROM candidates c WHERE state='approved' AND scheduled<=? AND scheduled>=?
+                AND NOT EXISTS(SELECT 1 FROM publication_retries r WHERE r.target_date=c.target_date AND r.slot=c.slot AND r.revision=c.revision AND r.next_at>?) ORDER BY scheduled""", (ts, ts - grace_seconds,ts)).fetchall()
             for row in rows:
                 db.execute("UPDATE candidates SET state='dispatching',dispatch_started=? WHERE target_date=? AND slot=?", (ts, row["target_date"], row["slot"]))
+                self.audit.emit('publication',row['target_date'],row['slot'],row['revision'],'preparation','started',
+                    details={'before':'approved','after':'dispatching'},now=now,db=db)
             return [dict(r) for r in rows]
 
     def has_due(self, now: datetime, grace_seconds: int = 120) -> bool:
         """期限超過を整理し、公開枠がない巡回でX認証照会をしない。確保はしない。"""
         ts = instant(now).timestamp()
         with self.transaction() as db:
-            db.execute("UPDATE candidates SET state='expired',nonce_hash=NULL WHERE state IN ('approval_pending','approved') AND scheduled<?", (ts-grace_seconds,))
-            return db.execute("SELECT 1 FROM candidates WHERE state='approved' AND scheduled BETWEEN ? AND ? LIMIT 1",
-                              (ts-grace_seconds, ts)).fetchone() is not None
+            self.expire_due(db,now,grace_seconds)
+            return db.execute("""SELECT 1 FROM candidates c WHERE state='approved' AND scheduled BETWEEN ? AND ?
+                AND NOT EXISTS(SELECT 1 FROM publication_retries r WHERE r.target_date=c.target_date AND r.slot=c.slot AND r.revision=c.revision AND r.next_at>?) LIMIT 1""",
+                              (ts-grace_seconds, ts,ts)).fetchone() is not None
+
+    def expire_due(self,db,now,grace_seconds):
+        rows=db.execute("SELECT * FROM candidates WHERE state IN ('approval_pending','approved') AND scheduled<?",(instant(now).timestamp()-grace_seconds,)).fetchall()
+        for row in rows:
+            db.execute("UPDATE candidates SET state='expired',nonce_hash=NULL WHERE target_date=? AND slot=?",(row['target_date'],row['slot']))
+            self.audit.emit('publication',row['target_date'],row['slot'],row['revision'],'freshness','stopped','deadline_exceeded',
+                details={'matched':row['state']=='approved','after':'expired','write_started':False},now=now,db=db)
+            if row['state']=='approved':
+                payload={'content':f'{row["target_date"]} {row["slot"]}：公開期限を超過したため送信せず停止しました。','allowed_mentions':{'parse':[]}}
+                db.execute("INSERT OR IGNORE INTO notices(target_date,slot,revision,kind,payload,created) VALUES(?,?,?,'expiry',?,?)",
+                    (row['target_date'],row['slot'],row['revision'],json.dumps(payload,ensure_ascii=False),now.timestamp()))
 
     def record_cycle_health(self, success: bool, now: datetime, mode='failed'):
         """例外原文・本文・認証を保存せず、再起動後も連続失敗を検知する。"""
@@ -271,6 +291,15 @@ class Store:
             db.execute('INSERT INTO cycle_health VALUES(1,?,?,?,?) ON CONFLICT(singleton) DO UPDATE SET checked=excluded.checked,last_success=excluded.last_success,consecutive_failures=excluded.consecutive_failures,mode=excluded.mode',
                        (ts, last, failures, mode))
 
+    def business_health(self,now):
+        """現在の作成停止・投稿停止を、過去の保全履歴と巡回の生存から分離する。"""
+        today=instant(now).astimezone(JST).date().isoformat()
+        with self.transaction() as db:
+            creation=db.execute("SELECT count(*) FROM preparation WHERE target_date>=? AND state LIKE 'held:%'",(today,)).fetchone()[0]
+            publication=db.execute("SELECT count(*) FROM candidates WHERE target_date=? AND (state IN ('outcome_unknown','expired') OR (state='changes_requested' AND reason='preflight_failed'))",(today,)).fetchone()[0]
+            retry=db.execute("SELECT count(*) FROM publication_retries r JOIN candidates c ON c.target_date=r.target_date AND c.slot=r.slot AND c.revision=r.revision WHERE c.target_date=? AND c.state='approved' AND r.attempts>0",(today,)).fetchone()[0]
+        return {'healthy':not(creation or publication or retry),'creation_holds':creation,'publication_holds':publication,'retry_pending':retry}
+
     def finish(self, row: dict, x_id: str | None, now: datetime):
         """送信後は成功または成否不明へ固定し、結果通知を積む。"""
         state = "published" if x_id else "outcome_unknown"
@@ -278,6 +307,9 @@ class Store:
             result = db.execute("UPDATE candidates SET state=?,x_id=? WHERE target_date=? AND slot=? AND revision=? AND state='dispatching'", (state, x_id, row["target_date"], row["slot"], row["revision"]))
             if result.rowcount != 1:
                 raise ValueError("送信状態が一致しません")
+            self.audit.emit('publication',row['target_date'],row['slot'],row['revision'],'delivery',
+                'completed' if x_id else 'failed','none' if x_id else 'outcome_unknown',
+                {'before':'dispatching','after':state,'write_started':True},now=now,db=db)
             text = f"{row['target_date']} {row['slot']}：{'公開済み https://x.com/' + Candidate(**json.loads(row['payload'])).account + '/status/' + x_id if x_id else '公開結果不明。確認まで再送を停止しています。'}"
             db.execute("INSERT OR IGNORE INTO notices(target_date,slot,revision,kind,payload,created) VALUES(?,?,?,'result',?,?)", (row["target_date"], row["slot"], row["revision"], json.dumps({"content": text, "allowed_mentions": {"parse": []}}, ensure_ascii=False), instant(now).timestamp()))
 
@@ -294,14 +326,17 @@ class Store:
         with self.transaction() as db:
             db.execute("UPDATE notices SET state=? WHERE id=? AND state='sending'", (state, notice_id))
 
-    def stop_before_publish(self, row, now):
+    def stop_before_publish(self, row, now, stage='source', reason='unclassified', details=None):
         """Xへ送る前の照合失敗は、送信結果不明と区別して承認を失効する。"""
         with self.transaction() as db:
             changed = db.execute("UPDATE candidates SET state='changes_requested',actor=NULL,approved=NULL,nonce_hash=NULL,reason='preflight_failed' WHERE target_date=? AND slot=? AND revision=? AND state='dispatching'",
                                  (row['target_date'], row['slot'], row['revision']))
             if changed.rowcount != 1:
                 raise ValueError('公開前停止の対象版が一致しません')
-            payload = {'content': f"{row['target_date']} {row['slot']}：公開前の照合を完了できず停止しました。再確認・再レビュー後の候補を承認してください。", 'allowed_mentions': {'parse': []}}
+            self.audit.emit('publication',row['target_date'],row['slot'],row['revision'],stage,'stopped',reason,
+                {**(details or {}),'before':'dispatching','after':'changes_requested','write_started':False},now=now,db=db)
+            labels={'route':'公開経路','connection':'Buffer接続照会','candidate':'承認内容','source':'正本・共有画像','freshness':'時計・公開期限','recovery':'再起動後の照合'}
+            payload = {'content': f"{row['target_date']} {row['slot']}：公開前の照合を完了できず停止しました。停止工程：{labels.get(stage,'公開前確認')}。理由分類：{reason}。再確認・再レビュー後の候補を承認してください。", 'allowed_mentions': {'parse': []}}
             db.execute("INSERT OR IGNORE INTO notices(target_date,slot,revision,kind,payload,created) VALUES(?,?,?,'preflight',?,?)",
                        (row['target_date'], row['slot'], row['revision'], json.dumps(payload, ensure_ascii=False), instant(now).timestamp()))
 

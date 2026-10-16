@@ -87,7 +87,9 @@ def prepare_day(store, directory, history, evidence_path, commit, root, host, ai
         draft = read_json(draft_path)
         within_deadline()
         stage = 'images'
-        images = prepare_images(store, draft_path, directory / 'images', ai)
+        from .automatic_repair import AutomaticImageRepair
+        repair = AutomaticImageRepair(store, draft, draft_path, directory / 'images', ai, drive)
+        images = repair.images()
         write_artifact(directory / 'images-reviewed.json', images)
         within_deadline()
         stage = 'drive'
@@ -99,7 +101,8 @@ def prepare_day(store, directory, history, evidence_path, commit, root, host, ai
         def capture(url, allowed_host):
             within_deadline()
             return capture_ogp(url, allowed_host)
-        reviewed = register_day(store, draft, saved, directory / 'ogp', meal, ai, host, capture=capture,allow_correction=True)
+        reviewed = register_day(store, draft, saved, directory / 'ogp', meal, ai, host, capture=capture,
+                                allow_correction=True)
         write_artifact(directory / 'posts-reviewed.json', reviewed)
         within_deadline()
         stage = 'candidates'

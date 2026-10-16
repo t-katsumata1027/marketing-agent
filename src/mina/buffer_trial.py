@@ -9,6 +9,9 @@ from contextlib import closing
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
+from datetime import UTC,datetime
+from contextlib import nullcontext
+from .audit import OperationalFailure
 
 
 EXPECTED_ACCOUNT = 'EatsLog88161'
@@ -29,6 +32,16 @@ GET_POST = 'query($input: PostInput!) { post(input: $input) { ' + FIELDS + ' } }
 
 class ProbeError(RuntimeError):
     """外部の例外文や秘密値を含めない静的な失敗分類。"""
+    def __init__(self,code,http_status=None):
+        self.http_status=http_status
+        self.audit_reason=({'buffer_local_quota_stop':'buffer_quota','buffer_key_missing_or_invalid':'authentication',
+            'buffer_http_401':'authentication','buffer_http_403':'authentication','buffer_http_429':'buffer_quota',
+            'buffer_response_invalid':'response_invalid','buffer_graphql_error':'response_invalid'}.get(code,'buffer_unavailable'))
+        super().__init__(code)
+
+
+class TransientBufferRead(OperationalFailure):
+    """送信前の接続queryに限る一時通信障害。公開要求には使わない。"""
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -44,9 +57,29 @@ class BufferTrialClient:
         self._transport = transport
         self._on_request = on_request
         self.calls = 0
+        self.connection_deadline=None
+        self.connection_clock=lambda:datetime.now(UTC)
+        self.audit_context=None
 
     def _request(self, query, variables=None):
+        connection=query in (ORGANIZATIONS,CHANNELS)
+        stage='connection' if connection else 'submission' if query==CREATE else 'delivery'
+        operation='channel_organizations' if query==ORGANIZATIONS else 'channel_list' if query==CHANNELS else 'post_create' if query==CREATE else 'post_lookup'
+        context=nullcontext()
+        if self.audit_context:
+            audit,target,slot,revision=self.audit_context
+            context=audit.operation('publication',target,slot,revision,stage,{'operation':operation})
+        with context:
+            return self._perform_request(query,variables,connection)
+
+    def _perform_request(self, query, variables, connection):
         """固定宛先へ一回だけ送る。GraphQLの200内エラーも拒否する。"""
+        timeout=20
+        can_retry=connection and self.connection_deadline is not None
+        if can_retry:
+            remaining=(self.connection_deadline-self.connection_clock()).total_seconds()
+            if remaining<=0:raise OperationalFailure('retry_deadline','connection')
+            timeout=min(timeout,remaining)
         if self._on_request is not None:
             self._on_request(query)
         self.calls += 1
@@ -58,7 +91,7 @@ class BufferTrialClient:
                     data=json.dumps({'query': query, 'variables': variables or {}}, ensure_ascii=False).encode(),
                     headers={'Authorization': 'Bearer ' + self._token,
                              'Content-Type': 'application/json', 'Cache-Control': 'no-store'})
-                with build_opener(NoRedirect()).open(request, timeout=20) as response:
+                with build_opener(NoRedirect()).open(request, timeout=timeout) as response:
                     raw = response.read(262145)
                 if len(raw) > 262144:
                     raise ProbeError('buffer_response_too_large')
@@ -67,9 +100,16 @@ class BufferTrialClient:
             raise
         except HTTPError as error:
             code = error.code
-            raise ProbeError('buffer_http_' + str(code)) from None
-        except (URLError, TimeoutError, OSError, ValueError):
+            if can_retry and code in (502,503,504):
+                raise TransientBufferRead('connection_http_transient','connection',code) from None
+            raise ProbeError('buffer_http_' + str(code),code) from None
+        except (URLError, TimeoutError, OSError) as error:
+            if can_retry:
+                timed=isinstance(error,TimeoutError) or isinstance(getattr(error,'reason',None),TimeoutError)
+                raise TransientBufferRead('connection_timeout' if timed else 'connection_network','connection') from None
             raise ProbeError('buffer_response_unknown') from None
+        except ValueError:
+            raise ProbeError('buffer_response_invalid') from None
         if not isinstance(result, dict) or result.get('errors') or not isinstance(result.get('data'), dict):
             raise ProbeError('buffer_graphql_error')
         return result['data']

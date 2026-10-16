@@ -3,6 +3,7 @@ import hashlib,json,tempfile,unittest
 from pathlib import Path
 from unittest.mock import Mock
 from src.mina.clients import MealWriteFailure,OutcomeUnknown
+from src.mina.preparation_status import KnownQualityRejected
 from src.mina.registration import register_day
 from src.mina.store import Store
 import test_registration as registration_fixtures
@@ -51,7 +52,7 @@ class TerminalUnsavedTests(unittest.TestCase):
     def test_only_new_dinner_is_registered_and_old_unknown_is_preserved(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);flow=self.setup_flow(root)
-            with self.assertRaises(OutcomeUnknown):self.invoke(root,flow)
+            with self.assertRaises((OutcomeUnknown,KnownQualityRejected)):self.invoke(root,flow)
             self.replace_image(root,flow)
             result=self.invoke(root,flow,True)
             self.assertEqual(result['state'],'posts_reviewed')
@@ -59,7 +60,7 @@ class TerminalUnsavedTests(unittest.TestCase):
             self.assertEqual(flow[4].review_meal.call_count,3)
             with flow[0].transaction() as db:
                 old=db.execute("SELECT state FROM preparation_steps WHERE step='meal_register:dinner'").fetchone()[0]
-                self.assertEqual(old,'outcome_unknown')
+                self.assertEqual(old,'held')
                 self.assertEqual(db.execute("SELECT phase FROM mina_requests WHERE request_key=?",(flow[6][0],)).fetchone()[0],'held')
             with self.assertRaises(ValueError):self.invoke(root,flow,True)
             self.assertEqual(flow[3].register.call_count,4)
@@ -68,7 +69,7 @@ class TerminalUnsavedTests(unittest.TestCase):
         for mode in ('same_image','processing','saved','unknown'):
             with self.subTest(mode=mode),tempfile.TemporaryDirectory() as tmp:
                 root=Path(tmp);flow=self.setup_flow(root)
-                with self.assertRaises(OutcomeUnknown):self.invoke(root,flow)
+                with self.assertRaises((OutcomeUnknown,KnownQualityRejected)):self.invoke(root,flow)
                 if mode!='same_image':
                     self.replace_image(root,flow)
                     original=flow[3].request_state.side_effect

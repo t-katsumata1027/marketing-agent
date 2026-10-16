@@ -11,6 +11,13 @@ from pathlib import Path
 from .generation import IMAGE_STYLE, OpenAIClient
 
 
+class CodexFailure(RuntimeError):
+    """CLIの既知の失敗を、本文を公開せず監査分類へ伝える。"""
+    def __init__(self,message,reason):
+        self.audit_reason=reason
+        super().__init__(message)
+
+
 class CodexClient(OpenAIClient):
     """OpenAIのREST APIを呼ばず、CLIの構造化出力と画像入力を使用する。"""
 
@@ -107,15 +114,15 @@ class CodexClient(OpenAIClient):
                 self.stop_process(process)
                 state("outcome_unknown", "timeout")
                 # CLI内部の生成結果を照合するまで、同じ工程を自動再実行しない。
-                raise RuntimeError("codex_execution_timeout") from None
+                raise CodexFailure("codex_execution_timeout",'timeout') from None
             except OSError:
                 state("failed", "start_failed")
-                raise RuntimeError("codex_start_failed") from None
+                raise CodexFailure("codex_start_failed",'io_failed') from None
             if process.returncode != 0 or not result_path.is_file():
                 # stdout/stderrにはCLIの内部状態が含まれるためチャットやログへ出さない。
                 reason = self.failure_reason(stdout + stderr)
                 state("failed", reason)
-                raise RuntimeError("codex_" + reason + "_failed")
+                raise CodexFailure("codex_" + reason + "_failed",reason)
             try:
                 result = json.loads(result_path.read_text(encoding="utf-8-sig"))
                 if not isinstance(result, dict):
