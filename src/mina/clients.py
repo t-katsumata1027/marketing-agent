@@ -3,7 +3,9 @@
 import json
 import os
 import re
+import time
 import uuid
+from datetime import UTC, datetime
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
@@ -27,6 +29,20 @@ def read_json_response(response):
     result = json.loads(raw)
     if not isinstance(result, dict):
         raise ValueError('外部応答の形式が不正です')
+    return result
+
+
+def await_checked_at(result, clock=lambda: datetime.now(UTC), sleep=time.sleep):
+    """サーバー時計が最大1秒先の場合だけ待ち、未来応答を採用せず鮮度条件を保つ。"""
+    from .domain import instant
+    checked = instant(datetime.fromisoformat(result['checked_at']))
+    ahead = (checked - instant(clock())).total_seconds()
+    if ahead > 1:
+        raise ValueError('正本照会の時計差が上限を超えています')
+    if ahead > 0:
+        sleep(ahead)
+        if checked > instant(clock()):
+            raise ValueError('正本照会の時計差を解消できません')
     return result
 
 
@@ -161,10 +177,10 @@ class MealClient:
             result = json.loads(raw) if len(raw) <= 131072 else None
             if not isinstance(result, dict):
                 raise ValueError()
-            return result
+            return await_checked_at(result)
         except HTTPError as error:
             raise RuntimeError(f'meal_state_http_{error.code}') from None
-        except (URLError, TimeoutError, OSError, ValueError):
+        except (URLError, TimeoutError, OSError, ValueError, KeyError, TypeError):
             raise RuntimeError('meal_state_read_failed') from None
 
     def request_state(self, request_key, operation):

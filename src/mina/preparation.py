@@ -66,7 +66,7 @@ class PreparationJournal:
             raise
 
 
-def prepare_images(store, draft_path: Path, directory: Path, client):
+def prepare_images(store, draft_path: Path, directory: Path, client, replacement_round=None, replace_slots=()):
     """画像3枚と事前点検結果を保存する。LogEats登録や承認候補化はまだ行わない。"""
     draft = json.loads(draft_path.read_text(encoding="utf-8-sig"))
     if draft.get("state") != "draft_unreviewed":
@@ -75,13 +75,24 @@ def prepare_images(store, draft_path: Path, directory: Path, client):
     from datetime import date
     date.fromisoformat(draft["target_date"])
     target = draft["target_date"]
+    if replacement_round is not None:
+        from .clients import MealClient
+        MealClient.request_key(replacement_round)
+    if (bool(replace_slots) != bool(replacement_round) or
+            not set(replace_slots) <= set(MEAL_SLOTS)):
+        raise ValueError('画像差替えには明示した枠と復旧要求が必要です')
     journal = PreparationJournal(store)
     directory.mkdir(parents=True, exist_ok=True)
     outputs = {}
     for slot in MEAL_SLOTS:
         meal = draft["meals"][slot]
-        path = directory / f"{target}-{slot}.jpg"
+        replacing = slot in replace_slots
+        slot_directory = directory / replacement_round if replacing else directory
+        slot_directory.mkdir(parents=True, exist_ok=True)
+        path = slot_directory / f"{target}-{slot}.jpg"
         description=meal_image_description(meal)
+        if replacing:
+            description += '\n構図の修復：カメラを引き、右端の副菜の器を含む全器の外周を完全に画面内へ収める。右端にも十分な背景の余白を確保し、献立・食品・分量を変えない。'
         prompt_sha256=hashlib.sha256((IMAGE_STYLE+'\n料理と量：'+description).encode()).hexdigest()
 
         def generate():
@@ -92,7 +103,8 @@ def prepare_images(store, draft_path: Path, directory: Path, client):
                 file.write(raw)
             return {"path": str(path.resolve()), "sha256": hashlib.sha256(raw).hexdigest(), "size": len(raw)}
 
-        image = journal.run(target, "image:" + slot, {"meal": meal, "directory": str(directory.resolve()),
+        suffix = ':' + replacement_round if replacing else ''
+        image = journal.run(target, "image:" + slot + suffix, {"meal": meal, "directory": str(slot_directory.resolve()),
                                                      "prompt_sha256":prompt_sha256}, generate)
         saved = Path(image["path"])
         if saved.is_symlink():
@@ -100,7 +112,7 @@ def prepare_images(store, draft_path: Path, directory: Path, client):
         raw = saved.read_bytes()
         if hashlib.sha256(raw).hexdigest() != image["sha256"] or len(raw) != image["size"]:
             raise ValueError("保存した画像の版が変わっています")
-        review = journal.run(target, "image_review:" + slot,
+        review = journal.run(target, "image_review:" + slot + suffix,
                              {"sha256": image["sha256"], "meal": meal,
                               "review_policy_sha256": image_review_policy_sha256()},
                              lambda: client.review_image(raw, meal))
