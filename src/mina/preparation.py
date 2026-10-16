@@ -66,7 +66,8 @@ class PreparationJournal:
             raise
 
 
-def prepare_images(store, draft_path: Path, directory: Path, client, replacement_round=None, replace_slots=()):
+def prepare_images(store, draft_path: Path, directory: Path, client, replacement_round=None, replace_slots=(),
+                   reused_rounds=None, repair_instruction=None):
     """画像3枚と事前点検結果を保存する。LogEats登録や承認候補化はまだ行わない。"""
     draft = json.loads(draft_path.read_text(encoding="utf-8-sig"))
     if draft.get("state") != "draft_unreviewed":
@@ -81,18 +82,28 @@ def prepare_images(store, draft_path: Path, directory: Path, client, replacement
     if (bool(replace_slots) != bool(replacement_round) or
             not set(replace_slots) <= set(MEAL_SLOTS)):
         raise ValueError('画像差替えには明示した枠と復旧要求が必要です')
+    reused_rounds = reused_rounds or {}
+    if not set(reused_rounds) <= set(MEAL_SLOTS) or set(reused_rounds) & set(replace_slots):
+        raise ValueError('差替え対象と再利用対象の画像を重ねられません')
+    for old_round in reused_rounds.values():
+        from .clients import MealClient
+        MealClient.request_key(old_round)
+    if repair_instruction is not None and (not replacement_round or not isinstance(repair_instruction, str) or not 0 < len(repair_instruction) <= 2000):
+        raise ValueError('修復指示には明示した差替え対象が必要です')
     journal = PreparationJournal(store)
     directory.mkdir(parents=True, exist_ok=True)
     outputs = {}
     for slot in MEAL_SLOTS:
         meal = draft["meals"][slot]
         replacing = slot in replace_slots
-        slot_directory = directory / replacement_round if replacing else directory
+        image_round = replacement_round if replacing else reused_rounds.get(slot)
+        slot_directory = directory / image_round if image_round else directory
         slot_directory.mkdir(parents=True, exist_ok=True)
         path = slot_directory / f"{target}-{slot}.jpg"
         description=meal_image_description(meal)
-        if replacing:
-            description += '\n構図の修復：カメラを引き、右端の副菜の器を含む全器の外周を完全に画面内へ収める。右端にも十分な背景の余白を確保し、献立・食品・分量を変えない。'
+        if image_round:
+            note = repair_instruction if replacing and repair_instruction is not None else '構図の修復：カメラを引き、右端の副菜の器を含む全器の外周を完全に画面内へ収める。右端にも十分な背景の余白を確保し、献立・食品・分量を変えない。'
+            description += '\n' + note
         prompt_sha256=hashlib.sha256((IMAGE_STYLE+'\n料理と量：'+description).encode()).hexdigest()
 
         def generate():
@@ -103,7 +114,16 @@ def prepare_images(store, draft_path: Path, directory: Path, client, replacement
                 file.write(raw)
             return {"path": str(path.resolve()), "sha256": hashlib.sha256(raw).hexdigest(), "size": len(raw)}
 
-        suffix = ':' + replacement_round if replacing else ''
+        suffix = ':' + image_round if image_round else ''
+        if slot in reused_rounds:
+            # 指定した旧修復が完成・合格済みの場合だけ再利用し、新規生成へ進ませない。
+            with store.transaction() as db:
+                records = {r['step']: r for r in db.execute('SELECT step,state,result FROM preparation_steps WHERE target_date=? AND step IN (?,?)',
+                    (target, 'image:' + slot + suffix, 'image_review:' + slot + suffix))}
+            review_row = records.get('image_review:' + slot + suffix)
+            if (len(records) != 2 or any(r['state'] != 'complete' for r in records.values()) or not review_row or
+                    json.loads(review_row['result']) != {'status': 'image_acceptable', 'reason_codes': []}):
+                raise ValueError('再利用する修復画像の完成・合格証跡がありません')
         image = journal.run(target, "image:" + slot + suffix, {"meal": meal, "directory": str(slot_directory.resolve()),
                                                      "prompt_sha256":prompt_sha256}, generate)
         saved = Path(image["path"])

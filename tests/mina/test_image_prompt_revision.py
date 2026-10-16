@@ -8,9 +8,18 @@ from src.mina.preparation import prepare_images
 from src.mina.store import Store
 from tests.mina.test_generation import plan
 from src.mina.generation import review_schema
+from src.mina.generation import meal_image_description
 
 
 class ImagePromptRevisionTests(unittest.TestCase):
+    def test_only_explicit_separate_condiment_gets_one_dish_exception(self):
+        meal = plan()['meals']['dinner']
+        ordinary = meal_image_description({**meal, 'image_description': '主菜に調味料を含める。'})
+        separate = meal_image_description({**meal, 'image_description': 'ポン酢を別添えにする。'})
+        self.assertNotIn('別添えの限定指定', ordinary)
+        self.assertIn('小皿一つ', separate)
+        self.assertIn('別添え指定のない調味料や油の容器は増やさない', separate)
+
     def prepared(self,root,review=None):
         draft=root/'draft.json'
         draft.write_text(json.dumps({'state':'draft_unreviewed','target_date':'2026-10-13',**plan()}))

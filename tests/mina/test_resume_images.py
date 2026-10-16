@@ -105,3 +105,34 @@ class ImageResumeTests(unittest.TestCase):
                     self.invoke(root, store, ai, history, register, now)
                 ai.image.assert_not_called()
                 register.assert_not_called()
+
+    def test_later_dinner_repair_reuses_passed_lunch_without_repeating_reviews(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            store, base, ai, history = self.setup_flow(root)
+            ai.review_image.side_effect = [{'status': 'image_acceptable', 'reason_codes': []},
+                                          {'status': 'hold', 'reason_codes': ['image_analysis_mismatch']}]
+            with self.assertRaises(ValueError):
+                prepare_images(store, base / 'draft.json', base / 'images', ai,
+                               replacement_round=KEY, replace_slots=('lunch',))
+            ai.reset_mock(side_effect=True)
+            ai.review_image.return_value = {'status': 'image_acceptable', 'reason_codes': []}
+            second = '22222222-2222-4222-8222-222222222222'
+            images = prepare_images(store, base / 'draft.json', base / 'images', ai,
+                replacement_round=second, replace_slots=('dinner',), reused_rounds={'lunch': KEY},
+                repair_instruction='主菜の層と別添えの小皿を献立どおりに修復する。')
+            self.assertEqual(ai.image.call_count, 1)
+            self.assertEqual(ai.review_image.call_count, 1)
+            self.assertIn('主菜の層', ai.image.call_args.args[0])
+            self.assertIn(KEY, images['images']['lunch']['path'])
+            self.assertIn(second, images['images']['dinner']['path'])
+
+    def test_unreviewed_replacement_cannot_be_reused_or_generated_implicitly(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            store, base, ai, history = self.setup_flow(root)
+            with self.assertRaisesRegex(ValueError, '完成・合格証跡'):
+                prepare_images(store, base / 'draft.json', base / 'images', ai,
+                               reused_rounds={'lunch': KEY})
+            ai.image.assert_not_called()
+            ai.review_image.assert_not_called()
