@@ -54,7 +54,9 @@ def send_notifications(store: Store, client):
     count = 0
     while (notice := store.claim_notice()) is not None:
         try:
-            client.send(json.loads(notice["payload"]))
+            slot=notice['slot'] if notice['slot'] in SLOTS else None
+            with store.audit.operation('system',notice['target_date'],slot,notice['revision'],'notification'):
+                client.send(json.loads(notice["payload"]))
         except Exception:
             store.finish_notice(notice["id"], "outcome_unknown")
             break
@@ -72,20 +74,38 @@ def publish_due(store: Store, client, now: datetime, host: str, preflight, clock
         client.verify_account(ACCOUNT)
     count = 0
     for row in store.claim_due(now):
+        from .audit import safe_failure
+        from .publication_retry import begin_connection,defer_connection
+        from .buffer_trial import TransientBufferRead
+        def context(stage):
+            return store.audit.operation('publication',row['target_date'],row['slot'],row['revision'],stage)
+        stage='route'
         try:
             from .buffer_publisher import publication_client
-            publisher = publication_client(store, row, client)
+            with context(stage):
+                publisher = publication_client(store, row, client)
             if publisher is not client:
-                publisher.verify_account(ACCOUNT)
-            c = Candidate(**json.loads(row["payload"]))
-            if c.digest != row["digest"]:
-                raise ValueError("成果物ハッシュが一致しません")
-            # 到達時刻の検証済み候補を、予定時刻直前として品質再検査する。
-            immediate = bool((c.approval_source or {}).get('publish_after_approval_until'))
-            c.validate(host, clock() if immediate else c.scheduled_at - timedelta(seconds=1))
-            if immediate and row['scheduled'] != row['approved']:
-                raise ValueError('臨時公開の起点が本人承認時刻と一致しません')
-            proof = preflight(c)
+                stage='connection'
+                begin_connection(store,row,instant(clock()))
+                publisher.clock,publisher.timer=clock,timer
+                with context(stage):
+                    publisher.verify_account(ACCOUNT)
+            stage='candidate'
+            with context(stage):
+                c = Candidate(**json.loads(row["payload"]))
+                if c.digest != row["digest"]:
+                    raise ValueError("成果物ハッシュが一致しません")
+                # 到達時刻の検証済み候補を、予定時刻直前として品質再検査する。
+                immediate = bool((c.approval_source or {}).get('publish_after_approval_until'))
+                c.validate(host, clock() if immediate else c.scheduled_at - timedelta(seconds=1))
+                if immediate and row['scheduled'] != row['approved']:
+                    raise ValueError('臨時公開の起点が本人承認時刻と一致しません')
+            stage='source'
+            with context(stage):
+                proof = preflight(c)
+            stage='freshness'
+            # この検査でも実際の失敗位置と時刻を保存する。
+            store.audit.emit('publication',row['target_date'],row['slot'],row['revision'],stage,'started')
             sending_at = instant(clock())
             due_at = datetime.fromtimestamp(row['scheduled'], UTC) if immediate else c.scheduled_at
             if not 0 <= (sending_at - due_at).total_seconds() <= 120 or (immediate and sending_at >= c.scheduled_at):
@@ -108,15 +128,24 @@ def publish_due(store: Store, client, now: datetime, host: str, preflight, clock
                     raise ValueError('送信直前にOGPが失効しました')
             if publisher is not client:
                 publisher.proof = proof
-        except Exception:
-            store.stop_before_publish(row, now)
+            store.audit.emit('publication',row['target_date'],row['slot'],row['revision'],stage,'completed')
+        except Exception as error:
+            reason,details=safe_failure(error)
+            if stage=='connection' and isinstance(error,TransientBufferRead):
+                if defer_connection(store,row,instant(clock())):
+                    continue
+                reason='retry_exhausted'
+            store.stop_before_publish(row, instant(clock()),stage,reason,details)
             continue
         try:
-            x_id = publisher.publish(c.content)
+            with context('submission'):
+                x_id = publisher.publish(c.content)
             if not isinstance(x_id, str) or not x_id.isdigit():
                 raise ValueError("公開IDが不正です")
-            store.finish(row, x_id, now)
+            store.finish(row, x_id, instant(clock()))
             count += 1
-        except Exception:
-            store.finish(row, None, now)
+        except Exception as error:
+            reason,details=safe_failure(error)
+            store.audit.emit('publication',row['target_date'],row['slot'],row['revision'],'delivery','failed',reason,details)
+            store.finish(row, None, instant(clock()))
     return count

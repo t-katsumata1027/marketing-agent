@@ -68,6 +68,11 @@ def diagnose(database: str | Path, heartbeat: str | Path, now: datetime, env=Non
                                   "tomorrow_missing_slots": [slot for slot in SLOTS if slot not in present],
                                   "candidate_states": candidates, "notice_states": notices}
             tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            today=now.astimezone(JST).date().isoformat()
+            current_creation=db.execute("SELECT count(*) FROM preparation WHERE target_date>=? AND state LIKE 'held:%'",(today,)).fetchone()[0] if 'preparation' in tables else 0
+            current_publication=db.execute("SELECT count(*) FROM candidates WHERE target_date=? AND (state IN ('outcome_unknown','expired') OR (state='changes_requested' AND reason='preflight_failed'))",(today,)).fetchone()[0]
+            retry=db.execute("SELECT count(*) FROM publication_retries r JOIN candidates c ON c.target_date=r.target_date AND c.slot=r.slot AND c.revision=r.revision WHERE c.target_date=? AND c.state='approved' AND r.attempts>0",(today,)).fetchone()[0] if 'publication_retries' in tables else 0
+            report['business_health']={'healthy':not(current_creation or current_publication or retry),'creation_holds':current_creation,'publication_holds':current_publication,'retry_pending':retry}
             report['database']['recovery_reconciliation_required'] = 'mina_recovery_guard' in tables
             if 'cycle_health' in tables:
                 row = db.execute('SELECT checked,last_success,consecutive_failures,mode FROM cycle_health WHERE singleton=1').fetchone()

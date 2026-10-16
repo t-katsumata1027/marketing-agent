@@ -12,7 +12,8 @@ REASONS = {'image_analysis_mismatch':'食品・分量と解析結果の不一致
            'context_mismatch':'対象日・区分・本文の文脈を確認できない',
            'share_ogp_mismatch':'共有画像と正本の一致を確認できない',
            'experiential_claim':'実食経験の断定','health_claim':'健康効果の断定',
-           'copy_repetition':'過去の文面との重複','daily_energy_out_of_range':'3食合計が設定範囲外'}
+           'copy_repetition':'過去の文面との重複','daily_energy_out_of_range':'3食合計が設定範囲外',
+           'api_quality_rejected_not_saved':'登録前の解析品質検査で拒否・未保存を確認'}
 
 
 class QualityHold(ValueError):
@@ -21,10 +22,19 @@ class QualityHold(ValueError):
         self.step=step
         self.reason_codes=tuple(code for code in reason_codes if code in REASONS)
         super().__init__(message)
+    audit_reason = 'quality_hold'
+
+
+class KnownQualityRejected(QualityHold):
+    """UUID照合で未保存と判明した品質拒否。再登録の許可ではない。"""
+    audit_reason = 'quality_rejected_not_saved'
+    def __init__(self,slot):
+        super().__init__('登録前の品質拒否・未保存を確認しました','meal_register:'+slot,('api_quality_rejected_not_saved',))
 
 
 class PreparationDeadline(ValueError):
     """外部処理を開始する前に準備期限へ到達した。"""
+    audit_reason = 'deadline_exceeded'
 
 
 def describe_step(step):

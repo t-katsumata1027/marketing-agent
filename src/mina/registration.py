@@ -176,6 +176,9 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
         review_suffix = ':' + capture_round if capture_round else ''
         review = journal.run(target, 'meal_review:' + slot + variant + review_suffix, {'image_sha256': info['sha256'], 'meal': meal, 'response': response, 'ogp_digest': captured['digest'], 'policy_sha256':meal_review_policy_sha256()},
                              lambda: ai.review_meal(raw, meal, response, captured['meta']))
+        from .review_diagnostics import record_findings,record_verdict
+        record_findings(store,ai,target,slot,'meal_review',info['sha256'])
+        record_verdict(store,target,slot,'meal_review',review)
         if (allow_correction and operation == 'meal_register' and review.get('status') == 'hold' and review.get('reason_codes') and
                 set(review['reason_codes']) <= {'image_analysis_mismatch','nutrition_semantic_mismatch'}):
             from .correction import correct_meal_once
@@ -189,10 +192,14 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
             review = journal.run(target, 'meal_review:' + slot + ':corrected' + review_suffix,
                 {'image_sha256':info['sha256'],'meal':meal,'response':response,'ogp_digest':captured['digest'],'policy_sha256':meal_review_policy_sha256()},
                 lambda:ai.review_meal(raw, meal, response, captured['meta']))
+            record_findings(store,ai,target,slot,'meal_review',info['sha256'])
+            record_verdict(store,target,slot,'meal_review',review)
         if review != {'status': 'publishable', 'reason_codes': []}:
             raise QualityHold('解析結果の独立レビューが保留です','meal_review:'+slot,review.get('reason_codes',()))
         ogp_review = journal.run(target, 'ogp_review:' + slot, {'image_sha256': info['sha256'], 'normalized': normalized, 'ogp_digest': captured['digest']},
                                  lambda: ai.review_ogp([preview, raw], {**normalized, 'target_date': target, 'slot': slot}, captured['meta']))
+        record_findings(store,ai,target,slot,'ogp_review',hashlib.sha256(preview).hexdigest())
+        record_verdict(store,target,slot,'ogp_review',ogp_review)
         if ogp_review != {'status': 'publishable', 'reason_codes': []}:
             raise QualityHold('OGPの実画像レビューが保留です','ogp_review:'+slot,ogp_review.get('reason_codes',()))
         outputs[slot] = {**normalized, 'menu': meal['menu'], 'image_sha256': info['sha256'],
@@ -223,6 +230,8 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
     captured, preview = ogp('daily', daily)
     review = journal.run(target, 'ogp_review:daily', {'normalized': daily, 'ogp_digest': captured['digest'], 'images': {slot: saved['images'][slot]['sha256'] for slot in MEAL_SLOTS}},
                          lambda: ai.review_ogp([preview, *(images[slot] for slot in MEAL_SLOTS)], {**daily, 'target_date': target, 'slot': 'daily', 'meal_count': 3}, captured['meta']))
+    record_findings(store,ai,target,'daily','ogp_review',hashlib.sha256(preview).hexdigest())
+    record_verdict(store,target,'daily','ogp_review',review)
     if review != {'status': 'publishable', 'reason_codes': []}:
         raise QualityHold('日次OGPの実画像レビューが保留です','ogp_review:daily',review.get('reason_codes',()))
     outputs['daily'] = {**daily, 'menu': ' / '.join(outputs[slot]['menu'] for slot in MEAL_SLOTS),

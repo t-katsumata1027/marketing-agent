@@ -32,22 +32,37 @@ def read_json_response(response):
     return result
 
 
-def await_checked_at(result, clock=lambda: datetime.now(UTC), sleep=time.sleep):
+class ClockSkewError(ValueError):
+    audit_reason='clock_ahead'
+    def __init__(self,ahead):
+        self.clock_ahead_ms=ahead*1000
+        super().__init__('正本照会の時計差を解消できません')
+
+
+class MealReadFailure(RuntimeError):
+    def __init__(self,code,reason,status=None):
+        self.audit_reason,self.http_status=reason,status
+        super().__init__(code)
+
+
+def await_checked_at(result, clock=lambda: datetime.now(UTC), sleep=time.sleep, observer=None):
     """サーバー時計が最大1秒先の場合だけ待ち、未来応答を採用せず鮮度条件を保つ。"""
     from .domain import instant
     checked = instant(datetime.fromisoformat(result['checked_at']))
     ahead = (checked - instant(clock())).total_seconds()
+    if observer is not None:observer(ahead*1000)
     if ahead > 1:
-        raise ValueError('正本照会の時計差が上限を超えています')
+        raise ClockSkewError(ahead)
     if ahead > 0:
         sleep(ahead)
         if checked > instant(clock()):
-            raise ValueError('正本照会の時計差を解消できません')
+            raise ClockSkewError(ahead)
     return result
 
 
 class OutcomeUnknown(RuntimeError):
     """外部書き込みの成否が不明で、自動再試行できない。"""
+    audit_reason = 'outcome_unknown'
 
 
 class MealWriteFailure(OutcomeUnknown):
@@ -56,6 +71,21 @@ class MealWriteFailure(OutcomeUnknown):
     def __init__(self, code, payload):
         from .m1_contract import safe_write_state
         self.http_code, self.write_state = code, safe_write_state(payload)
+        self.http_status = code
+        self.audit_reason = 'http_error'
+        self.quality_metrics = {}
+        if isinstance(payload,dict):
+            import math
+            analysis=payload.get('analysis',{})
+            summary=analysis.get('summary',{}) if isinstance(analysis,dict) else {}
+            observed=summary.get('totalCalories') if isinstance(summary,dict) else None
+            if type(observed) in (int,float) and math.isfinite(observed) and 0<=observed<=1e9:
+                self.quality_metrics['observed']=observed
+            quality=payload.get('quality',{})
+            warnings=quality.get('warnings',[]) if isinstance(quality,dict) else []
+            codes=('meal_calories_out_of_range','macro_out_of_range','food_calories_out_of_range','atwater_mismatch','nutrition_invalid','ambiguous_foods')
+            if isinstance(warnings,list):
+                self.quality_metrics['quality_codes']=[w['code'] for w in warnings if isinstance(w,dict) and w.get('code') in codes][:12]
         super().__init__(f'meal_http_{code}')
 
 
@@ -177,11 +207,15 @@ class MealClient:
             result = json.loads(raw) if len(raw) <= 131072 else None
             if not isinstance(result, dict):
                 raise ValueError()
-            return await_checked_at(result)
+            return await_checked_at(result,observer=getattr(self,'clock_observer',None))
         except HTTPError as error:
-            raise RuntimeError(f'meal_state_http_{error.code}') from None
-        except (URLError, TimeoutError, OSError, ValueError, KeyError, TypeError):
-            raise RuntimeError('meal_state_read_failed') from None
+            raise MealReadFailure(f'meal_state_http_{error.code}','http_error',error.code) from None
+        except ClockSkewError:
+            raise
+        except (URLError, TimeoutError, OSError):
+            raise MealReadFailure('meal_state_read_failed','io_failed') from None
+        except (ValueError,KeyError,TypeError):
+            raise MealReadFailure('meal_state_read_failed','response_invalid') from None
 
     def request_state(self, request_key, operation):
         """UUIDの照会で404でも未登録とは判定せず、自動再送しない。"""
@@ -196,9 +230,11 @@ class MealClient:
             with build_opener(NoWriteRedirect()).open(request, timeout=15) as response:
                 return read_json_response(response)
         except HTTPError as error:
-            raise RuntimeError(f'meal_request_http_{error.code}') from None
-        except (URLError, TimeoutError, OSError, ValueError):
-            raise RuntimeError('meal_request_read_failed') from None
+            raise MealReadFailure(f'meal_request_http_{error.code}','http_error',error.code) from None
+        except (URLError,TimeoutError,OSError):
+            raise MealReadFailure('meal_request_read_failed','io_failed') from None
+        except ValueError:
+            raise MealReadFailure('meal_request_read_failed','response_invalid') from None
 
     def verify_credentials(self):
         """冪等性キー欠落で書き込み前に止まる経路を使い、認証だけ検査する。"""

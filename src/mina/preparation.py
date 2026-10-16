@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -26,6 +27,9 @@ class PreparationJournal:
                 PRIMARY KEY(target_date,step))""")
 
     def run(self, target, step, inputs, operation):
+        from .audit import step_context, safe_failure
+        stage,slot=step_context(step)
+        started=time.monotonic()
         digest = fingerprint(inputs)
         with self.store.transaction() as db:
             previous = db.execute("SELECT * FROM preparation_steps WHERE target_date=? AND step=?", (target, step)).fetchone()
@@ -41,6 +45,7 @@ class PreparationJournal:
                     raise PreparationDeadline('準備期限による工程停止を保持しています')
                 raise OutcomeUnknown("preparation_reconciliation_required")
             db.execute("INSERT INTO preparation_steps VALUES(?,?,?,'started',NULL,?)", (target, step, digest, datetime.now(UTC).timestamp()))
+            self.store.audit.emit('creation',target,slot,None,stage,'started',details={'step_sha256':digest},db=db)
         self.store.record_preparation_progress(target,step,step_status(step))
         try:
             result = operation()
@@ -49,20 +54,25 @@ class PreparationJournal:
                 raise ValueError("工程結果が大きすぎます")
             with self.store.transaction() as db:
                 db.execute("UPDATE preparation_steps SET state='complete',result=? WHERE target_date=? AND step=? AND state='started'", (raw, target, step))
+                self.store.audit.emit('creation',target,slot,None,stage,'completed',details={'step_sha256':digest,'elapsed_ms':round((time.monotonic()-started)*1000,3)},db=db)
             return result
         except PreparationDeadline:
             with self.store.transaction() as db:
                 db.execute("UPDATE preparation_steps SET state='stopped',result=? WHERE target_date=? AND step=? AND state='started'",
                     (json.dumps({'classification':'deadline_exceeded','step':step}),target,step))
+                self.store.audit.emit('creation',target,slot,None,stage,'stopped','deadline_exceeded',db=db)
             raise
         except QualityHold as error:
             with self.store.transaction() as db:
                 db.execute("UPDATE preparation_steps SET state='held',result=? WHERE target_date=? AND step=? AND state='started'",
                     (json.dumps({'classification':'quality_hold','step':error.step,'reason_codes':error.reason_codes}),target,step))
+                self.store.audit.emit('creation',target,slot,None,stage,'held',error.audit_reason,db=db)
             raise
-        except Exception:
+        except Exception as error:
+            reason,details=safe_failure(error)
             with self.store.transaction() as db:
                 db.execute("UPDATE preparation_steps SET state='outcome_unknown' WHERE target_date=? AND step=? AND state='started'", (target, step))
+                self.store.audit.emit('creation',target,slot,None,stage,'failed',reason,details,db=db)
             raise
 
 
@@ -102,7 +112,9 @@ def prepare_images(store, draft_path: Path, directory: Path, client, replacement
         path = slot_directory / f"{target}-{slot}.jpg"
         description=meal_image_description(meal)
         if image_round:
-            note = repair_instruction if replacing and repair_instruction is not None else '構図の修復：カメラを引き、右端の副菜の器を含む全器の外周を完全に画面内へ収める。右端にも十分な背景の余白を確保し、献立・食品・分量を変えない。'
+            note = repair_instruction if replacing and repair_instruction is not None else ('画像の修復：元の献立・全食品・分量・品数を維持し、調理法と盛付けを説明どおり明確に描く。'
+                '献立で指定された料理の構造と、指定された別添え小皿を省略しない。'
+                'カメラを引き、右端の副菜の器を含む全器の外周を完全に画面内へ収める。右端にも十分な背景の余白を確保する。')
             description += '\n' + note
         prompt_sha256=hashlib.sha256((IMAGE_STYLE+'\n料理と量：'+description).encode()).hexdigest()
 
@@ -136,6 +148,9 @@ def prepare_images(store, draft_path: Path, directory: Path, client, replacement
                              {"sha256": image["sha256"], "meal": meal,
                               "review_policy_sha256": image_review_policy_sha256()},
                              lambda: client.review_image(raw, meal))
+        from .review_diagnostics import record_findings,record_verdict
+        record_findings(store,client,target,slot,'image_review',image['sha256'])
+        record_verdict(store,target,slot,'image_review',review)
         if review["status"] != "image_acceptable" or review["reason_codes"]:
             raise QualityHold("画像の事前点検で保留になりました",'image_review:'+slot,review.get('reason_codes',()))
         outputs[slot] = {**image, "image_review": review}
@@ -176,6 +191,7 @@ def save_images_to_drive(store, reviewed, drive, replacement_rounds=None):
                 raise ValueError('保存完了した旧画像と異なる画像だけを別保存できます')
         uploaded = journal.run(target, 'drive_upload:' + slot + suffix, inputs, lambda: drive.upload(raw, filename))
         # 読取検証が失敗しても、完了済みuploadの新規実行はしない。
-        verified = drive.verify(uploaded['id'], raw, filename)
+        with store.audit.operation('creation',target,slot,None,'drive_verify',{'image_sha256':image['sha256']}):
+            verified = drive.verify(uploaded['id'], raw, filename)
         outputs[slot] = {**image, 'drive': verified}
     return {'target_date': target, 'state': 'images_drive_verified', 'images': outputs}

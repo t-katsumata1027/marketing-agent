@@ -6,7 +6,9 @@ class MealScopeTest(unittest.TestCase):
  def test_image_scope_stays_unchanged_and_meal_scope_requires_following_ogp_review(self):
   client=OpenAIClient.__new__(OpenAIClient);client.structured=Mock(return_value={'status':'image_acceptable','reason_codes':[]})
   client.review_image(b'\xff\xd8\xffraw',{})
-  self.assertEqual(client.structured.call_args.args[0],REVIEW_INSTRUCTIONS)
+  self.assertTrue(client.structured.call_args.args[0].startswith(REVIEW_INSTRUCTIONS))
+  self.assertNotIn(MEAL_REVIEW_SCOPE,client.structured.call_args.args[0])
+  self.assertIn('findings',client.structured.call_args.args[2]['properties'])
   image_policy=image_review_policy_sha256();meal_policy=meal_review_policy_sha256()
   client.structured.return_value={'status':'publishable','reason_codes':[]}
   client.review_meal(b'\xff\xd8\xffraw',{}, {'result':{'meal':{'logged_at':'2026-10-16T03:15:00.000Z','meal_type':'lunch'}}},{})

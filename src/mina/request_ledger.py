@@ -77,19 +77,57 @@ class RequestLedger:
         self.record(key, 'held', observation)
         return {**observation, 'ledger_updated': True}
 
+    def terminal_quality_not_saved(self, key, client):
+        """同UUIDの終端未保存を再照会し、保存済み・成否不明の履歴は修復対象にしない。"""
+        request = self.restore(key)
+        previous = json.loads(request['observation']) if request['observation'] else {}
+        if (request['operation'] != 'meal_register' or request['phase'] != 'held' or
+                previous.get('persistence') != 'not_saved'):
+            return None
+        lookup = client.request_state(key, 'meal_register')
+        report = request_report(lookup, key, 'meal_register')
+        if (report['status'] != 'failed' or report['persistence'] != 'not_saved' or
+                report['stage'] != 'quality' or report['reason'] != 'quality_review_required' or
+                lookup.get('current_result', 'missing') is not None or lookup.get('result') is not None):
+            return None
+        with self.store.transaction() as db:
+            if db.execute('SELECT 1 FROM candidates WHERE target_date=?', (request['target_date'],)).fetchone():
+                return None
+        return request
+
     def execute_once(self, key, client, operation):
         request = self.restore(key)
         with self.store.transaction() as db:
             claimed = db.execute("UPDATE mina_requests SET phase='dispatching' WHERE request_key=? AND phase='prepared'", (key,)).rowcount
+            if claimed==1:
+                self.store.audit.emit('creation',request['target_date'],request['slot'],None,'request','started',
+                    details={'input_sha256':request['input_digest'],'operation':request['operation'],'write_started':True},db=db)
         if claimed != 1:
             raise OutcomeUnknown('request_reconciliation_required')
         try:
             response = operation()
         except Exception as error:
+            from .audit import safe_failure
+            reason,details=safe_failure(error)
+            if isinstance(error,MealWriteFailure):details.update(error.quality_metrics)
             observation = error.write_state if isinstance(error, MealWriteFailure) else {'persistence': 'unknown'}
             self.record(key, 'held', observation)
-            self.reconcile(key, client)
+            observation=self.reconcile(key, client)
+            self.store.audit.emit('creation',request['target_date'],request['slot'],None,'request','failed',reason,
+                {**details,'input_sha256':request['input_digest'],'persistence':observation['persistence']})
+            if (observation.get('status')=='failed' and observation.get('persistence')=='not_saved' and
+                    observation.get('stage')=='quality' and observation.get('reason')=='quality_review_required' and
+                    request['operation']=='meal_register'):
+                try:
+                    terminal=self.terminal_quality_not_saved(key,client)
+                except Exception:
+                    terminal=None
+                if terminal is not None:
+                    from .preparation_status import KnownQualityRejected
+                    raise KnownQualityRejected(request['slot']) from None
             raise OutcomeUnknown('request_reconciliation_required') from None
         # HTTP成功だけで完了・保存を推測しない。後続のUUID照合で確定する。
         self.record(key, 'response_received', safe_write_state(response.get('request', {})))
+        self.store.audit.emit('creation',request['target_date'],request['slot'],None,'request','completed',
+            details={'input_sha256':request['input_digest'],'phase':'response_received'})
         return response

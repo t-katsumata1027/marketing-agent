@@ -133,7 +133,18 @@ class BufferPublisher:
         self.proof = None
 
     def verify_account(self, account):
-        channel = self.api.channel()
+        from datetime import timedelta
+        due=datetime.fromtimestamp(self.row['scheduled'],UTC)
+        self.api.connection_deadline=due+timedelta(seconds=120)
+        candidate=Candidate(**json.loads(self.row['payload']))
+        if (candidate.approval_source or {}).get('publish_after_approval_until'):
+            self.api.connection_deadline=min(self.api.connection_deadline,candidate.scheduled_at)
+        self.api.connection_clock=self.clock
+        self.api.audit_context=(self.store.audit,self.row['target_date'],self.row['slot'],self.row['revision'])
+        try:
+            channel = self.api.channel()
+        finally:
+            self.api.connection_deadline=None
         if (account != ACCOUNT or channel['id'] != self.route['channel_id']
                 or channel['serviceId'] != self.route['service_id'] or channel.get('isQueuePaused') is not False):
             raise ProbeError('buffer_live_target_unavailable')
@@ -186,6 +197,8 @@ class BufferPublisher:
                 (json.dumps(request,ensure_ascii=False),json.dumps(self.proof),now.timestamp(),self.route['singleton'],c.digest,row['revision']))
             if changed.rowcount != 1:
                 raise ProbeError('buffer_attempt_already_started')
+            self.store.audit.emit('publication',self.row['target_date'],self.row['slot'],self.row['revision'],
+                'submission','started',details={'operation':'post_create','write_started':True},now=now,db=db)
         # 同じ要求・新しい要求のどちらも自動再送しない。応答喪失でも上の記録を保持する。
         if (not 0 <= self.timer()-self.proof['started_monotonic'] <= 120
                 or not 0 <= (instant(self.clock())-due).total_seconds() <= 120
@@ -238,7 +251,7 @@ def recover_one(store, route, now, api_factory):
         return
     if route['state'] == 'armed':
         if row['dispatch_started'] is not None and instant(now).timestamp()-row['dispatch_started'] >= 180:
-            store.stop_before_publish(dict(row),now)
+            store.stop_before_publish(dict(row),now,stage='recovery',reason='outcome_unknown')
         return
     # 別の通常巡回がまだ送信確認中の場合には介入しない。
     if route['attempted'] is not None and instant(now).timestamp()-route['attempted'] < 180:
