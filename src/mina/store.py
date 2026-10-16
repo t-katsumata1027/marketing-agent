@@ -112,7 +112,7 @@ class Store:
                     approval = db.execute('SELECT until_at FROM publication_exceptions WHERE target_date=? AND slot=?',
                                           (candidate.target_date,candidate.slot)).fetchone()
                     if not approval or approval['until_at'] != until:
-                        raise ValueError('当日昼食の臨時公開に本人の指定記録が必要です')
+                        raise ValueError('当日食事の臨時公開に本人の指定記録が必要です')
                 if db.execute('SELECT 1 FROM publication_exclusions WHERE target_date=? AND slot=?',
                               (candidate.target_date, candidate.slot)).fetchone():
                     raise ValueError('本人指定により公開しない枠です')
@@ -151,7 +151,7 @@ class Store:
                 nonce = secrets.token_urlsafe(24)
                 key = f"{target_date}|{row['slot']}|{row['revision']}|{nonce}"
                 c = Candidate(**json.loads(row["payload"]))
-                timing = ('本人指定：本日の昼食は承認後に臨時公開（受付期限 JST '
+                timing = ('本人指定：本日の' + LABELS[c.slot] + 'は承認後に臨時公開（受付期限 JST '
                           + c.scheduled_at.astimezone(JST).strftime('%H:%M') + '）') if (c.approval_source or {}).get('publish_after_approval_until') else f'JST {c.scheduled_at.astimezone(JST):%H:%M}'
                 card = {"content": f"━━━━━━━━━━━━━━━━━━━━\n**{LABELS[c.slot]}｜{target_date}**\n投稿予定：{timing}\n━━━━━━━━━━━━━━━━━━━━\n\n{c.content}",
                         "allowed_mentions": {"parse": []},
@@ -168,6 +168,51 @@ class Store:
                 db.execute("INSERT INTO notices(target_date,slot,revision,kind,payload,created) VALUES(?,?,?,'approval',?,?)", (target_date, row["slot"], row["revision"], json.dumps(card, ensure_ascii=False), timestamp))
                 issued.append(card)
         return issued
+
+    def requeue_failed_dinner(self, candidate, allowed_host, now, previous_digest, round_key):
+        """送信前停止の夕食だけを新承認版へ戻し、旧候補と未送信経路を保全する。"""
+        from .clients import MealClient
+        MealClient.request_key(round_key)
+        candidate.validate(allowed_host, now)
+        until = (candidate.approval_source or {}).get('publish_after_approval_until')
+        if candidate.slot != 'dinner' or not until:
+            raise ValueError('当日夕食の明示的な再承認だけを扱います')
+        with self.transaction() as db:
+            old = db.execute("SELECT * FROM candidates WHERE target_date=? AND slot='dinner'", (candidate.target_date,)).fetchone()
+            route = db.execute("SELECT * FROM buffer_publication WHERE target_date=? AND slot='dinner'", (candidate.target_date,)).fetchone()
+            if (not old or old['state'] != 'changes_requested' or old['reason'] != 'preflight_failed' or
+                    old['digest'] != previous_digest or old['x_id'] is not None or not route or
+                    route['state'] != 'armed' or route['revision'] != old['revision'] or route['digest'] != old['digest'] or
+                    any(route[name] is not None for name in ('attempted','post_id','request_json','response_json','proof_json'))):
+                raise ValueError('夕食の未送信を確認できません。自動再公開しません')
+            original = Candidate(**json.loads(old['payload']))
+            old_data, new_data = asdict(original), asdict(candidate)
+            for value in (old_data, new_data):
+                value.pop('source_commit')
+                binding = value['approval_source']
+                for name in ('review_round','readiness_sha256','publish_after_approval_until'):
+                    binding.pop(name, None)
+            if old_data != new_data or original.digest != old['digest']:
+                raise ValueError('再承認する夕食の本文・原本・正本が変更されています')
+            db.execute('''CREATE TABLE IF NOT EXISTS publication_recoveries (
+                round_key TEXT PRIMARY KEY, target_date TEXT NOT NULL, slot TEXT NOT NULL,
+                previous_candidate TEXT NOT NULL, previous_route TEXT NOT NULL, created REAL NOT NULL)''')
+            db.execute('INSERT INTO publication_recoveries VALUES(?,?,?,?,?,?)',
+                (round_key, candidate.target_date, 'dinner', json.dumps(dict(old),ensure_ascii=False),
+                 json.dumps(dict(route),ensure_ascii=False), instant(now).timestamp()))
+            db.execute("INSERT INTO publication_exceptions VALUES(?,'dinner',?,'本人指示：公開前停止した本日夕食を再承認後に公開')",
+                       (candidate.target_date, until))
+            revision = old['revision'] + 1
+            db.execute("""UPDATE candidates SET revision=?,payload=?,digest=?,scheduled=?,state='approval_pending',
+                nonce_hash=NULL,actor=NULL,approved=NULL,dispatch_started=NULL,x_id=NULL,reason=NULL
+                WHERE target_date=? AND slot='dinner'""",
+                (revision,json.dumps(asdict(candidate),ensure_ascii=False),candidate.digest,
+                 candidate.scheduled_at.timestamp(),candidate.target_date))
+            db.execute("UPDATE buffer_publication SET revision=?,digest=? WHERE target_date=? AND slot='dinner'",
+                       (revision,candidate.digest,candidate.target_date))
+            db.execute("UPDATE notices SET state='obsolete' WHERE target_date=? AND slot='dinner' AND state='pending'",
+                       (candidate.target_date,))
+        return revision
 
     def decide(self, custom_id: str, actor: str, now: datetime):
         """許可済みの署名検証層からの判断だけを原子的に反映する。"""

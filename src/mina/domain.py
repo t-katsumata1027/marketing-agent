@@ -86,9 +86,10 @@ class Candidate:
             raise ValueError("予定時刻を過ぎた候補です")
         if self.approval_source and self.approval_source.get('publish_after_approval_until'):
             day = date.fromisoformat(self.target_date)
-            if (self.slot != 'lunch' or now.astimezone(JST).date() != day or
-                    not slot_time(day,'lunch') <= instant(now) < self.scheduled_at < slot_time(day,'dinner')):
-                raise ValueError('本人指定の当日昼食以外は臨時公開できません')
+            following = {'lunch': 'dinner', 'dinner': 'daily'}.get(self.slot)
+            if (not following or now.astimezone(JST).date() != day or
+                    not slot_time(day,self.slot) <= instant(now) < self.scheduled_at < slot_time(day,following)):
+                raise ValueError('本人指定の当日昼食・夕食以外は臨時公開できません')
         if not self.comment.strip() or len(self.comment) > 120 or any(c in self.comment for c in "\r\n"):
             raise ValueError("一言は改行なし120文字以内です")
         if self.publish_text is not None:

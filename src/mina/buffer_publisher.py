@@ -166,7 +166,11 @@ class BufferPublisher:
             raise ProbeError('buffer_approved_text_or_proof_missing')
         # 外部へ送る直前にも単調時計・期限を再検査する。API受付をX公開成功とは扱わない。
         now = instant(self.clock())
-        if (not 0 <= (now-c.scheduled_at).total_seconds() <= 120
+        immediate = bool((c.approval_source or {}).get('publish_after_approval_until'))
+        due = datetime.fromtimestamp(self.row['scheduled'], UTC) if immediate else c.scheduled_at
+        if (immediate and (self.row['scheduled'] != self.row['approved'] or now >= c.scheduled_at)):
+            raise ProbeError('buffer_approval_time_or_deadline_changed')
+        if (not 0 <= (now-due).total_seconds() <= 120
                 or not 0 <= self.timer()-self.proof['started_monotonic'] <= 120
                 or now >= instant(datetime.fromisoformat(self.proof['expires_at']))):
             raise ProbeError('buffer_preflight_expired')
@@ -184,7 +188,8 @@ class BufferPublisher:
                 raise ProbeError('buffer_attempt_already_started')
         # 同じ要求・新しい要求のどちらも自動再送しない。応答喪失でも上の記録を保持する。
         if (not 0 <= self.timer()-self.proof['started_monotonic'] <= 120
-                or not 0 <= (instant(self.clock())-c.scheduled_at).total_seconds() <= 120
+                or not 0 <= (instant(self.clock())-due).total_seconds() <= 120
+                or (immediate and instant(self.clock()) >= c.scheduled_at)
                 or instant(self.clock()) >= instant(datetime.fromisoformat(self.proof['expires_at']))):
             raise ProbeError('buffer_preflight_expired')
         result = self.api._request(CREATE, {'input':request}).get('createPost')
