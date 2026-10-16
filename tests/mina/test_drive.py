@@ -15,6 +15,28 @@ from src.mina.store import Store
 
 
 class DriveTests(unittest.TestCase):
+    def test_replaced_dinner_upload_keeps_old_upload_and_reuses_breakfast_lunch(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            path = directory / 'original.jpg';raw = b'\xff\xd8\xfforiginal';path.write_bytes(raw)
+            reviewed = {'target_date': '2026-10-08', 'state': 'images_reviewed', 'images': {slot: {
+                'path': str(path), 'sha256': hashlib.sha256(raw).hexdigest(), 'size': len(raw),
+                'image_review': {'status': 'image_acceptable', 'reason_codes': []}} for slot in ('breakfast','lunch','dinner')}}
+            drive = Mock(folder_id='folder')
+            drive.upload.return_value = {'id':'file'}
+            drive.verify.return_value = {'verified':True}
+            store = Store(directory / 'db')
+            save_images_to_drive(store, reviewed, drive)
+            rounds = {'dinner':'11111111-1111-4111-8111-111111111111'}
+            with self.assertRaises(ValueError):save_images_to_drive(store, reviewed, drive, rounds)
+            self.assertEqual(drive.upload.call_count,3)
+            new_path = directory / 'new.jpg';new_raw = b'\xff\xd8\xffnew';new_path.write_bytes(new_raw)
+            reviewed['images']['dinner'] = {**reviewed['images']['dinner'], 'path':str(new_path),
+                'sha256':hashlib.sha256(new_raw).hexdigest(),'size':len(new_raw)}
+            save_images_to_drive(store, reviewed, drive, rounds)
+            save_images_to_drive(store, reviewed, drive, rounds)
+            self.assertEqual(drive.upload.call_count,4)
+
     def client(self):
         return DriveClient('client', 'secret', 'refresh', 'folder_id_12345')
 

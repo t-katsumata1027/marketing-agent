@@ -142,12 +142,18 @@ def prepare_images(store, draft_path: Path, directory: Path, client, replacement
     return {"target_date": target, "state": "images_reviewed", "images": outputs}
 
 
-def save_images_to_drive(store, reviewed, drive):
+def save_images_to_drive(store, reviewed, drive, replacement_rounds=None):
     """点検済み画像の保存と再読取を別工程で記録する。登録はまだ行わない。"""
     if reviewed.get('state') != 'images_reviewed' or set(reviewed.get('images', {})) != set(MEAL_SLOTS):
         raise ValueError('点検済みの3画像が必要です')
     journal = PreparationJournal(store)
     target = reviewed['target_date']
+    replacement_rounds = replacement_rounds or {}
+    if not set(replacement_rounds) <= set(MEAL_SLOTS):
+        raise ValueError('画像保存の差替え枠が不正です')
+    for round_key in replacement_rounds.values():
+        from .clients import MealClient
+        MealClient.request_key(round_key)
     outputs = {}
     for slot in MEAL_SLOTS:
         image = reviewed['images'][slot]
@@ -161,7 +167,14 @@ def save_images_to_drive(store, reviewed, drive):
             raise ValueError('事前点検した画像の版が変わっています')
         filename = f'{target}-{slot}.jpg'
         inputs = {'sha256': image['sha256'], 'filename': filename, 'folder_id': drive.folder_id}
-        uploaded = journal.run(target, 'drive_upload:' + slot, inputs, lambda: drive.upload(raw, filename))
+        suffix = ':' + replacement_rounds[slot] if slot in replacement_rounds else ''
+        if suffix:
+            with store.transaction() as db:
+                previous = db.execute('SELECT state,digest FROM preparation_steps WHERE target_date=? AND step=?',
+                                      (target, 'drive_upload:' + slot)).fetchone()
+            if not previous or previous['state'] != 'complete' or previous['digest'] == fingerprint(inputs):
+                raise ValueError('保存完了した旧画像と異なる画像だけを別保存できます')
+        uploaded = journal.run(target, 'drive_upload:' + slot + suffix, inputs, lambda: drive.upload(raw, filename))
         # 読取検証が失敗しても、完了済みuploadの新規実行はしない。
         verified = drive.verify(uploaded['id'], raw, filename)
         outputs[slot] = {**image, 'drive': verified}

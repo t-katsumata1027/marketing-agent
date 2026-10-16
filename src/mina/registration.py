@@ -9,7 +9,7 @@ from pathlib import Path
 from .clients import OutcomeUnknown, MealClient
 from .domain import instant, slot_time
 from .generation import MEAL_SLOTS, validate_plan, meal_review_policy_sha256
-from .m1_contract import CONTRACT, completed_request, validate_state, validate_write
+from .m1_contract import CONTRACT, completed_request, request_report, validate_state, validate_write
 from .ogp import capture_ogp, verify_image_reference
 from .preparation import PreparationJournal, fingerprint
 from .request_ledger import RequestLedger
@@ -38,7 +38,8 @@ def assert_day_state(state, target, completed, now):
         raise ValueError('対象日の既存記録・登録成否を照合できません') from None
 
 
-def register_day(store, draft, saved, directory, meal_client, ai, host, capture=capture_ogp, capture_round=None, allow_correction=False):
+def register_day(store, draft, saved, directory, meal_client, ai, host, capture=capture_ogp, capture_round=None,
+                 allow_correction=False, replacement_rounds=None):
     """3食と日次を点検する。履歴・旧予約が未照合なら承認候補へ進めない。"""
     target = draft['target_date']
     if capture_round is not None:
@@ -63,10 +64,29 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
     directory.mkdir(parents=True, exist_ok=True)
     journal = PreparationJournal(store)
     requests = RequestLedger(store)
+    replacement_rounds = replacement_rounds or {}
+    if not set(replacement_rounds) <= set(MEAL_SLOTS):
+        raise ValueError('未保存要求の差替え枠が不正です')
+    for slot, round_key in replacement_rounds.items():
+        MealClient.request_key(round_key)
+        with store.transaction() as db:
+            failed = list(db.execute("SELECT request_key FROM mina_requests WHERE target_date=? AND slot=? AND operation='meal_register'", (target, slot)))
+            candidates_exist = db.execute('SELECT 1 FROM candidates WHERE target_date=?', (target,)).fetchone()
+        if candidates_exist or not failed:
+            raise ValueError('候補のない日の終端未保存要求だけを差替えできます')
+        for row in failed:
+            request = requests.restore(row['request_key'])
+            lookup = meal_client.request_state(row['request_key'], 'meal_register')
+            request_report(lookup, row['request_key'], 'meal_register')
+            if (request['phase'] != 'held' or lookup.get('status') != 'failed' or lookup.get('persistence') != 'not_saved' or
+                    lookup.get('stage') != 'quality' or lookup.get('reason') != 'quality_review_required' or
+                    lookup.get('current_result') is not None or request['image_sha256'] == saved['images'][slot]['sha256']):
+                raise ValueError('保存済み・処理中・不明の要求は差替えしません')
     completed = {}
     with store.transaction() as db:
         for slot in MEAL_SLOTS:
-            row = db.execute('SELECT state,result FROM preparation_steps WHERE target_date=? AND step=?', (target, 'meal_register:' + slot)).fetchone()
+            suffix = ':' + replacement_rounds[slot] if slot in replacement_rounds else ''
+            row = db.execute('SELECT state,result FROM preparation_steps WHERE target_date=? AND step=?', (target, 'meal_register:' + slot + suffix)).fetchone()
             if row:
                 if row['state'] != 'complete':
                     raise OutcomeUnknown('preparation_reconciliation_required')
@@ -128,7 +148,8 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
         if slot in corrections:
             response, key = corrections[slot]
         else:
-            request = journal.run(target, 'meal_request_key:' + slot, inputs,
+            suffix = ':' + replacement_rounds[slot] if slot in replacement_rounds else ''
+            request = journal.run(target, 'meal_request_key:' + slot + suffix, inputs,
                                   lambda: {'key': str(uuid.uuid4()), 'expected_state_version': check_state()})
             key = request['key']
             payload = {'contract_version': CONTRACT, 'meal_type': slot, 'logged_at': logged, 'comment': meal['comment'],
@@ -139,7 +160,7 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
                     raise ValueError('送信前に期待する正本版が変更されています')
                 return meal_client.register(raw, f'{target}-{slot}.jpg', slot, logged, meal['comment'], request_key=key,
                                             expected_state_version=request['expected_state_version'])
-            response = journal.run(target, 'meal_register:' + slot,
+            response = journal.run(target, 'meal_register:' + slot + suffix,
                                    inputs, lambda: requests.execute_once(key, meal_client, register))
         completed[slot] = response
         normalized = validate_write(response, slot, target, host, operation=operation, logged_at=logged, input_comment=meal['comment'])
