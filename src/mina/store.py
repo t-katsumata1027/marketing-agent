@@ -136,7 +136,7 @@ class Store:
                 revisions.append(revision)
             return revisions
 
-    def issue_cards(self, target_date: str, now: datetime) -> list[dict]:
+    def issue_cards(self, target_date: str, now: datetime, slots=None) -> list[dict]:
         """20時までは通知を作らず、同じ版のカードを一度だけ作る。"""
         timestamp = instant(now).timestamp()
         if instant(now) < approval_time(date.fromisoformat(target_date)):
@@ -146,6 +146,8 @@ class Store:
             rows = db.execute("""SELECT * FROM candidates WHERE target_date=? AND state='approval_pending' AND scheduled>?
                 ORDER BY CASE slot WHEN 'breakfast' THEN 1 WHEN 'lunch' THEN 2 WHEN 'dinner' THEN 3 ELSE 4 END""", (target_date, timestamp)).fetchall()
             for row in rows:
+                if slots is not None and row['slot'] not in slots:
+                    continue
                 if row["nonce_hash"]:
                     continue
                 nonce = secrets.token_urlsafe(24)

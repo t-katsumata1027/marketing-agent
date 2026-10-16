@@ -62,5 +62,5 @@ def recover_missed_dinner(store, target, round_key, draft_path, images_path, evi
     replacement = replace(original,source_commit=commit,approval_source={**binding,'review_round':round_key,
         'readiness_sha256':fingerprint(evidence),'publish_after_approval_until':until.isoformat()})
     revision = store.requeue_failed_dinner(replacement,host,clock(),original.digest,round_key)
-    store.issue_cards(target,clock())
+    store.issue_cards(target,clock(),slots=('dinner',))
     return {'target_date':target,'slot':'dinner','revision':revision,'state':'approval_pending','approval_deadline_jst':until.astimezone(JST).isoformat()}
