@@ -6,3 +6,5 @@
 *.yml text eol=lf
 *.md text eol=lf
 *.txt text eol=lf
+deploy/instagram.env.example text eol=lf
+deploy/systemd/mina-gateway-instagram.conf.example text eol=lf

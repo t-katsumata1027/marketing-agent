@@ -200,7 +200,8 @@ class MealClient:
         if date.fromisoformat(target).isoformat() != target:
             raise ValueError('対象日が不正です')
         request = Request(self.base + '/api/internal/mina/state?' + urlencode({'date': target}),
-                          headers={'Authorization': 'Bearer ' + self.token, 'Accept': 'application/json'})
+                          headers={'Authorization': 'Bearer ' + self.token, 'Accept': 'application/json',
+                                   'Cache-Control': 'no-store'})
         try:
             with build_opener(NoRedirect()).open(request, timeout=15) as response:
                 raw = response.read(131073)

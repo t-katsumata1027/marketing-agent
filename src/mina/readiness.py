@@ -30,10 +30,11 @@ def release_commit(root, commit):
                           capture_output=True, timeout=10)
     if tree.returncode:
         raise ValueError('実装commitを確認できません')
-    protected = lambda name: (name.startswith('src/mina/') and name.endswith('.py')) or name.startswith('deploy/') or name in ('src/__init__.py', 'requirements-mina.txt')
+    protected = lambda name: (name.startswith('src/mina/') and name.endswith('.py')) or name.startswith(('deploy/', 'assets/instagram/')) or name in ('src/__init__.py', 'requirements-mina.txt')
     expected = {name for name in tree.stdout.decode('utf-8').splitlines() if protected(name)}
     actual = {path.relative_to(root).as_posix() for path in (root / 'src' / 'mina').rglob('*.py')}
     actual |= {path.relative_to(root).as_posix() for path in (root / 'deploy').rglob('*') if path.is_file()}
+    actual |= {path.relative_to(root).as_posix() for path in (root / 'assets' / 'instagram').rglob('*') if path.is_file()}
     actual |= {name for name in ('src/__init__.py', 'requirements-mina.txt') if (root / name).is_file()}
     if len(expected) < 2 or actual != expected:
         raise ValueError('配布コードの追加・欠落を検出しました')

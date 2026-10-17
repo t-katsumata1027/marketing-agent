@@ -63,13 +63,8 @@ def bind_route(db, row, channel):
 def production_client(store):
     """要求種別・時刻だけを記録し、無料枠の実測に使う。本文や認証は記録しない。"""
     def record(query):
-        operation = 'publish' if 'createPost(' in query else 'read'
-        with store.transaction() as db:
-            ts = datetime.now(UTC).timestamp()
-            for window,limit in ((900,90),(86400,240),(2592000,2900)):
-                if db.execute('SELECT count(*) FROM buffer_api_usage WHERE requested>=?',(ts-window,)).fetchone()[0] >= limit:
-                    raise ProbeError('buffer_local_quota_stop')
-            db.execute('INSERT INTO buffer_api_usage(requested,operation) VALUES(?,?)',(ts,operation))
+        from .buffer_limits import record_request
+        record_request(store, query)
     return BufferTrialClient(os.getenv('BUFFER_API_KEY',''),on_request=record)
 
 
