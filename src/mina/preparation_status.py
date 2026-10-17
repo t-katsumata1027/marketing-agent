@@ -7,7 +7,7 @@ STAGES = {'daily_draft':'献立生成','image':'画像生成','image_review':'�
           'correction_plan':'訂正案作成','meal_correction':'解析訂正','ogp_capture':'共有画像取得',
           'ogp_review':'共有画像点検','daily_share':'日次共有','candidates':'承認候補の照合',
           'draft':'献立生成','images':'画像準備','drive':'画像保存','registration':'登録・共有',
-          'source_state':'登録前の正本照合','source_request':'登録要求の照合'}
+          'source_state':'登録前の正本照合','source_request':'登録要求の照合','meal_replan':'メニューの再計画','menu_nutrition':'登録前の食品別概算'}
 REASONS = {'image_analysis_mismatch':'食品・分量と解析結果の不一致',
            'nutrition_semantic_mismatch':'分量・栄養値の整合性を確認できない',
            'context_mismatch':'対象日・区分・本文の文脈を確認できない',

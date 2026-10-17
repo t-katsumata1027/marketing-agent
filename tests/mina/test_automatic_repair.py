@@ -75,7 +75,7 @@ class AutomaticRepairTests(unittest.TestCase):
                 self.image_holds(flow[2], {'breakfast'}, permanent=True, reason=reason)
                 for _ in range(2):
                     with self.assertRaises((RuntimeError,ValueError)): prepare()
-                self.assertEqual(flow[2].images,2 if reason=='image_analysis_mismatch' else 1)
+                self.assertEqual(flow[2].images,6 if reason=='image_analysis_mismatch' else 3)
                 self.assertEqual(flow[4].calls,[])
                 self.assertEqual(flow[0].list_day(TARGET),[])
 
@@ -120,13 +120,13 @@ class AutomaticRepairTests(unittest.TestCase):
             self.assertEqual(flow[2].images,2)
             self.assertEqual(flow[4].calls,[])
 
-    def test_quality_rejection_is_held_without_regeneration_or_new_request(self):
+    def test_quality_rejection_replans_only_terminal_unsaved_and_stops_after_two_menus(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);flow,prepare=self.setup_flow(root)
             self.terminal_failure(flow[4], {'breakfast'}, permanent=True)
             for _ in range(2):
                 with self.assertRaises((RuntimeError,ValueError)):prepare()
-            self.assertEqual((flow[2].images,len(flow[3].uploads),len(flow[4].calls)),(3,3,1))
+            self.assertEqual((flow[2].images,len(flow[3].uploads),len(flow[4].calls)),(5,5,3))
             with flow[0].transaction() as db:
                 self.assertEqual(db.execute('SELECT status FROM preparation_progress').fetchone()[0],'quality_hold')
                 self.assertIn('api_quality_rejected_not_saved',db.execute('SELECT reasons FROM preparation_progress').fetchone()[0])

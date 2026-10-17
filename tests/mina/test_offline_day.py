@@ -37,7 +37,9 @@ class OfflineDayTest(unittest.TestCase):
             helper = test_registration.RegistrationTests()
             draft, _ = helper.setup_inputs(root)
             ai = Mock()
-            ai.structured.return_value = {'meals': draft['meals'], 'daily_comment': draft['daily_comment']}
+            ai.structured.side_effect = lambda instructions,content,schema,name: (
+                {slot:[300,300] for slot in draft['meals']} if name=='mina_menu_nutrition_check'
+                else {'meals':draft['meals'],'daily_comment':draft['daily_comment']})
             image = io.BytesIO()
             Image.new('RGB', (64, 64), 'ivory').save(image, 'JPEG')
             ai.image.return_value = image.getvalue()

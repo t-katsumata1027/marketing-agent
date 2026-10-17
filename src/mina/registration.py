@@ -70,6 +70,13 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
     for slot, round_key in replacement_rounds.items():
         MealClient.request_key(round_key)
         with store.transaction() as db:
+            adopted=db.execute('SELECT state,result FROM preparation_steps WHERE target_date=? AND step=?',
+                               (target,'meal_register:'+slot+':'+round_key)).fetchone()
+            if adopted and adopted['state']=='complete':
+                if json.loads(adopted['result'])['result']['image_sha256']!=saved['images'][slot]['sha256']:
+                    raise ValueError('採用済み再計画画像の版が違います')
+                # 保存済み採用版のUUID・現在正本は後続で通常どおり照合する。
+                continue
             failed = list(db.execute("SELECT request_key FROM mina_requests WHERE target_date=? AND slot=? AND operation='meal_register'", (target, slot)))
             candidates_exist = db.execute('SELECT 1 FROM candidates WHERE target_date=?', (target,)).fetchone()
         if candidates_exist or not failed:

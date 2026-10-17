@@ -88,7 +88,7 @@ def prepare_day(store, directory, history, evidence_path, commit, root, host, ai
         within_deadline()
         stage = 'images'
         from .automatic_repair import AutomaticImageRepair
-        repair = AutomaticImageRepair(store, draft, draft_path, directory / 'images', ai, drive)
+        repair = AutomaticImageRepair(store, draft, draft_path, directory / 'images', ai, drive,clock=clock)
         images = repair.images()
         write_artifact(directory / 'images-reviewed.json', images)
         within_deadline()
@@ -102,9 +102,26 @@ def prepare_day(store, directory, history, evidence_path, commit, root, host, ai
         def capture(url, allowed_host):
             within_deadline()
             return capture_ogp(url, allowed_host)
-        with store.audit.operation('creation', target, None, None, stage):
-            reviewed = register_day(store, draft, saved, directory / 'ogp', meal, ai, host, capture=capture,
-                                    allow_correction=True)
+        replacements={}
+        while True:
+            from .preparation_status import KnownQualityRejected
+            try:
+                with store.audit.operation('creation', target, None, None, stage):
+                    reviewed = register_day(store, draft, saved, directory / 'ogp', meal, ai, host, capture=capture,
+                                            allow_correction=True,replacement_rounds=replacements)
+                break
+            except KnownQualityRejected as error:
+                slot=error.step.split(':')[1]
+                images=repair.rejected_registration(slot,error,meal)
+                replacements[slot]=repair.rounds[slot]
+                stage='drive'
+                saved=save_images_to_drive(store,images,drive,replacement_rounds=replacements)
+                round_key=replacements[slot]
+                repair.planner.replace_artifact(directory/'images-reviewed.json',images,round_key)
+                repair.planner.replace_artifact(directory/'drive.json',saved,round_key)
+                stage='registration'
+                # 他枠の保存済みPOST/PATCHと点検結果は、通常の台帳照合で再使用する。
+                store.record_preparation_progress(target,stage,'running',now=clock())
         write_artifact(directory / 'posts-reviewed.json', reviewed)
         within_deadline()
         stage = 'candidates'
