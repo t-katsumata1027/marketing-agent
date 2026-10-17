@@ -23,7 +23,7 @@ CANDIDATE_STATES = ("approval_pending", "approved", "changes_requested", "cancel
 NOTICE_STATES = ("pending", "sending", "sent", "outcome_unknown", "obsolete")
 STOP_FLAGS = ('MINA_AI_ENABLED', 'MINA_LIVE_WRITES', 'MINA_PUBLISH_ENABLED',
               'MINA_APPROVAL_ENABLED', 'MINA_PREPARE_ENABLED', 'MINA_READ_REVIEW_ENABLED',
-              'MINA_X_HISTORY_READ_ENABLED', 'MINA_HISTORY_AUTO_ENABLED')
+              'MINA_X_HISTORY_READ_ENABLED', 'MINA_HISTORY_AUTO_ENABLED', 'MINA_MEAL_REPLACEMENT_ENABLED')
 
 
 def diagnose(database: str | Path, heartbeat: str | Path, now: datetime, env=None):
@@ -68,6 +68,8 @@ def diagnose(database: str | Path, heartbeat: str | Path, now: datetime, env=Non
                                   "tomorrow_missing_slots": [slot for slot in SLOTS if slot not in present],
                                   "candidate_states": candidates, "notice_states": notices}
             tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            from .replacement_diagnostics import summarize
+            report['meal_replacement']=summarize(db,now)
             today=now.astimezone(JST).date().isoformat()
             current_creation=db.execute("SELECT count(*) FROM preparation WHERE target_date>=? AND state LIKE 'held:%'",(today,)).fetchone()[0] if 'preparation' in tables else 0
             current_publication=db.execute("SELECT count(*) FROM candidates WHERE target_date=? AND (state IN ('outcome_unknown','expired') OR (state='changes_requested' AND reason='preflight_failed'))",(today,)).fetchone()[0]

@@ -4,6 +4,22 @@ from contextlib import closing, contextmanager
 from datetime import date
 import os
 import uuid
+from contextvars import ContextVar
+
+_replacement_m1=ContextVar('replacement_m1',default=None)
+
+@contextmanager
+def replacement_daily_scope(target,owner,epoch):
+    """C後に新規作成する日次だけの内部許可。通常の食事登録・訂正には使えない。"""
+    token=_replacement_m1.set((target,owner,epoch))
+    try:yield
+    finally:_replacement_m1.reset(token)
+
+def require_m1_write(db,target,operation):
+    if not held(db,target):return
+    scope=_replacement_m1.get();h=db.execute('SELECT * FROM publication_holds WHERE target_date=?',(target,)).fetchone()
+    if operation!='daily_share' or not scope or (target,h['owner'],h['epoch'])!=scope or h['state']!='saved_pending_review':
+        raise PublicationHeld()
 
 
 class PublicationHeld(ValueError):
@@ -32,6 +48,9 @@ def require_buffer_mutation(store=None, target=None):
     """調停先のない単体Buffer書込みは新機能有効時に拒否する。読取照会は継続する。"""
     if store is None:
         if os.getenv('MINA_MEAL_REPLACEMENT_ENABLED', 'false').lower() == 'true':
+            raise ValueError('buffer_replacement_fence_unavailable')
+        from pathlib import Path
+        if Path(os.getenv('MINA_DATABASE','/var/lib/mina-agent/mina.sqlite3')).is_file():
             raise ValueError('buffer_replacement_fence_unavailable')
         # 無効化しても既存の停止は解除しない。稼働先の読取だけで確認する。
         if any(row['state'] != 'released' for row in status(os.getenv('MINA_DATABASE', '/var/lib/mina-agent/mina.sqlite3'))):
@@ -79,17 +98,19 @@ def acquire(store, target, owner, now):
     with store.transaction() as db:
         initialize(db)
         previous = db.execute('SELECT * FROM publication_holds WHERE target_date=?', (target,)).fetchone()
+        if previous and previous['state']=='released':raise ValueError('publication_hold_already_finalized')
         if previous and previous['state'] != 'released':
             if previous['owner'] != owner:
                 raise ValueError('publication_hold_already_owned')
             return dict(previous)
         epoch = previous['epoch'] + 1 if previous else 1
         blockers = (
+            ('mina_requests', "phase<>'complete'"),
             ('candidates', "state IN ('dispatching','published','outcome_unknown')"),
             ('instagram_candidates', "state IN ('dispatching','accepted','published','outcome_unknown')"),
             ('buffer_publication', "state IN ('attempting','accepted','sent','outcome_unknown')"),
             ('instagram_attempts', '1=1'),
-            ('publication_mutation_leases', "state IN ('open','unknown')"),
+            ('publication_mutation_leases', '1=1'),
         )
         blocked = any(exists(db, table) and db.execute(
             'SELECT 1 FROM '+table+' WHERE target_date=? AND '+condition, (target,)).fetchone()

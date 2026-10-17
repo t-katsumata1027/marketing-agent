@@ -18,6 +18,8 @@ class ReplacementJournal:
                 observation TEXT)''')
             db.execute('''CREATE TABLE IF NOT EXISTS meal_replacement_observations (
                 id INTEGER PRIMARY KEY, request_key TEXT NOT NULL, observation TEXT NOT NULL)''')
+            db.execute('''CREATE TABLE IF NOT EXISTS meal_replacement_envelopes (
+                request_key TEXT NOT NULL, sequence INTEGER PRIMARY KEY, payload TEXT NOT NULL)''')
 
     def _owned(self, db, row):
         hold = db.execute('SELECT * FROM publication_holds WHERE target_date=?', (row['target_date'],)).fetchone()
@@ -37,6 +39,8 @@ class ReplacementJournal:
         digest = hashlib.sha256(body).hexdigest()
         with self.store.transaction() as db:
             self._owned(db, row)
+            if db.execute("SELECT 1 FROM sqlite_master WHERE name='mina_requests'").fetchone() and db.execute('SELECT 1 FROM mina_requests WHERE request_key=?',(key,)).fetchone():
+                raise ValueError('replacement_uuid_m1_collision')
             previous = db.execute('SELECT * FROM meal_replacement_requests WHERE request_key=?', (key,)).fetchone()
             binding = (operation,target,slot,hold_epoch,owner,body,digest)
             if previous:
@@ -56,6 +60,25 @@ class ReplacementJournal:
                 raise ValueError('replacement_request_lookup_only')
             db.execute("UPDATE meal_replacement_requests SET phase='started' WHERE request_key=?", (key,))
             return bytes(row['body'])
+
+    def get(self,key):
+        with self.store.transaction() as db:
+            row=db.execute('SELECT * FROM meal_replacement_requests WHERE request_key=?',(key,)).fetchone()
+            if not row or hashlib.sha256(row['body']).hexdigest()!=row['body_sha256']:
+                raise ValueError('replacement_request_integrity_invalid')
+            return dict(row)
+
+    def envelope(self,key,value):
+        """Schema検証済みの対象要求だけを追記し、入力hashの変化を拒否する。"""
+        row=self.get(key);request=value['request']
+        if request['request_uuid']!=key or request['operation']!=row['operation']:
+            raise ValueError('replacement_lookup_target_changed')
+        with self.store.transaction() as db:
+            old=db.execute('SELECT payload FROM meal_replacement_envelopes WHERE request_key=? ORDER BY sequence LIMIT 1',(key,)).fetchone()
+            if old and json.loads(old[0])['request']['input_hash']!=request['input_hash']:
+                raise ValueError('replacement_lookup_input_hash_changed')
+            db.execute('INSERT INTO meal_replacement_envelopes(request_key,payload) VALUES(?,?)',(key,json.dumps(value,ensure_ascii=False,allow_nan=False)))
+        return self.observe(key,**({'persistence':request['persistence']} if row['operation']=='meal_replace' else {'outcome':request['outcome']}))
 
     def observe(self, key, *, outcome=None, persistence=None):
         """Schema検証後の内部分類だけを記録。不明照会で既知のsaved/appliedを失わない。"""
@@ -81,7 +104,9 @@ class ReplacementJournal:
                        (key, json.dumps(observed)))
             db.execute("UPDATE meal_replacement_requests SET phase='lookup_only',observation=? WHERE request_key=?",
                        (json.dumps(effective),key))
-            if commit and effective.get('persistence') == 'saved':
+            if commit and effective.get('persistence') == 'saved' and previous.get('persistence')!='saved':
+                from .replacement_bundle import invalidate_saved
+                invalidate_saved(db,row['target_date'])
                 db.execute("""UPDATE publication_holds SET state='saved_pending_review',reason='new_source_review_required'
                     WHERE target_date=? AND owner=? AND epoch=? AND state='held'""",
                            (row['target_date'],row['owner'],row['hold_epoch']))

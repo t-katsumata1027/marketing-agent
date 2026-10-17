@@ -11,6 +11,7 @@ from pathlib import Path
 
 from .domain import Candidate, JST, LABELS, approval_time, date, instant
 from .publication_hold import held, require_clear
+from .replacement_bundle import notice_allowed
 
 
 class Store:
@@ -150,12 +151,14 @@ class Store:
             return []
         issued = []
         with self.transaction() as db:
-            require_clear(db, target_date)
+            from .replacement_bundle import approval_allowed
+            approval_allowed(db,target_date,'x')
             rows = db.execute("""SELECT * FROM candidates WHERE target_date=? AND state='approval_pending' AND scheduled>?
                 ORDER BY CASE slot WHEN 'breakfast' THEN 1 WHEN 'lunch' THEN 2 WHEN 'dinner' THEN 3 ELSE 4 END""", (target_date, timestamp)).fetchall()
             for row in rows:
                 if slots is not None and row['slot'] not in slots:
                     continue
+                approval_allowed(db,target_date,'x',row['slot'],row['revision'],row['digest'])
                 if row["nonce_hash"]:
                     continue
                 nonce = secrets.token_urlsafe(24)
@@ -233,7 +236,8 @@ class Store:
             raise ValueError("不正な判断です")
         with self.transaction() as db:
             row = db.execute("SELECT * FROM candidates WHERE target_date=? AND slot=?", (target, slot)).fetchone()
-            require_clear(db, target)
+            from .replacement_bundle import approval_allowed
+            approval_allowed(db,target,'x',slot,int(revision),row['digest'] if row else None)
             valid = row and row["state"] == "approval_pending" and row["revision"] == int(revision)
             if not valid or not secrets.compare_digest(row["nonce_hash"] or "", hashlib.sha256(nonce.encode()).hexdigest()):
                 raise ValueError("使用済みまたは古い承認です")
@@ -249,6 +253,8 @@ class Store:
                 if not record or record['until_at'] != until:
                     raise ValueError('臨時公開の指定記録が不一致です')
                 db.execute('UPDATE candidates SET scheduled=? WHERE target_date=? AND slot=?',(instant(now).timestamp(),target,slot))
+            from .replacement_bundle import maybe_release
+            maybe_release(db,target,instant(now))
             return states[action]
 
     def claim_due(self, now: datetime, grace_seconds: int = 120) -> list[dict]:
@@ -321,9 +327,10 @@ class Store:
             db.execute("INSERT OR IGNORE INTO notices(target_date,slot,revision,kind,payload,created) VALUES(?,?,?,'result',?,?)", (row["target_date"], row["slot"], row["revision"], json.dumps({"content": text, "allowed_mentions": {"parse": []}}, ensure_ascii=False), instant(now).timestamp()))
 
     def claim_notice(self) -> dict | None:
+        from .replacement_bundle import notice_allowed
         with self.transaction() as db:
             rows = db.execute("SELECT * FROM notices WHERE state='pending' ORDER BY id").fetchall()
-            row = next((r for r in rows if r['kind'] != 'approval' or not held(db, r['target_date'])), None)
+            row = next((r for r in rows if r['kind'] != 'approval' or notice_allowed(db,r,'x')), None)
             if row:
                 db.execute("UPDATE notices SET state='sending' WHERE id=?", (row["id"],))
             return dict(row) if row else None

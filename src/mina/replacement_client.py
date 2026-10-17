@@ -93,6 +93,8 @@ class ReplacementReadClient:
                 raise ReplacementReadFailure('replacement_response_invalid')
             payload = json.loads(raw, object_pairs_hook=json_object, parse_float=json_number,
                                  parse_constant=lambda _: (_ for _ in ()).throw(ValueError()))
+            if isinstance(payload,dict) and isinstance(payload.get('freshness'),dict):
+                await_checked_at(payload['freshness'],clock=self.clock,sleep=self.sleep,max_ahead=5)
             # 鮮度・完全性・契約版・UUID対応は提供側Schemaの確定後に接続する検証器で確認する。
             return self.decoder(kind, payload)
         except ReplacementReadFailure:
@@ -175,3 +177,37 @@ class ReplacementReadClient:
             raise ReplacementReadFailure('replacement_lookup_unknown', error.code) from None
         except (URLError, OSError, TimeoutError, ValueError):
             raise ReplacementReadFailure('replacement_image_read_unknown') from None
+
+
+class ReplacementClient(ReplacementReadClient):
+    """明示許可と検証器がある送信だけを実行。再送・fallbackは持たない。"""
+    def __init__(self,*args,write_authorized=False,**kwargs):
+        super().__init__(*args,**kwargs)
+        self.write_authorized=write_authorized
+
+    def send(self,operation,key,body,content_type,prepare_uuid=None):
+        import os
+        if not self.write_authorized or os.getenv('MINA_MEAL_REPLACEMENT_ENABLED','false').lower()!='true' or self.decoder is None:
+            raise ReplacementReadFailure('replacement_write_disabled')
+        MealClient.request_key(key)
+        if operation=='candidate_prepare':path='/api/internal/mina/meal-replacement-candidates'
+        elif operation=='candidate_discard':path='/api/internal/mina/meal-replacement-candidates/'+MealClient.request_key(prepare_uuid)+'/discard'
+        elif operation=='meal_replace':path='/api/internal/mina/meal-replacements'
+        else:raise ReplacementReadFailure('replacement_operation_invalid')
+        request=Request(self.base+path,data=body,method='POST',headers={'Authorization':'Bearer '+self.token,
+            'Cache-Control':'no-store','Accept':'application/json','Content-Type':content_type,'Idempotency-Key':key})
+        response=None
+        try:
+            try:response=self.opener(request,timeout=60)
+            except HTTPError as error:response=error
+            raw=response.read(131073)
+            if len(raw)>131072:raise ValueError()
+            payload=json.loads(raw,object_pairs_hook=json_object,parse_float=json_number,
+                               parse_constant=lambda _: (_ for _ in ()).throw(ValueError()))
+            if isinstance(payload.get('freshness'),dict):await_checked_at(payload['freshness'],clock=self.clock,sleep=self.sleep,max_ahead=5)
+            # HTTPだけで既存の成否を変更せず、元要求のenvelopeを検証する。
+            return self.decoder('candidate' if operation!='meal_replace' else 'meal_replace',payload)
+        except (URLError,OSError,TimeoutError,ValueError,KeyError,TypeError):
+            raise ReplacementReadFailure('replacement_write_lookup_required') from None
+        finally:
+            if response is not None:response.close()

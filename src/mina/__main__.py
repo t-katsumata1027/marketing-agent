@@ -88,6 +88,9 @@ def serve(store, host: str, port: int):
 
 def cycle(store: Store, now: datetime):
     """20時の通知準備と公開期限の確認。検証時は外部接続しない。"""
+    if os.getenv('MINA_LIVE_WRITES','false').lower()=='true' and os.getenv('MINA_MEAL_REPLACEMENT_ENABLED','false').lower()=='true':
+        from .replacement_runtime import maintain
+        maintain(store,lambda:datetime.now(UTC))
     target = (now.astimezone(JST).date() + timedelta(days=1)).isoformat()
     today = now.astimezone(JST).date().isoformat()
     # 夜間準備が日付を跨いで完成した場合も、当日分の追加承認を処理する。

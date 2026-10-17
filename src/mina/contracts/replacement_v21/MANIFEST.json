@@ -1,0 +1,50 @@
+{
+  "plan_version": "v2.1",
+  "verdict": "計画Go（実装承認前）",
+  "files": [
+    {
+      "file": "AGY_REVIEW.md",
+      "sha256": "647395e1caa1461d6f625a32364de8b7304dde7715851924156780c0f58b09fd"
+    },
+    {
+      "file": "CONTRACT.schema.json",
+      "sha256": "8b5fc6ecce9a9b406e7197f60c6ae49cb8f94edd9702c3b2db33babe78396090"
+    },
+    {
+      "file": "EVIDENCE.md",
+      "sha256": "c6531192256e6462dc521d302c26b841bb99cce66ecf3ea1ac9538c122bd5978"
+    },
+    {
+      "file": "FIXTURES.json",
+      "sha256": "6561ad1dbdeb755e9a6fca55f2981355dee1b879f404f069489e8c927ecf52c7"
+    },
+    {
+      "file": "HANDOFF.md",
+      "sha256": "930f3a2a45b2ce342756859338c7c06d2f9a6f7907a8845b6279c10b1de18dae"
+    },
+    {
+      "file": "PLAN.md",
+      "sha256": "2f3d15a12cf40d262faa9c0c61d1c4a267f5ed0febd56896216645964ebac305"
+    },
+    {
+      "file": "REVIEW_INPUT_MANIFEST.json",
+      "sha256": "97a8addf324972fa4438ba95702167683c7ece28b225076bc402b0d79c3abf8e"
+    },
+    {
+      "file": "REVIEW_RUN.json",
+      "sha256": "3971964dd745d587cdbe2301631bd9dfc2e9675f995b3324e43bfa4d21ef77a7"
+    },
+    {
+      "file": "V2_0_AGY_REVIEW.md",
+      "sha256": "2d14ddb1eb3afded76ccf31f486b6c42f5c3c89b7e35588cd032c00ab435bcbe"
+    },
+    {
+      "file": "V2_0_REVIEW_INPUT_MANIFEST.json",
+      "sha256": "448a7bf10f29b1cf17650e45d5338db623c03838d34b36d9f216df4fc3ca396f"
+    },
+    {
+      "file": "VALIDATION.md",
+      "sha256": "a1216e4b3c38af91835b6ff336a20c78134f5ee4655fa4dfd4247da3716fe7c2"
+    }
+  ]
+}
