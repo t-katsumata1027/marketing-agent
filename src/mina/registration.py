@@ -70,6 +70,13 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
     for slot, round_key in replacement_rounds.items():
         MealClient.request_key(round_key)
         with store.transaction() as db:
+            adopted=db.execute('SELECT state,result FROM preparation_steps WHERE target_date=? AND step=?',
+                               (target,'meal_register:'+slot+':'+round_key)).fetchone()
+            if adopted and adopted['state']=='complete':
+                if json.loads(adopted['result'])['result']['image_sha256']!=saved['images'][slot]['sha256']:
+                    raise ValueError('採用済み再計画画像の版が違います')
+                # 保存済み採用版のUUID・現在正本は後続で通常どおり照合する。
+                continue
             failed = list(db.execute("SELECT request_key FROM mina_requests WHERE target_date=? AND slot=? AND operation='meal_register'", (target, slot)))
             candidates_exist = db.execute('SELECT 1 FROM candidates WHERE target_date=?', (target,)).fetchone()
         if candidates_exist or not failed:
@@ -114,8 +121,21 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
             corrections[slot] = (response,key)
             completed[slot] = response
 
+    checking_slot = None
     def check_state():
-        return assert_day_state(meal_client.day_state(target), target, completed, datetime.now(UTC))
+        # 最初の正本GETも、直前に完了したDrive工程とは別の処理として記録する。
+        with store.transaction() as db:
+            previous = db.execute('SELECT step,status,reasons FROM preparation_progress WHERE target_date=?', (target,)).fetchone()
+        step = 'source_state' + (':' + checking_slot if checking_slot else '')
+        store.record_preparation_progress(target, step, 'reviewing')
+        with store.audit.operation('creation', target, checking_slot, None, 'source_state'):
+            result = assert_day_state(meal_client.day_state(target), target, completed, datetime.now(UTC))
+        # 読取が成功した後のPOST/PATCHを、読取中の進捗として誤表示しない。
+        if previous:
+            store.record_preparation_progress(target, previous['step'], previous['status'], json.loads(previous['reasons']))
+        else:
+            store.record_preparation_progress(target, 'registration', 'running')
+        return result
 
     def ogp(slot, normalized, variant=''):
         def collect():
@@ -141,6 +161,7 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
     outputs = {}
     check_state()
     for slot in MEAL_SLOTS:
+        checking_slot = slot
         meal, info, raw = draft['meals'][slot], saved['images'][slot], images[slot]
         logged = slot_time(day, slot).isoformat()
         inputs = {'sha256': info['sha256'], 'logged_at': logged, 'comment': meal['comment']}
@@ -211,6 +232,7 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
     total = sum(value['nutrition']['calories'] for value in outputs.values())
     if not 1800 <= total <= 2000:
         raise QualityHold('実解析の3食合計が1800〜2000kcalから外れています','meal_review:daily',('daily_energy_out_of_range',))
+    checking_slot = 'daily'
     check_state()
     daily_inputs = {'date': target, 'comment': draft['daily_comment'], 'meals': completed}
     request = journal.run(target, 'daily_request_key', daily_inputs,

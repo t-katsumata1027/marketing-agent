@@ -23,3 +23,17 @@ class MealScopeTest(unittest.TestCase):
   context=publication_context({'meal':{'logged_at':'2026-10-15T22:30:00.000Z','meal_type':'breakfast'}})
   self.assertEqual(context['meal_logged_at_jst'],'2026-10-16T07:30:00+09:00')
   self.assertEqual(context['weekday_jst'],'金')
+
+ def test_food_review_compares_quantities_without_treating_draft_budget_as_fact(self):
+  client=OpenAIClient.__new__(OpenAIClient)
+  client.structured=Mock(return_value={'status':'publishable','reason_codes':[]})
+  meal={'estimated_calories':570,'foods':[{'name':'食パン','amount':'80g'}],'comment':'朝の候補'}
+  response={'result':{'meal':{'logged_at':'2026-10-17T22:30:00Z','meal_type':'breakfast'},'analysis':{'summary':{'totalCalories':484}}}}
+  client.review_meal(b'\xff\xd8\xffraw',meal,response,{})
+  context=json.loads(client.structured.call_args.args[1][0]['text'])
+  self.assertNotIn('estimated_calories',context['planned_meal'])
+  self.assertEqual(context['planned_meal']['foods'],meal['foods'])
+  self.assertEqual(context['analysis_response'],response)
+  self.assertEqual(meal['estimated_calories'],570)
+  client.structured.return_value={'status':'hold','reason_codes':['nutrition_semantic_mismatch']}
+  self.assertEqual(client.review_meal(b'\xff\xd8\xffraw',meal,response,{})['status'],'hold')

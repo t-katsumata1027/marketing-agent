@@ -391,7 +391,7 @@ def main():
     elif args.command in ('prepare', 'prepare-today'):
         from .daily_pipeline import prepare_day
         from .codex_client import generation_client
-        from .clients import MealClient
+        from .clients import preparation_client
         from .drive import DriveClient
         history = args.history or Path(os.getenv('MINA_HISTORY_FILE', '/var/lib/mina-agent/readiness.json'))
         evidence = args.evidence or history
@@ -417,7 +417,7 @@ def main():
         result = prepare_day(store, args.output or Path(os.getenv('MINA_PREPARE_DIRECTORY', '/var/lib/mina-agent/daily')),
                              history, evidence, args.source_commit, Path(__file__).resolve().parents[2],
                              os.getenv('MINA_SHARE_HOST', ''), generation_client(), DriveClient.from_env(),
-                             MealClient(os.getenv('MINA_MEAL_API_BASE_URL', ''), os.getenv('MINA_AGENT_API_TOKEN', '')),
+                             preparation_client(os.getenv('MINA_MEAL_API_BASE_URL', ''), os.getenv('MINA_AGENT_API_TOKEN', '')),
                              same_day=args.command == 'prepare-today')
         print(json.dumps(result, ensure_ascii=False))
     elif args.command == "images":

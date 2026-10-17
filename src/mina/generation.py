@@ -51,6 +51,9 @@ MEAL_REVIEW_SCOPE = ('この工程は元の食事画像と食品・分量・栄�
     'この食事画像はAgentが既知の献立と計画量から生成したもので、栄養は計画量に基づく推定です。'
     '計画と解析が同じ量を示す場合、写真だけから正確なg/mlや混ざった調味料を計量できないこと自体は不一致ではありません。'
     '別食品・食品欠落・品数違い・見て明らかな大幅な量違い、計画と解析の量の食い違い、栄養計算の不整合は保留します。'
+    '下書きのestimated_caloriesは生成前の概算予算であり、食品別の栄養計算の正解値や合格条件ではありません。'
+    '概算と実解析合計が違うことだけでは保留せず、同じ食品・分量の栄養値の妥当性と合計を確認します。'
+    '一日合計1800〜2000kcalの条件は後続の実解析合計検査で別に必ず確認します。'
     'image_sha256は入力原本、stored_image_sha256は変換後保存画像、ogp.image_sha256は完成OGPです。'
     '異なる役割のハッシュ同士が違うこと自体は不一致ではありません。')
 
@@ -210,6 +213,8 @@ class OpenAIClient:
                    "style": IMAGE_STYLE}
         instructions = REVIEW_INSTRUCTIONS + '\n保留の具体的な観測事実をfindingsへ記録する。器の見切れ方向、欠落した食品の計画上の0始まり番号、比較できる量や栄養値だけを記載し、内部思考や自由文は返さない。不明な数値はnull、食品番号が不明なら-1、合格時は空配列。'
         if api_response is not None:
+            # 事前概算を食品別の解析結果との必須一致値として誤用させない。
+            context['planned_meal'] = {key:value for key,value in meal.items() if key != 'estimated_calories'}
             instructions += '\n' + MEAL_REVIEW_SCOPE
             context['publication_context'] = publication_context(api_response)
         content = [{"type": "input_text", "text": json.dumps(context, ensure_ascii=False)},

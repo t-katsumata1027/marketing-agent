@@ -384,15 +384,31 @@ class Store:
     def record_preparation_failure(self,target,stage,error,now):
         """品質保留は理由を残し、その他の未確認工程は安全側で停止して即時通知する。"""
         from .preparation_status import QualityHold,PreparationDeadline
+        from .audit import safe_failure,step_context
         with self.transaction() as db:
             progress=db.execute('SELECT step FROM preparation_progress WHERE target_date=?',(target,)).fetchone()
-        step=progress['step'] if progress else stage
+        # 以前の工程が完了した後の例外を、その以前の工程へ誤って結び付けない。
+        parents={'daily_draft':'draft','image':'images','image_review':'images','automatic_image_repair':'images',
+                 'drive_upload':'drive','drive_verify':'drive','source_state':'registration','source_request':'registration',
+                 'meal_register':'registration','meal_request_key':'registration','meal_review':'registration',
+                 'correction_plan':'registration','correction_key':'registration','meal_correction':'registration',
+                 'ogp_capture':'registration','ogp_review':'registration','daily_share':'registration','daily_request_key':'registration'}
+        previous=progress['step'] if progress else stage
+        prefix=previous.split(':')[0]
+        step=previous if prefix==stage or parents.get(prefix)==stage else stage
+        reason,details=safe_failure(error)
         if isinstance(error,QualityHold):
             step,status,reasons=error.step,'quality_hold',error.reason_codes
         elif isinstance(error,PreparationDeadline):
             status,reasons='stopped',('deadline_exceeded',)
         else:
-            status,reasons='reconciliation_required',('unconfirmed',)
+            from .clients import OutcomeUnknown
+            status='stopped' if not isinstance(error,OutcomeUnknown) and step.split(':')[0] in ('source_state','source_request') else 'reconciliation_required'
+            from .preparation_status import REASONS
+            reasons=(reason,) if reason in REASONS else ('unconfirmed',)
+        event_stage,slot=step_context(step)
+        # ラッパー例外へ置き換える前に、元の分類・位置・時計差を追記する。
+        self.audit.emit('creation',target,slot,None,event_stage,'held' if isinstance(error,QualityHold) else 'stopped',reason,details,now=now)
         self.record_preparation_progress(target,step,status,reasons,now)
         self.queue_preparation_hold(target,now)
 

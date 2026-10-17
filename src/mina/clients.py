@@ -183,6 +183,11 @@ class XClient:
             raise RuntimeError('X履歴の読取を確認できません') from None
 
 
+def preparation_client(base_url, token):
+    """候補準備の読取だけ最大5秒待つ。公開用クライアントの既定1秒は維持する。"""
+    return MealClient(base_url, token, max_clock_ahead=5)
+
+
 class MealClient:
     """固定みな境界の内部API。失われた応答を新UUIDで再送しない。"""
 

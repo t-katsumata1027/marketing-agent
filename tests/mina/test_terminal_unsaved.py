@@ -62,7 +62,7 @@ class TerminalUnsavedTests(unittest.TestCase):
                 old=db.execute("SELECT state FROM preparation_steps WHERE step='meal_register:dinner'").fetchone()[0]
                 self.assertEqual(old,'held')
                 self.assertEqual(db.execute("SELECT phase FROM mina_requests WHERE request_key=?",(flow[6][0],)).fetchone()[0],'held')
-            with self.assertRaises(ValueError):self.invoke(root,flow,True)
+            self.assertEqual(self.invoke(root,flow,True)['state'],'posts_reviewed')
             self.assertEqual(flow[3].register.call_count,4)
 
     def test_same_image_and_unknown_or_saved_lookup_never_create_new_request(self):

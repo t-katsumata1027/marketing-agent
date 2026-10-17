@@ -77,7 +77,7 @@ class PreparationJournal:
 
 
 def prepare_images(store, draft_path: Path, directory: Path, client, replacement_round=None, replace_slots=(),
-                   reused_rounds=None, repair_instruction=None):
+                   reused_rounds=None, repair_instruction=None, only_slots=None):
     """画像3枚と事前点検結果を保存する。LogEats登録や承認候補化はまだ行わない。"""
     draft = json.loads(draft_path.read_text(encoding="utf-8-sig"))
     if draft.get("state") != "draft_unreviewed":
@@ -102,8 +102,11 @@ def prepare_images(store, draft_path: Path, directory: Path, client, replacement
         raise ValueError('修復指示には明示した差替え対象が必要です')
     journal = PreparationJournal(store)
     directory.mkdir(parents=True, exist_ok=True)
+    selected=tuple(MEAL_SLOTS if only_slots is None else only_slots)
+    if not selected or len(set(selected))!=len(selected) or not set(selected)<=set(MEAL_SLOTS):
+        raise ValueError('画像準備の対象枠が不正です')
     outputs = {}
-    for slot in MEAL_SLOTS:
+    for slot in selected:
         meal = draft["meals"][slot]
         replacing = slot in replace_slots
         image_round = replacement_round if replacing else reused_rounds.get(slot)

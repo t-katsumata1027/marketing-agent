@@ -1,5 +1,6 @@
 """通常準備の通し試験用。外部AI・Drive・業務APIだけを代替する。"""
 import copy
+import json
 import hashlib
 from datetime import timedelta
 from src.mina.clients import OutcomeUnknown
@@ -27,6 +28,17 @@ class NightlyAI:
             for slot,label in (('breakfast','朝'),('lunch','昼'),('dinner','夕'))},'daily_comment':'一日の献立まとめです。'}
 
     def structured(self,instructions,content,schema,name):
+        if name=='mina_menu_nutrition_check':
+            context=json.loads(content)
+            return {slot:[600/len(foods)]*len(foods) for slot,foods in context['foods'].items()}
+        if name=='mina_meal_replan':
+            context=json.loads(content)
+            slot=context['slot']
+            value=copy.deepcopy(context['previous_meal'])
+            value['menu']+='・別案'
+            value['foods'][1]['name']='鶏肉' if value['foods'][1]['name']!='鶏肉' else '豆腐'
+            self.plan['meals'][slot]=copy.deepcopy(value)
+            return value
         if name=='mina_daily_draft':
             self.drafts+=1
             return copy.deepcopy(self.plan)

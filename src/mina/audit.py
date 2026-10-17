@@ -28,7 +28,7 @@ STAGES = frozenset(('draft','images','drive','registration','candidates','daily_
  'meal_correction','ogp_capture','ogp_review','daily_share','daily_request_key','automatic_image_repair',
  'route','connection','candidate','source','source_state','source_request','source_image','source_final',
  'freshness','submission','delivery','notification','preparation','request','reconciliation','launch','cycle',
- 'review_diagnosis','recovery','other'))
+ 'review_diagnosis','recovery','meal_replan','menu_nutrition','other'))
 REASONS = frozenset(('none','unclassified','validation_failed','io_failed','timeout','http_error','response_invalid',
  'contract_invalid','quality_hold','quality_rejected_not_saved','deadline_exceeded','outcome_unknown',
  'lookup_unavailable','clock_ahead','state_changed','source_changed','image_changed','ogp_expired',
