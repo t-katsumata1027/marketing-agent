@@ -1,0 +1,13 @@
+======================================================================
+FAIL: test_all_required_stop_switches_are_defined (test_handover.HandoverTest.test_all_required_stop_switches_are_defined)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Takashi Katsumata\.codex\worktrees\mina-meal-replacement-preparation\marketing-agent\tests\mina\test_handover.py", line 21, in test_all_required_stop_switches_are_defined
+    self.assertEqual(set(STOP_FLAGS), expected)
+AssertionError: Items in the first set but not the second:
+'MINA_MEAL_REPLACEMENT_ENABLED'
+
+----------------------------------------------------------------------
+Ran 447 tests in 139.051s
+
+FAILED (failures=1)

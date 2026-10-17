@@ -1,0 +1,17 @@
+{
+  "approval_explanation": "提示された replacement_bundle.py、store.py、instagram_store.py の対象コードについて、前回までのレビュー指摘事項（通知時の digest 束縛、X/IG メンバーの完全性検査、臨時公開指定の入口拒否、正本証跡の鮮度・state_version 束縛、IG queue_approval の検査順序）がすべて適切かつ安全に実装されていることを確認した。重大な論理不具合や安全上の欠陥は認められないため、本パケットの隔離コード範囲について GO と判定する（本番 Go や未提示コードの承認ではない）。",
+  "approved_scope": "添付された隔離コード範囲（replacement_bundle.py、store.py 対象メソッド、instagram_store.py 対象メソッド）における新バンドル承認制御・通知対象検証・正本証跡鮮度検査・日停止（publication_hold）解除の統合実装および隔離検証範囲のみ。未提示の隣接モジュールや本番環境での有効化・外部API接続・18日当日操作は含まない。",
+  "blockers": [],
+  "cause_assessment": [
+    "前回指摘された通知対象行の digest 検証漏れに対し、notice_allowed で実候補行の state=='approval_pending'・revision 一致・candidate['digest'] の approval_allowed への引き渡しが実装され、古い版や差し替え前の通知送出が確実に遮断されている。",
+    "stage 入口において X 4枠（breakfast, lunch, dinner, daily）および required_channels に応じた Instagram 4枠の完全性検証、state_version と x_digests の束縛、さらに今回のスコープ外である臨時公開（publish_after_approval_until）の明示的拒否が追加され、不完全または不正なバンドルのステージングが防止されている。",
+    "maybe_release および refresh において、proof_valid による 120秒以内の read_started_at 鮮度検証・CHECKS 完全一致・required メンバーリストと実テーブルの payload 再計算 digest および state_version の一致確認が同一トランザクション内で行われており、全メンバーの承認（または見送り）と新鮮な証跡が揃った場合のみ publication_holds と replacement_bundles が released へ遷移する。",
+    "instagram_store.queue_approval においてトランザクション内で先に instagram_candidates の実在・digest・state・revision を検証してから approval_allowed を呼ぶ順序に強化されており、不整合な行に対する承認要求生成が防がれている。"
+  ],
+  "decision": "GO",
+  "major_findings": [
+    "replacement_bundle.py: stage・approval_allowed・notice_allowed・maybe_release・refresh の一連の制御により、saved_pending_review 状態では新バンドルの指定 (channel, slot, revision, digest) メンバー以外に承認カード発行・通知送信・判断反映が許されず、外部送信履歴（instagram_attempts / armed以外のbuffer_publication）がある場合の再ステージングも拒否される安全な排他構造になっている。",
+    "store.py / instagram_store.py: 承認カード発行・判断反映・通知クレーム/送信の各トランザクションで revision と digest を伴う approval_allowed / notice_allowed が呼ばれ、最後の判断完了時または refresh 時にのみ同一トランザクションで maybe_release が評価される設計が一貫している。"
+  ],
+  "required_plan_changes": []
+}

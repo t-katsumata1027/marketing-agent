@@ -1,0 +1,17 @@
+{
+  "approval_explanation": "凍結契約ファイルの原本バイト不変性（-textによるCRLF保持とSHA一致）、既存STOP_FLAGS契約の非破壊維持、および本番領域へ一切触れない隔離検証がすべて満たされており、重大な問題は認められないため隔離配布範囲としてGOと判定する。",
+  "approved_scope": "隔離された配布範囲（固定HEAD 2d7ab66bebaf8e32e564f6966971212d829c6c2b）における最終配布差分（.gitattributesの空白検査属性追加と-textによる凍結原本バイト保護、diagnostics.pyの既存STOP_FLAGS 8項目維持およびmeal_replacement_enabledの別フィールド分離、test_replacement_integration.pyの末尾余分改行除去、および隔離Linux検証完了状態）の承認。本番環境への適用・本番起動・外部接続・実書込み・課金操作は含まない。",
+  "blockers": [],
+  "cause_assessment": [
+    "旧commit(82f74c6)ではGitの改行変換により凍結Schema/fixtureのGit blobがLF化され、提供側原本（CRLF）とのSHA不一致が発生していた。",
+    "diagnostics.pyのSTOP_FLAGSにMINA_MEAL_REPLACEMENT_ENABLEDを追加すると、既存handoverの全停止フラグ8項目契約に影響を与える懸念があった。"
+  ],
+  "decision": "GO",
+  "major_findings": [
+    ".gitattributesにてsrc/mina/contracts/replacement_v21/*およびMINA_REPLACEMENT_INTEGRATION_PLAN_20261018.mdに-text属性が付与され、OS間の改行変換を抑止して提供側原本バイト（SHA-256: 8b5fc6ec... / 6561ad1d...）がWindows/Linux双方のGit blobおよび作業ツリーで完全一致することが保証されている。",
+    "whitespace=cr-at-eol,-blank-at-eofはdiff/検査用の属性であり、-textによる無変換保存を損なわない。",
+    "diagnostics.pyのSTOP_FLAGSを元の8項目に戻し、meal_replacement_enabledをdiagnose戻り値のトップレベル別フィールドとして分離したことで、既存の運用・引き継ぎ契約との後方互換性が維持されている。",
+    "Linuxテスト時にMINA_DATABASEを隔離領域の存在しないファイルへ固定し、本番既定パスのstatすら行わない安全な検証手順が確認されている。"
+  ],
+  "required_plan_changes": []
+}

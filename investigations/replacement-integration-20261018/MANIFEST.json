@@ -1,0 +1,177 @@
+{
+  "baseline_commit": "78ca80a869dd3e6c5cb43e10b007e407c70d7f36",
+  "os_test_commit": "2d7ab66bebaf8e32e564f6966971212d829c6c2b",
+  "ci_commit": "fef9579b34b949831f674b7688c122225b3cb8dc",
+  "review_scope": "隔離実装・合成検証のみ。本番Goではない",
+  "review_parts": [
+    {
+      "part": "acceptance",
+      "decision": "GO",
+      "approved_scope": "隔離検証テストスイート（IntegrationTests / BundleTests / RuntimeTests、実SQLite・合成HTTP/Mock・実課金および外部書込みなしの範囲）",
+      "prompt_sha256": "e853abac2f0733bda19b5c5d2cc1de441f2a64fbe1de68a1acd6e4b529c6b9ed",
+      "raw_result_sha256": "b572ac8ffb08a4275397df35e7d0df08fe38e34fc104198c9a7e9e867437cca0",
+      "model": "gemini-4-argon-medium",
+      "effort": "medium"
+    },
+    {
+      "part": "approval",
+      "decision": "GO",
+      "approved_scope": "添付された隔離コード範囲（replacement_bundle.py、store.py 対象メソッド、instagram_store.py 対象メソッド）における新バンドル承認制御・通知対象検証・正本証跡鮮度検査・日停止（publication_hold）解除の統合実装および隔離検証範囲のみ。未提示の隣接モジュールや本番環境での有効化・外部API接続・18日当日操作は含まない。",
+      "prompt_sha256": "33dc79901fcd48d776f176409ba4f6a999b455b66bf526d7da43f8662f9599c1",
+      "raw_result_sha256": "3cbda15cee63d6807130ebc9fb88c2520b826b99a957d92c67d6b0f018e389f3",
+      "model": "gemini-4-argon-medium",
+      "effort": "medium"
+    },
+    {
+      "part": "client",
+      "decision": "GO",
+      "approved_scope": "添付された2ファイル（replacement_client.py、replacement_ports.py）の隔離コード実装範囲のみ。未提示の他モジュール・本番API接続・実課金・外部書込み有効化・18日当日運用判断は承認範囲に含まない。",
+      "prompt_sha256": "22d4036ee6092f2677e2794e11fa8d76ea04566e84e54e2d05703302be9771d9",
+      "raw_result_sha256": "2724b9be17856dd11126cecea400d11b7c2884ccaf2e258d9357e8b8db08b855",
+      "model": "gemini-4-argon-medium",
+      "effort": "medium"
+    },
+    {
+      "part": "contract",
+      "decision": "GO",
+      "approved_scope": "提示された隔離コード範囲のみ（replacement_contract.py, replacement_source.py）。未提示の隣接モジュールおよび本番環境への配置・有効化・実API/実課金接続は承認範囲外。",
+      "prompt_sha256": "32c08ab811e4202e4bd1e67ffda1ff5e36895d161341faec1737ae4259b31a74",
+      "raw_result_sha256": "e957f1298fec3de8f50495a170de5790c2419b225149cd4091d9e0930f521922",
+      "model": "gemini-4-argon-medium",
+      "effort": "medium"
+    },
+    {
+      "part": "entrypoints",
+      "decision": "GO",
+      "approved_scope": "添付された entrypoints パケット（daily_pipeline.py の prepare_day メソッド、および __main__.py の cycle メソッド）のAgent統合実装および隔離検証範囲のみ（本番配置・有効化・外部実書込み・実課金・隣接の未提示モジュールは含まない）",
+      "prompt_sha256": "7de1a47a7ad1601ebad3709c0b530ad7e9488a49e36831b0ed6286bfa8b12834",
+      "raw_result_sha256": "81a44769e01f5f68086626bd7c2f3437e41ff14f01e4e9f77ed7e893129eb883",
+      "model": "gemini-4-argon-medium",
+      "effort": "medium"
+    },
+    {
+      "part": "flow-recover",
+      "decision": "GO",
+      "approved_scope": "提示されたFlow後半（reconcile, finish, restore_old, candidate, decide_candidate）の隔離コード範囲のみ（未提示のFlow前半・隣接モジュール・本番配置/有効化・外部adapter実動は対象外）",
+      "prompt_sha256": "f2e45cb63c9d7f81a8f6cca6098f818c9135b3ad862c7f98102b3c5c75d9afc8",
+      "raw_result_sha256": "f4a4ae2c866c1d7919864bd62f8ccadf5e8e7935e5eebe3a767ce024c592545a",
+      "model": "gemini-4-argon-medium",
+      "effort": "medium"
+    },
+    {
+      "part": "flow-send",
+      "decision": "GO",
+      "approved_scope": "ReplacementFlow 前半（tracked, __init__, episode, progress, checkpoint, external, call, called_at, begin, next_candidate, send, accept）の隔離コード範囲のみ（後半のreconcile/finish/restore_old/candidate/decide_candidateや隣接モジュール、および本番設定・外部実動は対象外）",
+      "prompt_sha256": "a2d60deefb6edb0e25944590a37f9563fdd9b66b6222367507c8aa72e7f81488",
+      "raw_result_sha256": "14b14f11c66284e0ac665282bb264cb282e3c0fb1865a3c19f35c06cb0da0534",
+      "model": "gemini-4-argon-medium",
+      "effort": "medium"
+    },
+    {
+      "part": "policy-inventory",
+      "decision": "GO",
+      "approved_scope": "提示された隔離コード範囲（replacement_policy.py, replacement_inventory.py, replacement_runtime.py）のAgent統合実装および外部書込み・実課金を伴わない隔離検証範囲のみ（本番配置・有効化・未提示の隣接モジュール・本番API/QA/予算実額/外部adapter実動の受入は含まない）",
+      "prompt_sha256": "7f17ab1475ee45ea3392ff91a9257ce8579e7de6acb09a1036723c61678a6b81",
+      "raw_result_sha256": "4ca7aac1b022956227d6dc0f17893dcf16a4078b41266553972c50c3a1af7787",
+      "model": "gemini-4-argon-medium",
+      "effort": "medium"
+    },
+    {
+      "part": "rebuild",
+      "decision": "GO",
+      "approved_scope": "添付された隔離コード範囲のみ（replacement_rebuild.py, replacement_postreview.py）。未提示の隣接モジュール・本番API/QA/予算実額/外部adapter実動・本番配置・有効化・18日操作は承認対象外。",
+      "prompt_sha256": "fc6651605ff52cfe389906d5e8fb095e492935fbccc996540f1c2652a07ca8a0",
+      "raw_result_sha256": "38ad5285bbf9df2e4c72375f5945cf86e58c2ff1abdb7f00ad55b44c60126474",
+      "model": "gemini-4-argon-medium",
+      "effort": "medium"
+    },
+    {
+      "part": "source-integration",
+      "decision": "GO",
+      "approved_scope": "添付された隔離コード範囲のみ（domain.py: Candidate.validate、m1_contract.py: verify_source、request_ledger.py: prepare / execute_once、instagram_source.py: load_meal_bundle / load_bundle）。隣接パケットおよび本番環境での有効化・実運用操作は含まない。",
+      "prompt_sha256": "c57d067aa78272f956bb68e836f35dabaff9d3d681751e02d82cc9e512ae70d6",
+      "raw_result_sha256": "692abc971035c1d919517ac6e87f9d050419eb6e7fb0fe05f499d355ab0bab89",
+      "model": "gemini-4-argon-medium",
+      "effort": "medium"
+    },
+    {
+      "part": "storage",
+      "decision": "GO",
+      "approved_scope": "添付された3ファイル（replacement_journal.py, replacement_artifacts.py, publication_hold.py）の隔離コード範囲のみ（本番配置・有効化・外部書込み・実課金および未提示の隣接モジュールを除く）",
+      "prompt_sha256": "921309a0550eb0a76af6629c267cc0da50b1aaa7b92a2686b6c8a1dc30980686",
+      "raw_result_sha256": "c8aa4a19f2251933f13ccb868df49246c9acede145d357a5a83ae176ad01eb72",
+      "model": "gemini-4-argon-medium",
+      "effort": "medium"
+    },
+    {
+      "part": "review-final-delta",
+      "decision": "GO",
+      "approved_scope": "隔離されたコード差分のみ（追加の診断表示 src/mina/replacement_diagnostics.py および src/mina/diagnostics.py の diagnose 連携、固定停止理由追加 src/mina/replacement_flow.py の tracked、合成ローカルテスト追加 tests/mina/test_replacement_runtime.py および tests/mina/test_replacement_integration.py の該当テスト）。未提示コード全体・本体・本番環境・18日操作は承認範囲外。",
+      "prompt_sha256": "086136dd4cef4f8b38feb6c1788a83188ad366d94ef84325d8a6064b1de0631c",
+      "raw_result_sha256": "d7f98f72a46abc624e822a81853248982b433d1ee40b4da30c17bf9647e55b8e",
+      "model": "gemini-4-argon-medium",
+      "effort": "medium"
+    },
+    {
+      "part": "review-packaging",
+      "decision": "GO",
+      "approved_scope": "隔離配布範囲のみ（本番環境への適用・実書き込み・課金・本体操作は含まない）",
+      "prompt_sha256": "fe5046e64632a92971998eb71ca7e81d4e85b13e06f262805fe1d55f4015e1d5",
+      "raw_result_sha256": "0513e3d867386fc1311bb1d4b22a1d48627c833f15278229d00b74ebb6375e3c",
+      "model": "gemini-4-argon-medium",
+      "effort": "medium"
+    },
+    {
+      "part": "review-final-compatibility",
+      "decision": "GO",
+      "approved_scope": "隔離された配布範囲（固定HEAD 2d7ab66bebaf8e32e564f6966971212d829c6c2b）における最終配布差分（.gitattributesの空白検査属性追加と-textによる凍結原本バイト保護、diagnostics.pyの既存STOP_FLAGS 8項目維持およびmeal_replacement_enabledの別フィールド分離、test_replacement_integration.pyの末尾余分改行除去、および隔離Linux検証完了状態）の承認。本番環境への適用・本番起動・外部接続・実書込み・課金操作は含まない。",
+      "prompt_sha256": "9bed3a1d19ec4db082c44c136782ff7d987e28a60535a674f3860fe4b6cfa46d",
+      "raw_result_sha256": "73e1b268eb8dda57760bdf8aef644fc4a0f0886fb763ac43d8b16da77cb68b76",
+      "model": "gemini-4-argon-medium",
+      "effort": "medium"
+    }
+  ],
+  "git_blob_sha256": {
+    ".gitattributes": "0889843f0f0a8881b7418760f1aa17117f650d7d03c8a27bdec4a9d68472c92c",
+    "requirements-mina.in": "c3768bbf2450be97ffa48e9fd9660ea3136e96ab90a5e9393b0183be1b47c771",
+    "requirements-mina.txt": "8a3baa5e8d1f0faa35a74921bce2ff4d9cd632344ec944c10fd9c106e61aeabe",
+    "requirements.txt": "aebb02b958b5e8f5df2c4aa4112c195a401a17417ef9ed932316bf67c2ffa0e7",
+    "src/mina/__main__.py": "315de83ec865472772f872ebcb491e6e507b5e583efef56b8c1aab3d87961082",
+    "src/mina/codex_client.py": "eeb61f0729dcf7fb77fb519f184618541c43a82196dcc14cdf2cb7a9e9e0cea2",
+    "src/mina/contracts/replacement_v21/CONTRACT.schema.json": "8b5fc6ecce9a9b406e7197f60c6ae49cb8f94edd9702c3b2db33babe78396090",
+    "src/mina/contracts/replacement_v21/EVIDENCE.md": "c6531192256e6462dc521d302c26b841bb99cce66ecf3ea1ac9538c122bd5978",
+    "src/mina/contracts/replacement_v21/FIXTURES.json": "6561ad1dbdeb755e9a6fca55f2981355dee1b879f404f069489e8c927ecf52c7",
+    "src/mina/contracts/replacement_v21/MANIFEST.json": "0b709c489d94fc303d8c56b4036b3e7588485c59c9d56d76f6be842f11e9d21d",
+    "src/mina/contracts/replacement_v21/PLAN.md": "2f3d15a12cf40d262faa9c0c61d1c4a267f5ed0febd56896216645964ebac305",
+    "src/mina/daily_pipeline.py": "e616f64d3172c9d598fb9cb6b4d8ee7faaf50f05f7a867395f0dd5182ac0d8e3",
+    "src/mina/diagnostics.py": "879b701b5863e6954422b230bc86f455d44a828e7853ce94fe9c014fa0e85fc4",
+    "src/mina/domain.py": "54a3df575d20f921f7f211c44396d9d97d70c0cf1f5f4273cd94664f53c03238",
+    "src/mina/instagram_source.py": "c0e867eecb6f9afb9530f886edc40fd92b0d0bc2ba08cab73db000b62cf11241",
+    "src/mina/instagram_store.py": "60122940190fcfa18d6efc274bebfa24d3fdff74641bfe6f567c5ce6f629be82",
+    "src/mina/m1_contract.py": "5815b2453c197e8f7be50c2e18561643e18a394167caa9543a6599d83554f80d",
+    "src/mina/publication_hold.py": "89507c300810461b6dc8785c3e81d834e7820dd9f8c2499d2b1c70338d1b6ea3",
+    "src/mina/replacement_artifacts.py": "1e1a2324fa9405ebe0a301c925fd67901cff5f29aab7f9e82f226a0d1316388d",
+    "src/mina/replacement_bundle.py": "2a524a73bea2cc504f90351477583a8d736e68e510a74a90164853c4c97c3ad8",
+    "src/mina/replacement_client.py": "029c72413c2af866aef5a3fc4b89104fef05c6545c4bec6a43dc532b9bae979d",
+    "src/mina/replacement_contract.py": "7ba615a42f3e6eab84b454422ddb94a4251dbc1e1c7c49dacec11be2734b4d7f",
+    "src/mina/replacement_diagnostics.py": "4c902d38293b709a39e6588474d580f76902cd37a04b71f6752113ade4fe1655",
+    "src/mina/replacement_flow.py": "b3faa7e2595094564539d7de2bafe22c85c522a714571adf44085b7a9ec45310",
+    "src/mina/replacement_inventory.py": "6ef50991b70ffdc4a9f6a06cb3889b1932f4e53a963ecfc73e93e10d485f5110",
+    "src/mina/replacement_journal.py": "0c13e7842af8dfeefc1d3effb1a5d42bd1e14eda44377f75ae7390c85b8a2de5",
+    "src/mina/replacement_policy.py": "59ad1a3aa1de953cec6045e645e368ca95cdb4f5abc5b9b5580ff45c40c57996",
+    "src/mina/replacement_ports.py": "d9dbf8d448899eaadf41cdba4e6bf4865dd2fd789018fd08eb233f2fd12ff910",
+    "src/mina/replacement_postreview.py": "11e00ff8ac3b7261276067e4b8ccad12017f89eb189703bcab05e68c871a5199",
+    "src/mina/replacement_rebuild.py": "7840ff3014c38ddfee7403d0154779f63adc36fbe9aebe90b5a1d562cbf482e7",
+    "src/mina/replacement_runtime.py": "b9ff80317423d8360ed1a5b1ba6889b8c11a4f8e36a20dc248f865587b0e9a49",
+    "src/mina/replacement_source.py": "6210d25a90ad7c6623c497aedfcd4bf7aefd1963f49d35a37e0378ccbe6abfa2",
+    "src/mina/request_ledger.py": "0b20daefade9f211288b1d37fe6f66448cdb979f268572c437bdeb9fcc6c2d1f",
+    "src/mina/store.py": "aa97b11deb4d52862de281289b84f1b9d9e171d9615036a18c22e3f6bd637e46",
+    "tests/mina/test_replacement_bundle.py": "09b68078228a4e4ee5531864ad8855a18575bfb818500aa993acdbdc83300da6",
+    "tests/mina/test_replacement_integration.py": "6f4f57ae27e483424d55a5f92c3694e8768317923257f9a788184960ddce0320",
+    "tests/mina/test_replacement_inventory.py": "e62826d540868e655afa2929b0ebe43c02f1af32947e1f2ee86822343d803b8f",
+    "tests/mina/test_replacement_postreview.py": "eb892ccce33750051ae338639f91fb74971cde17541d1ee3501912ce59de6576",
+    "tests/mina/test_replacement_runtime.py": "b3c3fe3e8d16eb41e4f1f65287c07d6613167d6bf16b7d311917c33a124cc189"
+  },
+  "same_mina_source_between_os_and_ci": true,
+  "production_operations": false
+}

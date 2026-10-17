@@ -1,0 +1,14 @@
+{
+  "approval_explanation": "提示されたreplacement_client.pyおよびreplacement_ports.pyの2ファイルについて、読取/送信の境界分離、既定無効ゲート、応答・画像・Drive証跡の厳格な整合性検証、および旧データ破壊防止が要件通り実装されており、当該隔離コード範囲において重大な論理・安全上の不具合は認められないためGOとする。",
+  "approved_scope": "添付された2ファイル（replacement_client.py、replacement_ports.py）の隔離コード実装範囲のみ。未提示の他モジュール・本番API接続・実課金・外部書込み有効化・18日当日運用判断は承認範囲に含まない。",
+  "blockers": [],
+  "cause_assessment": [
+    "replacement_client.pyにおいて、M1契約を変更せずHTTPS/Bearer検証とrequest_key検証を再利用し、404や通信エラーを未保存扱いに変換せずreplacement_lookup_unknown / replacement_write_lookup_requiredとして安全に失敗させる設計を確認した。",
+    "ReplacementClient.sendはwrite_authorizedフラグ・環境変数MINA_MEAL_REPLACEMENT_ENABLED=true・decoder設定の三重ゲートで保護され、HTTPエラーステータス単体で成否を上書きせず応答envelopeを検証器に通す構造になっている。",
+    "画像取得（ReplacementReadClient.image）において、Content-Range拒否・Content-Encoding=identity・Content-Length・Content-Digest・X-Mina系ヘッダ・checked_at/valid_untilの鮮度と時計ズレ待機・SHA-256一致・PIL verify/loadによる実体検証が一貫して実装されている。",
+    "replacement_ports.pyにおいて、旧画像のシンボリックリンク拒否とSHA-256検証、メニュー・食品構成の変更強制、writable=Falseでの原本/保存画像の独立点検、排他的ファイル作成（xb）とDrive新旧双方のverify検証により旧原本の上書き防止と証跡保全が担保されている。"
+  ],
+  "decision": "GO",
+  "major_findings": [],
+  "required_plan_changes": []
+}
