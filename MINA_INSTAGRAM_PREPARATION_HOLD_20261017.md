@@ -25,3 +25,7 @@
 ## 検証
 
 Instagram関連29件が成功。新規5件で、画像完成前の失敗通知、一日内の重複防止、送信成否不明と再起動後の再送禁止、準備無効時の無通知、通知障害時の元例外保持、通常準備の既存承認経路を検証した。
+
+固定コード版de3d571556159adfa9a1dc0530adb4b93c907c49はWindows・隔離Linuxとも全376件成功。[CI39028836718](https://github.com/t-katsumata1027/marketing-agent/actions/runs/39028836718)もmina/test両ジョブ成功。[PR #5](https://github.com/t-katsumata1027/marketing-agent/pull/5)は既存PR #4のコードを基点にした通知修正だけの差分。転送bundleのSHA-256は3061fd82d84cb4a8b5b12f27b5e609a594542492b845b3f7a7ccec4518891bf3で一致した。
+
+18日分の具体的な保留理由を既存通知台帳へ一度だけ登録し、通常のInstagram常駐処理からDiscordへの送信成功を確認した。その後、上記固定コードを本番へ配置。切替前後の業務14テーブルは全行ハッシュ不変で、Agent・Gateway・Instagramと3タイマーはactive。既存Xの17日日次承認を保持した。配置証跡は/var/lib/mina-agent/deployment-preparation-de3d571556の保護領域に保持する。18日分の品質保留と画像未生成は引き続き未解決。
