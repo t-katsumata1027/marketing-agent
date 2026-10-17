@@ -27,7 +27,7 @@ def build(output, commit):
     release_commit(ROOT, commit)
     names = git('ls-tree', '-r', '--name-only', commit).decode().splitlines()
     selected = [name for name in names if (
-        name.startswith(('src/mina/', 'deploy/', 'tests/mina/', 'tests/contract_bridge/'))
+        name.startswith(('src/mina/', 'deploy/', 'tests/mina/', 'tests/contract_bridge/', 'assets/instagram/'))
         or name in ('.gitattributes', 'src/__init__.py', 'requirements-mina.txt', 'requirements-mina.in',
                     'scripts/test_logeats_contract.py', 'scripts/build_mina_release.py')
         or ('/' not in name and name.endswith('.md') and name != 'README.md')

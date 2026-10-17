@@ -1,6 +1,7 @@
 """Discordの署名と許可リストを検証する承認受付。"""
 
 import json
+import os
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -65,7 +66,14 @@ def _handle_verified(payload, policy, store, now):
         user = str(payload.get("member", {}).get("user", {}).get("id", ""))
         if str(payload.get("guild_id")) != policy.guild_id or str(payload.get("channel_id")) != policy.channel_id or user not in policy.user_ids:
             return 403, {"error": "actor_not_allowed"}
-        decision = store.decide(payload["data"]["custom_id"], user, now)
+        custom_id = payload["data"]["custom_id"]
+        if custom_id.startswith('minaig:'):
+            if os.getenv('MINA_INSTAGRAM_APPROVAL_ENABLED', 'false').lower() != 'true':
+                raise ValueError('Instagram承認受付は無効です')
+            from .instagram_store import InstagramStore
+            decision = InstagramStore(store.path).decide(custom_id, user, now)
+        else:
+            decision = store.decide(custom_id, user, now)
         messages = {"approved": "この版を承認しました。指定時刻に公開します。",
                     "changes_requested": "差戻しを記録しました。修正後に再承認が必要です。",
                     "cancelled": "この投稿を見送りました。"}
