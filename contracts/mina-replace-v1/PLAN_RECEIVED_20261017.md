@@ -121,4 +121,3 @@ schemaにnutrition_checkの計算対象digestと実合計を固定し、候補�
 - 共通Food.amountはstring|nullであり、既存M1食品へ新規入力の文字数上限を遡及適用しない。新候補の準備側には候補の食品数/入力制約を適用する。新候補のreadyは品質pass・曖昧さfalseを必要とするが、独立画像点検の合格を意味しない。
 - DはDiscardInput.reviewに候補版・解析/原本/保存SHA・独立点検主体の役割・実施時刻・fail/declinedと固定観測コードを持つ。review_evidence_digestはこのreview正規JSONのSHA256。request.discard_inputへDの正規入力（reason/証跡を含む）を不変保存し、成功・重複・D照会で返す。候補GETではlast_control_request_uuidからD照会へ対応付ける。Dの同UUID異入力は元discard_inputを保持し、上書きしない。
 - C保存後のsource_changed/og_image_preparation_failedはCommitResponseでpersistence=savedを維持する。重複Cも同じenvelope、重複P/Dも候補envelopeで元outcomeとトップ重複reasonを分ける。登録済みの既知拒否も同じ型、応答喪失/読取不明だけErrorのunknownを使う。HTTPは業務保存の成否を上書きしない。
-
