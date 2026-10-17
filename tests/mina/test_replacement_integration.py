@@ -16,7 +16,7 @@ from src.mina.domain import ACCOUNT
 FIXTURE=json.loads((DIRECTORY/'FIXTURES.json').read_text(encoding='utf-8'))
 SAMPLES={s['case_id']:s['value'] for s in FIXTURE['samples']}
 TARGET='2030-01-01';NOW=datetime(2029,12,31,10,tzinfo=UTC)
-FLAGS={'MINA_MEAL_REPLACEMENT_ENABLED':'true'}
+FLAGS={'MINA_MEAL_REPLACEMENT_ENABLED':'true','MINA_LIVE_WRITES':'true'}
 def fresh(now):return {'read_started_at':stamp(now),'checked_at':stamp(now),'valid_until':stamp(now+timedelta(seconds=120)),'complete':True}
 
 def candidate_digest(c):
@@ -149,6 +149,12 @@ class IntegrationTests(unittest.TestCase):
   with self.assertRaises(ValueError):self.policy.reserve(TARGET,'call-1','image')
   p=dict(self.policy.policy);p['limit_units']=1;other=ReplacementPolicy(self.store,p,self.clock)
   with self.assertRaises(ValueError):other.reserve(TARGET,'call-2','image')
+ def test_common_write_stop_blocks_every_new_operation_before_transport(self):
+  with patch.dict('os.environ',{'MINA_LIVE_WRITES':'false'}):
+   for operation in ('candidate_prepare','candidate_discard','meal_replace'):
+    with self.assertRaisesRegex(ValueError,'replacement_write_disabled'):
+     self.client.send(operation,str(uuid.uuid4()),b'{}','application/json',str(uuid.uuid4()))
+  self.assertEqual(self.server.calls,[])
  def test_no_quality_hold_never_acquires_or_posts(self):
   with self.assertRaisesRegex(ValueError,'quality_hold_required'):self.flow.begin(TARGET,'dinner',quality_hold=None)
   self.assertEqual(self.server.calls,[])

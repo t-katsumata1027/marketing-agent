@@ -187,7 +187,8 @@ class ReplacementClient(ReplacementReadClient):
 
     def send(self,operation,key,body,content_type,prepare_uuid=None):
         import os
-        if not self.write_authorized or os.getenv('MINA_MEAL_REPLACEMENT_ENABLED','false').lower()!='true' or self.decoder is None:
+        if (not self.write_authorized or os.getenv('MINA_MEAL_REPLACEMENT_ENABLED','false').lower()!='true'
+                or os.getenv('MINA_LIVE_WRITES','false').lower()!='true' or self.decoder is None):
             raise ReplacementReadFailure('replacement_write_disabled')
         MealClient.request_key(key)
         if operation=='candidate_prepare':path='/api/internal/mina/meal-replacement-candidates'
