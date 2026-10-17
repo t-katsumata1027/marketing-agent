@@ -45,13 +45,13 @@ class MealReadFailure(RuntimeError):
         super().__init__(code)
 
 
-def await_checked_at(result, clock=lambda: datetime.now(UTC), sleep=time.sleep, observer=None):
-    """サーバー時計が最大1秒先の場合だけ待ち、未来応答を採用せず鮮度条件を保つ。"""
+def await_checked_at(result, clock=lambda: datetime.now(UTC), sleep=time.sleep, observer=None, max_ahead=1):
+    """既定1秒、明示した読取では最大5秒だけ実時間で待ち、未来応答を採用しない。"""
     from .domain import instant
     checked = instant(datetime.fromisoformat(result['checked_at']))
     ahead = (checked - instant(clock())).total_seconds()
     if observer is not None:observer(ahead*1000)
-    if ahead > 1:
+    if not 0 < max_ahead <= 5 or ahead > max_ahead:
         raise ClockSkewError(ahead)
     if ahead > 0:
         sleep(ahead)
@@ -186,11 +186,14 @@ class XClient:
 class MealClient:
     """固定みな境界の内部API。失われた応答を新UUIDで再送しない。"""
 
-    def __init__(self, base_url: str, token: str):
+    def __init__(self, base_url: str, token: str, max_clock_ahead=1):
         parsed = urlsplit(base_url)
         if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment or parsed.path not in ("", "/") or len(token) < 32:
             raise ValueError("LogEatsのHTTPS接続設定が必要です")
+        if not 0 < max_clock_ahead <= 5:
+            raise ValueError('正本照会の待機上限が不正です')
         self.base, self.token = base_url.rstrip("/"), token
+        self.max_clock_ahead = max_clock_ahead
 
     def day_state(self, target):
         """専用読取APIが未導入なら停止する。不存在を空履歴とみなさない。"""
@@ -208,7 +211,7 @@ class MealClient:
             result = json.loads(raw) if len(raw) <= 131072 else None
             if not isinstance(result, dict):
                 raise ValueError()
-            return await_checked_at(result,observer=getattr(self,'clock_observer',None))
+            return await_checked_at(result,observer=getattr(self,'clock_observer',None),max_ahead=self.max_clock_ahead)
         except HTTPError as error:
             raise MealReadFailure(f'meal_state_http_{error.code}','http_error',error.code) from None
         except ClockSkewError:

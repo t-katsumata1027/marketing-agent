@@ -17,7 +17,7 @@ from PIL import Image
 from src.mina.domain import ACCOUNT, Candidate
 from src.mina.instagram_domain import digest
 from src.mina.instagram_source import load_bundle, verify_bundle
-from src.mina.clients import MealClient
+from src.mina.clients import ClockSkewError, MealClient, await_checked_at
 
 NOW = datetime(2026, 10, 16, 1, tzinfo=UTC)
 TARGET = '2026-10-17'
@@ -114,6 +114,20 @@ class InstagramSourceTests(unittest.TestCase):
         self.assertEqual(requests[0].get_header('Cache-control'), 'no-store')
         self.assertIsNone(requests[0].get_header('Cookie'))
         self.assertIsNone(requests[0].get_header('Origin'))
+
+    def test_instagram_waits_real_time_without_accepting_future_or_relaxing_x_default(self):
+        result = {'checked_at': (NOW + timedelta(seconds=2)).isoformat()}
+        times = [NOW, NOW + timedelta(seconds=2)]
+        slept = []
+        await_checked_at(result, clock=lambda: times.pop(0), sleep=slept.append, max_ahead=5)
+        self.assertEqual(slept, [2])
+        with self.assertRaises(ClockSkewError):
+            await_checked_at(result, clock=lambda: NOW, sleep=lambda _: None)
+        with self.assertRaises(ClockSkewError):
+            await_checked_at(result, clock=lambda: NOW, sleep=lambda _: None, max_ahead=5)
+        with self.assertRaises(ClockSkewError):
+            await_checked_at({'checked_at': (NOW + timedelta(seconds=6)).isoformat()},
+                             clock=lambda: NOW, sleep=lambda _: None, max_ahead=5)
 
     def test_stale_state_or_changed_api_result_is_rejected(self):
         self.state['checked_at'] = (NOW - timedelta(seconds=121)).isoformat()

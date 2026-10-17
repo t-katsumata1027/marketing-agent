@@ -20,7 +20,7 @@ from .instagram_store import InstagramStore
 
 
 def meal_client():
-    return MealClient(os.getenv('MINA_MEAL_API_BASE_URL', ''), os.getenv('MINA_AGENT_API_TOKEN', ''))
+    return MealClient(os.getenv('MINA_MEAL_API_BASE_URL', ''), os.getenv('MINA_AGENT_API_TOKEN', ''), max_clock_ahead=5)
 
 
 def save_json(path, data):
