@@ -139,6 +139,8 @@ def publish_due(store: Store, client, now: datetime, host: str, preflight, clock
             continue
         try:
             with context('submission'):
+                from .publication_hold import require_claim
+                require_claim(store, row)
                 x_id = publisher.publish(c.content)
             if not isinstance(x_id, str) or not x_id.isdigit():
                 raise ValueError("公開IDが不正です")

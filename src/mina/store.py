@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from .domain import Candidate, JST, LABELS, approval_time, date, instant
+from .publication_hold import held, require_clear
 
 
 class Store:
@@ -112,6 +113,7 @@ class Store:
         with self.transaction() as db:
             revisions = []
             for candidate in candidates:
+                require_clear(db, candidate.target_date)
                 until = (candidate.approval_source or {}).get('publish_after_approval_until')
                 if until:
                     approval = db.execute('SELECT until_at FROM publication_exceptions WHERE target_date=? AND slot=?',
@@ -148,6 +150,7 @@ class Store:
             return []
         issued = []
         with self.transaction() as db:
+            require_clear(db, target_date)
             rows = db.execute("""SELECT * FROM candidates WHERE target_date=? AND state='approval_pending' AND scheduled>?
                 ORDER BY CASE slot WHEN 'breakfast' THEN 1 WHEN 'lunch' THEN 2 WHEN 'dinner' THEN 3 ELSE 4 END""", (target_date, timestamp)).fetchall()
             for row in rows:
@@ -185,6 +188,7 @@ class Store:
         if candidate.slot != 'dinner' or not until:
             raise ValueError('当日夕食の明示的な再承認だけを扱います')
         with self.transaction() as db:
+            require_clear(db, candidate.target_date)
             old = db.execute("SELECT * FROM candidates WHERE target_date=? AND slot='dinner'", (candidate.target_date,)).fetchone()
             route = db.execute("SELECT * FROM buffer_publication WHERE target_date=? AND slot='dinner'", (candidate.target_date,)).fetchone()
             if (not old or old['state'] != 'changes_requested' or old['reason'] != 'preflight_failed' or
@@ -229,6 +233,7 @@ class Store:
             raise ValueError("不正な判断です")
         with self.transaction() as db:
             row = db.execute("SELECT * FROM candidates WHERE target_date=? AND slot=?", (target, slot)).fetchone()
+            require_clear(db, target)
             valid = row and row["state"] == "approval_pending" and row["revision"] == int(revision)
             if not valid or not secrets.compare_digest(row["nonce_hash"] or "", hashlib.sha256(nonce.encode()).hexdigest()):
                 raise ValueError("使用済みまたは古い承認です")
@@ -253,6 +258,7 @@ class Store:
             self.expire_due(db,now,grace_seconds)
             rows = db.execute("""SELECT * FROM candidates c WHERE state='approved' AND scheduled<=? AND scheduled>=?
                 AND NOT EXISTS(SELECT 1 FROM publication_retries r WHERE r.target_date=c.target_date AND r.slot=c.slot AND r.revision=c.revision AND r.next_at>?) ORDER BY scheduled""", (ts, ts - grace_seconds,ts)).fetchall()
+            rows = [row for row in rows if not held(db, row['target_date'])]
             for row in rows:
                 db.execute("UPDATE candidates SET state='dispatching',dispatch_started=? WHERE target_date=? AND slot=?", (ts, row["target_date"], row["slot"]))
                 self.audit.emit('publication',row['target_date'],row['slot'],row['revision'],'preparation','started',
@@ -264,9 +270,10 @@ class Store:
         ts = instant(now).timestamp()
         with self.transaction() as db:
             self.expire_due(db,now,grace_seconds)
-            return db.execute("""SELECT 1 FROM candidates c WHERE state='approved' AND scheduled BETWEEN ? AND ?
-                AND NOT EXISTS(SELECT 1 FROM publication_retries r WHERE r.target_date=c.target_date AND r.slot=c.slot AND r.revision=c.revision AND r.next_at>?) LIMIT 1""",
-                              (ts-grace_seconds, ts,ts)).fetchone() is not None
+            rows = db.execute("""SELECT target_date FROM candidates c WHERE state='approved' AND scheduled BETWEEN ? AND ?
+                AND NOT EXISTS(SELECT 1 FROM publication_retries r WHERE r.target_date=c.target_date AND r.slot=c.slot AND r.revision=c.revision AND r.next_at>?)""",
+                              (ts-grace_seconds, ts,ts)).fetchall()
+            return any(not held(db, row['target_date']) for row in rows)
 
     def expire_due(self,db,now,grace_seconds):
         rows=db.execute("SELECT * FROM candidates WHERE state IN ('approval_pending','approved') AND scheduled<?",(instant(now).timestamp()-grace_seconds,)).fetchall()
@@ -315,7 +322,8 @@ class Store:
 
     def claim_notice(self) -> dict | None:
         with self.transaction() as db:
-            row = db.execute("SELECT * FROM notices WHERE state='pending' ORDER BY id LIMIT 1").fetchone()
+            rows = db.execute("SELECT * FROM notices WHERE state='pending' ORDER BY id").fetchall()
+            row = next((r for r in rows if r['kind'] != 'approval' or not held(db, r['target_date'])), None)
             if row:
                 db.execute("UPDATE notices SET state='sending' WHERE id=?", (row["id"],))
             return dict(row) if row else None
