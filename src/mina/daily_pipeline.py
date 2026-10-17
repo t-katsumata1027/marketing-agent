@@ -97,12 +97,14 @@ def prepare_day(store, directory, history, evidence_path, commit, root, host, ai
         write_artifact(directory / 'drive.json', saved)
         within_deadline()
         stage = 'registration'
+        store.record_preparation_progress(target, stage, 'running', now=clock())
         from .ogp import capture_ogp
         def capture(url, allowed_host):
             within_deadline()
             return capture_ogp(url, allowed_host)
-        reviewed = register_day(store, draft, saved, directory / 'ogp', meal, ai, host, capture=capture,
-                                allow_correction=True)
+        with store.audit.operation('creation', target, None, None, stage):
+            reviewed = register_day(store, draft, saved, directory / 'ogp', meal, ai, host, capture=capture,
+                                    allow_correction=True)
         write_artifact(directory / 'posts-reviewed.json', reviewed)
         within_deadline()
         stage = 'candidates'

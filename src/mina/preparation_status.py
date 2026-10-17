@@ -6,14 +6,19 @@ STAGES = {'daily_draft':'献立生成','image':'画像生成','image_review':'�
           'drive_upload':'画像保存','meal_register':'食事登録','meal_review':'食品・栄養点検',
           'correction_plan':'訂正案作成','meal_correction':'解析訂正','ogp_capture':'共有画像取得',
           'ogp_review':'共有画像点検','daily_share':'日次共有','candidates':'承認候補の照合',
-          'draft':'献立生成','images':'画像準備','drive':'画像保存','registration':'登録・共有'}
+          'draft':'献立生成','images':'画像準備','drive':'画像保存','registration':'登録・共有',
+          'source_state':'登録前の正本照合','source_request':'登録要求の照合'}
 REASONS = {'image_analysis_mismatch':'食品・分量と解析結果の不一致',
            'nutrition_semantic_mismatch':'分量・栄養値の整合性を確認できない',
            'context_mismatch':'対象日・区分・本文の文脈を確認できない',
            'share_ogp_mismatch':'共有画像と正本の一致を確認できない',
            'experiential_claim':'実食経験の断定','health_claim':'健康効果の断定',
            'copy_repetition':'過去の文面との重複','daily_energy_out_of_range':'3食合計が設定範囲外',
-           'api_quality_rejected_not_saved':'登録前の解析品質検査で拒否・未保存を確認'}
+           'api_quality_rejected_not_saved':'登録前の解析品質検査で拒否・未保存を確認',
+           'clock_ahead':'正本APIの応答時刻の先行が待機上限を超過',
+           'http_error':'外部APIのHTTPエラー','io_failed':'外部接続またはファイル読取の失敗',
+           'timeout':'外部照会の時間切れ','response_invalid':'外部応答の形式不正',
+           'validation_failed':'入力または照合条件の不一致','unclassified':'分類できない工程エラー'}
 
 
 class QualityHold(ValueError):
