@@ -83,6 +83,18 @@ class InstagramStore:
                               + ' ORDER BY scheduled', (target,) if target else ()).fetchall()
         return [dict(r) for r in rows]
 
+    def queue_preparation_hold(self, target):
+        """候補がまだない準備失敗も、対象日ごとに一度だけ通知する。"""
+        # 例外原文には認証情報や外部応答が含まれ得るため転記しない。
+        payload = {'content': f'【Instagram画像準備：保留】{target}\n'
+                              '食事データの確認・画像作成・保存の途中で停止しました。'
+                              '承認用画像の配信は完了していません。処理台帳の確認が必要です。',
+                   'allowed_mentions': {'parse': []}}
+        with self.transaction() as db:
+            db.execute('''INSERT OR IGNORE INTO instagram_notices
+                (target_date,slot,revision,kind,payload) VALUES(?,'prepare',1,'preparation_held',?)''',
+                       (target, json.dumps(payload, ensure_ascii=False)))
+
     def queue_approval(self, row):
         """承認ボタンはInstagram専用の一度だけ使える乱数に結び付ける。"""
         token = secrets.token_urlsafe(24)
