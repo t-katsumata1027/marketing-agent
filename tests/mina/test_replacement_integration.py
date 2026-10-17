@@ -1,5 +1,5 @@
 """凍結契約と、実SQLite・合成HTTPによるP/D/C通し検証。"""
-import base64,copy,hashlib,json,tempfile,unittest
+import base64,copy,hashlib,json,tempfile,unittest,uuid
 from datetime import UTC,datetime,timedelta
 from io import BytesIO
 from pathlib import Path
