@@ -10,5 +10,5 @@ deploy/instagram.env.example text eol=lf
 deploy/systemd/mina-gateway-instagram.conf.example text eol=lf
 
 # 凍結契約のSHAは提供側の原本バイトに対応する。OS間の改行変換を行わない。
-src/mina/contracts/replacement_v21/* -text
+src/mina/contracts/replacement_v21/* -text whitespace=cr-at-eol,-blank-at-eof
 MINA_REPLACEMENT_INTEGRATION_PLAN_20261018.md -text

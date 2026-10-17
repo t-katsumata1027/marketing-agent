@@ -184,4 +184,3 @@ class IntegrationTests(unittest.TestCase):
   self.assertEqual(canonical({'\uffff':1,'\U00010000':2}),'{"𐀀":2,"￿":1}'.encode())
 
 if __name__=='__main__':unittest.main()
-
