@@ -2,6 +2,8 @@
 
 本人の2026年10月17日の着手指示に基づき、添付された契約計画v2.1を入力としてMarketing Agentだけを変更する。本体コード・本体DBは参照・変更しない。本番への配置・新APIの実送信・18日分の置換は今回行わない。
 
+正式な実装先は同一リポジトリの管理worktree C:/Users/Takashi Katsumata/.codex/worktrees/mina-meal-replacement-preparation/marketing-agent、branchはcodex/mina-meal-replacement-preparation-20261017。主作業フォルダーの既存未コミット変更を一括で上書きしない。
+
 ## 現在の範囲
 
 API提供側の確定Schema・fixture・MANIFESTは未受領。本文から推測したJSONを本番契約として実装しない。今回は、確定形式に依存しない次の基盤と既存入口への停止検査を実装する。
@@ -51,3 +53,9 @@ API提供側の確定Schema・fixture・MANIFESTは未受領。本文から推�
 実SQLiteで停止取得と送信確保の競合、X/Instagram旧承認の拒否、別日の維持、停止中のBuffer書込み0回、下書き送信不明と再起動後の保持を試験する。新APIは合成HTTP応答だけを使い、認証ヘッダの宛先・GET限定・404/302の一回停止・画像改ざん/欠落/期限切れ・JSON不正を検証する。新台帳はUUID入力不変、送信開始一回、P/DとCの分類分離、savedの保全、保存バイト破損時の拒否を試験する。
 
 本番の台帳・サービス設定・稼働コード・17日の承認・18日の保存済み3食は、この先行実装では変更しない。
+
+## 固定版の検証結果
+
+コード版06a89fa、受領計画の末尾改行だけを整えた固定head449f4acb7e0bf52f21e50f90dae356ef38ad529cで、Windows・隔離Linuxとも全412件が成功した。新規は36件。Linuxは秘密なし・外部機能無効で123.620秒、稼働先の変更なし。サービス所有者からの配布コード固定版照合も成功。[CI39032524934](https://github.com/t-katsumata1027/marketing-agent/actions/runs/39032524934)もmina/test両ジョブ成功。[ドラフトPR #6](https://github.com/t-katsumata1027/marketing-agent/pull/6)は通知修正PR #5を基点とする。
+
+配布物はactivation_allowed=false。bundleのSHA-256は585821ea0b9355854d865183d621f28ecfbce7c147d11fe4990f1085a15f18cf。本番へ切り替える配置スクリプトは作成・実行していない。実装の独立レビューと提供側契約fixtureの受入は未実施であり、今回の合成試験の成功で代替しない。
