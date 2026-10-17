@@ -1,191 +1,191 @@
 {
   "conclusion": "success",
-  "databaseId": 39079475168,
-  "headSha": "fef9579b34b949831f674b7688c122225b3cb8dc",
+  "databaseId": 39079775314,
+  "headSha": "31ef097e0b686ed0a00e6739a723e5d6f068328b",
   "jobs": [
     {
-      "completedAt": "2026-10-17T23:34:24Z",
+      "completedAt": "2026-10-17T23:39:05Z",
       "conclusion": "success",
-      "databaseId": 117533305163,
+      "databaseId": 117534179096,
       "name": "test",
-      "startedAt": "2026-10-17T23:33:21Z",
+      "startedAt": "2026-10-17T23:38:06Z",
       "status": "completed",
       "steps": [
         {
-          "completedAt": "2026-10-17T23:33:22Z",
+          "completedAt": "2026-10-17T23:38:08Z",
           "conclusion": "success",
           "name": "Set up job",
           "number": 1,
-          "startedAt": "2026-10-17T23:33:22Z",
+          "startedAt": "2026-10-17T23:38:07Z",
           "status": "completed"
         },
         {
-          "completedAt": "2026-10-17T23:33:24Z",
+          "completedAt": "2026-10-17T23:38:09Z",
           "conclusion": "success",
           "name": "Run actions/checkout@v4",
           "number": 2,
-          "startedAt": "2026-10-17T23:33:22Z",
+          "startedAt": "2026-10-17T23:38:08Z",
           "status": "completed"
         },
         {
-          "completedAt": "2026-10-17T23:33:38Z",
+          "completedAt": "2026-10-17T23:38:22Z",
           "conclusion": "success",
           "name": "Run actions/setup-python@v5",
           "number": 3,
-          "startedAt": "2026-10-17T23:33:24Z",
+          "startedAt": "2026-10-17T23:38:09Z",
           "status": "completed"
         },
         {
-          "completedAt": "2026-10-17T23:33:38Z",
+          "completedAt": "2026-10-17T23:38:23Z",
           "conclusion": "success",
           "name": "Run python -m pip install --upgrade pip",
           "number": 4,
-          "startedAt": "2026-10-17T23:33:38Z",
+          "startedAt": "2026-10-17T23:38:22Z",
           "status": "completed"
         },
         {
-          "completedAt": "2026-10-17T23:34:14Z",
+          "completedAt": "2026-10-17T23:38:56Z",
           "conclusion": "success",
           "name": "Run python -m pip install -r requirements.txt",
           "number": 5,
-          "startedAt": "2026-10-17T23:33:38Z",
+          "startedAt": "2026-10-17T23:38:23Z",
           "status": "completed"
         },
         {
-          "completedAt": "2026-10-17T23:34:14Z",
+          "completedAt": "2026-10-17T23:38:57Z",
           "conclusion": "success",
           "name": "Run python -m compileall -q src scripts",
           "number": 6,
-          "startedAt": "2026-10-17T23:34:14Z",
+          "startedAt": "2026-10-17T23:38:56Z",
           "status": "completed"
         },
         {
-          "completedAt": "2026-10-17T23:34:19Z",
+          "completedAt": "2026-10-17T23:39:02Z",
           "conclusion": "success",
           "name": "Run python -m unittest discover -s tests -v",
           "number": 7,
-          "startedAt": "2026-10-17T23:34:14Z",
+          "startedAt": "2026-10-17T23:38:57Z",
           "status": "completed"
         },
         {
-          "completedAt": "2026-10-17T23:34:22Z",
+          "completedAt": "2026-10-17T23:39:02Z",
           "conclusion": "success",
           "name": "Post Run actions/setup-python@v5",
           "number": 13,
-          "startedAt": "2026-10-17T23:34:19Z",
+          "startedAt": "2026-10-17T23:39:02Z",
           "status": "completed"
         },
         {
-          "completedAt": "2026-10-17T23:34:22Z",
+          "completedAt": "2026-10-17T23:39:02Z",
           "conclusion": "success",
           "name": "Post Run actions/checkout@v4",
           "number": 14,
-          "startedAt": "2026-10-17T23:34:22Z",
+          "startedAt": "2026-10-17T23:39:02Z",
           "status": "completed"
         },
         {
-          "completedAt": "2026-10-17T23:34:22Z",
+          "completedAt": "2026-10-17T23:39:02Z",
           "conclusion": "success",
           "name": "Complete job",
           "number": 15,
-          "startedAt": "2026-10-17T23:34:22Z",
+          "startedAt": "2026-10-17T23:39:02Z",
           "status": "completed"
         }
       ],
-      "url": "https://github.com/t-katsumata1027/marketing-agent/actions/runs/39079475168/job/117533305163"
+      "url": "https://github.com/t-katsumata1027/marketing-agent/actions/runs/39079775314/job/117534179096"
     },
     {
-      "completedAt": "2026-10-17T23:34:13Z",
+      "completedAt": "2026-10-17T23:38:54Z",
       "conclusion": "success",
-      "databaseId": 117533305338,
+      "databaseId": 117534179299,
       "name": "mina",
-      "startedAt": "2026-10-17T23:33:21Z",
+      "startedAt": "2026-10-17T23:38:06Z",
       "status": "completed",
       "steps": [
         {
-          "completedAt": "2026-10-17T23:33:22Z",
+          "completedAt": "2026-10-17T23:38:08Z",
           "conclusion": "success",
           "name": "Set up job",
           "number": 1,
-          "startedAt": "2026-10-17T23:33:22Z",
+          "startedAt": "2026-10-17T23:38:07Z",
           "status": "completed"
         },
         {
-          "completedAt": "2026-10-17T23:33:24Z",
+          "completedAt": "2026-10-17T23:38:10Z",
           "conclusion": "success",
           "name": "Run actions/checkout@v4",
           "number": 2,
-          "startedAt": "2026-10-17T23:33:22Z",
+          "startedAt": "2026-10-17T23:38:08Z",
           "status": "completed"
         },
         {
-          "completedAt": "2026-10-17T23:33:36Z",
+          "completedAt": "2026-10-17T23:38:21Z",
           "conclusion": "success",
           "name": "Run actions/setup-python@v5",
           "number": 3,
-          "startedAt": "2026-10-17T23:33:24Z",
+          "startedAt": "2026-10-17T23:38:10Z",
           "status": "completed"
         },
         {
-          "completedAt": "2026-10-17T23:33:42Z",
+          "completedAt": "2026-10-17T23:38:26Z",
           "conclusion": "success",
           "name": "Run python -m pip install -r requirements-mina.txt",
           "number": 4,
-          "startedAt": "2026-10-17T23:33:36Z",
+          "startedAt": "2026-10-17T23:38:21Z",
           "status": "completed"
         },
         {
-          "completedAt": "2026-10-17T23:33:42Z",
+          "completedAt": "2026-10-17T23:38:26Z",
           "conclusion": "success",
           "name": "Run python -m compileall -q src/mina",
           "number": 5,
-          "startedAt": "2026-10-17T23:33:42Z",
+          "startedAt": "2026-10-17T23:38:26Z",
           "status": "completed"
         },
         {
-          "completedAt": "2026-10-17T23:34:08Z",
+          "completedAt": "2026-10-17T23:38:51Z",
           "conclusion": "success",
           "name": "Run python -m unittest discover -s tests/mina -v",
           "number": 6,
-          "startedAt": "2026-10-17T23:33:42Z",
+          "startedAt": "2026-10-17T23:38:26Z",
           "status": "completed"
         },
         {
-          "completedAt": "2026-10-17T23:34:09Z",
+          "completedAt": "2026-10-17T23:38:51Z",
           "conclusion": "success",
           "name": "Run python scripts/build_mina_release.py --commit \"$GITHUB_SHA\" --output runtime/ci-release",
           "number": 7,
-          "startedAt": "2026-10-17T23:34:08Z",
+          "startedAt": "2026-10-17T23:38:51Z",
           "status": "completed"
         },
         {
-          "completedAt": "2026-10-17T23:34:11Z",
+          "completedAt": "2026-10-17T23:38:51Z",
           "conclusion": "success",
           "name": "Post Run actions/setup-python@v5",
           "number": 13,
-          "startedAt": "2026-10-17T23:34:09Z",
+          "startedAt": "2026-10-17T23:38:51Z",
           "status": "completed"
         },
         {
-          "completedAt": "2026-10-17T23:34:12Z",
+          "completedAt": "2026-10-17T23:38:51Z",
           "conclusion": "success",
           "name": "Post Run actions/checkout@v4",
           "number": 14,
-          "startedAt": "2026-10-17T23:34:11Z",
+          "startedAt": "2026-10-17T23:38:51Z",
           "status": "completed"
         },
         {
-          "completedAt": "2026-10-17T23:34:12Z",
+          "completedAt": "2026-10-17T23:38:51Z",
           "conclusion": "success",
           "name": "Complete job",
           "number": 15,
-          "startedAt": "2026-10-17T23:34:12Z",
+          "startedAt": "2026-10-17T23:38:51Z",
           "status": "completed"
         }
       ],
-      "url": "https://github.com/t-katsumata1027/marketing-agent/actions/runs/39079475168/job/117533305338"
+      "url": "https://github.com/t-katsumata1027/marketing-agent/actions/runs/39079775314/job/117534179299"
     }
   ],
   "status": "completed",
-  "url": "https://github.com/t-katsumata1027/marketing-agent/actions/runs/39079475168"
+  "url": "https://github.com/t-katsumata1027/marketing-agent/actions/runs/39079775314"
 }

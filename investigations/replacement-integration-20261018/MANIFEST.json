@@ -1,7 +1,7 @@
 {
   "baseline_commit": "78ca80a869dd3e6c5cb43e10b007e407c70d7f36",
-  "os_test_commit": "2d7ab66bebaf8e32e564f6966971212d829c6c2b",
-  "ci_commit": "fef9579b34b949831f674b7688c122225b3cb8dc",
+  "os_test_commit": "31ef097e0b686ed0a00e6739a723e5d6f068328b",
+  "ci_commit": "31ef097e0b686ed0a00e6739a723e5d6f068328b",
   "review_scope": "隔離実装・合成検証のみ。本番Goではない",
   "review_parts": [
     {
@@ -129,6 +129,15 @@
       "raw_result_sha256": "73e1b268eb8dda57760bdf8aef644fc4a0f0886fb763ac43d8b16da77cb68b76",
       "model": "gemini-4-argon-medium",
       "effort": "medium"
+    },
+    {
+      "part": "review-final-master-stop",
+      "decision": "GO",
+      "approved_scope": "隔離された統合コードおよびオフライン受入テストにおけるMINA_LIVE_WRITESの送信直前チェック追加差分（本番環境での実行・外部通信・課金を含まない範囲）",
+      "prompt_sha256": "ff8a7df054ab708dd0bf6fb2b9bd8f54a466bf6c82a41727cb0d5ae579ace245",
+      "raw_result_sha256": "763c04684880d03c0c231e3c8ff5873d543521534dc9b9e118379b32b45bbc08",
+      "model": "gemini-4-argon-medium",
+      "effort": "medium"
     }
   ],
   "git_blob_sha256": {
@@ -152,7 +161,7 @@
     "src/mina/publication_hold.py": "89507c300810461b6dc8785c3e81d834e7820dd9f8c2499d2b1c70338d1b6ea3",
     "src/mina/replacement_artifacts.py": "1e1a2324fa9405ebe0a301c925fd67901cff5f29aab7f9e82f226a0d1316388d",
     "src/mina/replacement_bundle.py": "2a524a73bea2cc504f90351477583a8d736e68e510a74a90164853c4c97c3ad8",
-    "src/mina/replacement_client.py": "029c72413c2af866aef5a3fc4b89104fef05c6545c4bec6a43dc532b9bae979d",
+    "src/mina/replacement_client.py": "44823413765be310aa60ca0e698ee1b934148351277bd526afbeda7c9b934eca",
     "src/mina/replacement_contract.py": "7ba615a42f3e6eab84b454422ddb94a4251dbc1e1c7c49dacec11be2734b4d7f",
     "src/mina/replacement_diagnostics.py": "4c902d38293b709a39e6588474d580f76902cd37a04b71f6752113ade4fe1655",
     "src/mina/replacement_flow.py": "b3faa7e2595094564539d7de2bafe22c85c522a714571adf44085b7a9ec45310",
@@ -167,7 +176,7 @@
     "src/mina/request_ledger.py": "0b20daefade9f211288b1d37fe6f66448cdb979f268572c437bdeb9fcc6c2d1f",
     "src/mina/store.py": "aa97b11deb4d52862de281289b84f1b9d9e171d9615036a18c22e3f6bd637e46",
     "tests/mina/test_replacement_bundle.py": "09b68078228a4e4ee5531864ad8855a18575bfb818500aa993acdbdc83300da6",
-    "tests/mina/test_replacement_integration.py": "6f4f57ae27e483424d55a5f92c3694e8768317923257f9a788184960ddce0320",
+    "tests/mina/test_replacement_integration.py": "5e038983949ba2af8647f3c37bbb5483898ce603998fc8d2f9710a1178104969",
     "tests/mina/test_replacement_inventory.py": "e62826d540868e655afa2929b0ebe43c02f1af32947e1f2ee86822343d803b8f",
     "tests/mina/test_replacement_postreview.py": "eb892ccce33750051ae338639f91fb74971cde17541d1ee3501912ce59de6576",
     "tests/mina/test_replacement_runtime.py": "b3c3fe3e8d16eb41e4f1f65287c07d6613167d6bf16b7d311917c33a124cc189"

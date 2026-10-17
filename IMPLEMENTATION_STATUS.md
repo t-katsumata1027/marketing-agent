@@ -4,7 +4,7 @@
 
 本人承認後、通常準備の保存済み品質保留からP/D/C専用台帳、最大2回の別メニュー再計画、共通予算・期限、Buffer全件照会、新版X/Instagram再承認、通常巡回のGET復旧と停止理由診断まで接続した。Log-Eats本体・本番設定／台帳・サービス・18日分は変更せず、機能は既定無効。
 
-固定コード2d7ab66でWindows/Linux各447件成功。通常CI依存だけを追加したfef9579のCI39079475168はmina/test両ジョブ成功し、src/mina・tests/minaは両版で同一。agyは11分割と最終3差分すべて隔離範囲Go、必須残件0。実Buffer／Mina／Drive書込み、AI生成・従量課金は行わず、合成HTTPと専用SQLite・venvだけで検証した。
+固定コード31ef097でWindows/Linux各448件成功。同headのCI39079775314はmina/test両ジョブ成功。agyは11分割と最終4差分すべて隔離範囲Go、必須残件0。実Buffer／Mina／Drive書込み、AI生成・従量課金は行わず、合成HTTPと専用SQLite・venvだけで検証した。
 
 本番利用には提供側QA・Preview／リリース、実Buffer全件列挙の受入、実予算・既消費・不明費用・本体割当、台帳コピーの移行dry-runと配置承認が残る。旧Instagram候補の旧版自動復帰や、外部工程の成否不明は未検証のまま解除しない。完全無停止・本番復旧済みとは扱わない。詳細はMINA_REPLACEMENT_INTEGRATION_IMPLEMENTATION_20261018.md、証跡はinvestigations/replacement-integration-20261018。以下の「統合計画承認待ち」は過去の記録。
 

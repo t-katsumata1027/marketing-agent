@@ -3,12 +3,16 @@
     "Name": "jsonschema",
     "Version": "4.25.1",
     "License": null,
-    "License-Expression": "MIT"
+    "License-Expression": "MIT",
+    "license_classifiers": []
   },
   "rfc8785": {
     "Name": "rfc8785",
     "Version": "0.1.4",
     "License": null,
-    "License-Expression": null
+    "License-Expression": null,
+    "license_classifiers": [
+      "License :: OSI Approved :: Apache Software License"
+    ]
   }
 }
