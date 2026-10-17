@@ -108,7 +108,16 @@ class InstagramRuntime:
         if len(rows) != 4:
             if os.getenv('MINA_INSTAGRAM_PREPARE_ENABLED', 'false').lower() != 'true':
                 raise ValueError('Instagram翌日準備が無効です')
-            self.prepare(target, allow_public=True)
+            try:
+                self.prepare(target, allow_public=True)
+            except Exception:
+                try:
+                    self.store.queue_preparation_hold(target)
+                    self.send_notices()
+                except Exception:
+                    # 通知障害で準備処理の元の例外を失わない。未送信分は常駐処理が扱う。
+                    pass
+                raise
         return {'target_date': target, 'notices_sent': self.notify(target)}
 
     def verify(self, candidate):
