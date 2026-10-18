@@ -27,7 +27,14 @@ def load_meal_bundle(database, directory, target, state, now=None):
     db = sqlite3.connect(Path(database).resolve().as_uri() + '?mode=ro', uri=True)
     db.row_factory = sqlite3.Row
     try:
-        rows = db.execute('SELECT slot,payload,digest,state FROM candidates WHERE target_date=?', (target,)).fetchall()
+        rows = db.execute('SELECT slot,payload,digest,state,reason,revision FROM candidates WHERE target_date=?', (target,)).fetchall()
+        stops = {}
+        if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='operation_events'").fetchone():
+            for event in db.execute("SELECT slot,revision,reason,details FROM operation_events WHERE target_date=? AND category='publication' AND event='stopped' ORDER BY rowid", (target,)):
+                details = json.loads(event['details'])
+                stops[(event['slot'], event['revision'])] = (event['reason'] == 'clock_ahead' and
+                    details.get('before') == 'dispatching' and details.get('after') == 'changes_requested' and
+                    details.get('write_started') is False)
         steps = {}
         if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='preparation_steps'").fetchone():
             steps = {r['step']: json.loads(r['result']) for r in db.execute(
@@ -46,7 +53,11 @@ def load_meal_bundle(database, directory, target, state, now=None):
     bundle = {'target_date': target, 'state_version': version, 'meals': {}, 'x_candidates': {}, 'x_digests': {}}
     for row in rows:
         c = Candidate(**json.loads(row['payload']))
-        if (c.digest != row['digest'] or row['state'] not in ('approval_pending', 'approved', 'published')
+        # 同じ版のXが時計差だけで未送信停止した証跡を要求する。品質停止・本人差戻しは含めない。
+        source_eligible = (row['state'] in ('approval_pending', 'approved', 'published') or
+                           (row['state'] == 'changes_requested' and row['reason'] == 'preflight_failed' and
+                            stops.get((row['slot'], row['revision'])) is True))
+        if (c.digest != row['digest'] or not source_eligible
                 or c.api_quality != 'pass' or c.secondary_review != 'publishable' or
                 not all((c.ogp_verified, c.history_verified, c.legacy_schedule_clear)) or
                 not c.approval_source or c.approval_source.get('state_version') != version):

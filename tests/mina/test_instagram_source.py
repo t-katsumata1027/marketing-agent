@@ -38,7 +38,7 @@ class InstagramSourceTests(unittest.TestCase):
         saved = {'target_date': TARGET, 'images': {}}
         self.candidates = {}
         with closing(sqlite3.connect(self.database)) as db:
-            db.execute('CREATE TABLE candidates(target_date TEXT,slot TEXT,payload TEXT,digest TEXT,state TEXT)')
+            db.execute('CREATE TABLE candidates(target_date TEXT,slot TEXT,payload TEXT,digest TEXT,state TEXT,reason TEXT,revision INTEGER)')
             for slot in ('breakfast', 'lunch', 'dinner', 'daily'):
                 daily = slot == 'daily'
                 n = {'calories': 1500 if daily else 500, 'protein': 90 if daily else 30,
@@ -61,7 +61,7 @@ class InstagramSourceTests(unittest.TestCase):
                               meal_count=3 if daily else 1,
                               approval_source={'state_version': self.state['state_version'], 'result_sha256': digest(result)})
                 self.candidates[slot] = c
-                db.execute('INSERT INTO candidates VALUES(?,?,?,?,?)', (TARGET, slot, json.dumps(asdict(c), ensure_ascii=False), c.digest, 'approved'))
+                db.execute('INSERT INTO candidates VALUES(?,?,?,?,?,NULL,1)', (TARGET, slot, json.dumps(asdict(c), ensure_ascii=False), c.digest, 'approved'))
             db.commit()
         (self.day / 'drive.json').write_text(json.dumps(saved), encoding='utf-8')
 
@@ -74,6 +74,38 @@ class InstagramSourceTests(unittest.TestCase):
         self.assertEqual(bundle['total']['calories'], 1500)
         self.state.pop('nutrition_targets')
         with self.assertRaisesRegex(ValueError, 'logeats_nutrition_targets_not_exposed'):
+            self.load()
+
+    def test_x_preflight_failure_preserves_source_but_manual_rejection_does_not(self):
+        before = self.load()
+        with closing(sqlite3.connect(self.database)) as db:
+            db.execute("UPDATE candidates SET state='changes_requested',reason='preflight_failed' WHERE slot='breakfast'")
+            db.commit()
+        with self.assertRaises(ValueError):
+            self.load()
+        with closing(sqlite3.connect(self.database)) as db:
+            db.execute('CREATE TABLE operation_events(target_date TEXT,slot TEXT,revision INTEGER,category TEXT,event TEXT,reason TEXT,details TEXT)')
+            db.execute('INSERT INTO operation_events VALUES(?,?,1,?,?,?,?)',
+                       (TARGET, 'breakfast', 'publication', 'stopped', 'clock_ahead',
+                        json.dumps({'before': 'dispatching', 'after': 'changes_requested', 'write_started': False})))
+            db.commit()
+        self.assertEqual(self.load(), before)
+        self.state['meals'][0]['result_version'] = 'rv1_' + 'f' * 64
+        with self.assertRaises(ValueError):
+            self.load()
+        self.state['meals'][0]['result_version'] = 'rv1_' + 'b' * 64
+        for reason in (None, 'quality_failed'):
+            with closing(sqlite3.connect(self.database)) as db:
+                db.execute("UPDATE candidates SET reason=? WHERE slot='breakfast'", (reason,))
+                db.commit()
+            with self.assertRaises(ValueError):
+                self.load()
+
+        with closing(sqlite3.connect(self.database)) as db:
+            db.execute("UPDATE candidates SET reason='preflight_failed' WHERE slot='breakfast'")
+            db.execute("UPDATE operation_events SET reason='image_changed'")
+            db.commit()
+        with self.assertRaises(ValueError):
             self.load()
 
     def test_null_is_unset_but_zero_or_nan_is_invalid(self):

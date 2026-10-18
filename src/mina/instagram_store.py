@@ -54,6 +54,8 @@ class InstagramStore:
             db.close()
 
     def save(self, candidate, now, hosts):
+        if 'recovery' in candidate.source:
+            raise ValueError('復旧候補は未送信の旧版照合が必要です')
         candidate.validate(now, hosts)
         with self.transaction() as db:
             previous = db.execute('SELECT * FROM instagram_candidates WHERE target_date=? AND slot=?',
@@ -101,8 +103,13 @@ class InstagramStore:
         hashed = hashlib.sha256(token.encode()).hexdigest()
         c = InstagramCandidate(**json.loads(row['payload']))
         types = 'ストーリーズ' if c.format == 'story' else 'カルーセル'
+        timing = f'予定 {c.scheduled_at.astimezone(JST).isoformat()}'
+        if 'recovery' in c.source:
+            from .instagram_recovery import publication_window
+            _, until = publication_window(self, row, c)
+            timing = f'【復旧投稿】承認後に投稿します。受付期限 {until.astimezone(JST).isoformat()}'
         payload = {'content': f'【Instagram／{types}】{c.target_date} {c.slot}\n'
-                              f'予定 {c.scheduled_at.astimezone(JST).isoformat()}\n{c.caption}',
+                              f'{timing}\n{c.caption}',
                    'embeds': [{'image': {'url': a['url']}} for a in c.assets],
                    'allowed_mentions': {'parse': []},
                    'components': [{'type': 1, 'components': [
@@ -111,7 +118,8 @@ class InstagramStore:
         with self.transaction() as db:
             actual = db.execute('SELECT * FROM instagram_candidates WHERE target_date=? AND slot=?',
                                 (c.target_date, c.slot)).fetchone()
-            if not actual or actual['digest'] != c.digest or actual['state'] != 'approval_pending':
+            if (not actual or actual['digest'] != c.digest or actual['revision'] != row['revision'] or
+                    actual['state'] != 'approval_pending'):
                 raise ValueError('承認候補が変わっています')
             if db.execute("SELECT 1 FROM instagram_notices WHERE target_date=? AND slot=? AND revision=? AND kind='approval'",
                           (c.target_date, c.slot, row['revision'])).fetchone():
@@ -127,15 +135,24 @@ class InstagramStore:
             raise ValueError('Instagramの操作ではありません')
         hashed = hashlib.sha256(parts[2].encode()).hexdigest()
         decision = {'approve': 'approved', 'reject': 'changes_requested', 'skip': 'cancelled'}[parts[1]]
+        # 読取照合を別接続で行い、書込transaction内では同じ行かを再確認する。
+        with self.transaction() as db:
+            checked = db.execute('SELECT * FROM instagram_candidates WHERE nonce_hash=?', (hashed,)).fetchone()
+        if checked:
+            from .instagram_recovery import publication_window
+            publication_window(self, dict(checked), InstagramCandidate(**json.loads(checked['payload'])))
         with self.transaction() as db:
             row = db.execute('SELECT * FROM instagram_candidates WHERE nonce_hash=?', (hashed,)).fetchone()
-            if not row or row['state'] != 'approval_pending' or row['scheduled'] <= instant(now).timestamp():
+            if (not row or not checked or dict(row) != dict(checked) or
+                    row['state'] != 'approval_pending' or row['scheduled'] <= instant(now).timestamp()):
                 raise ValueError('古い版・使用済み・期限切れです')
             if db.execute('SELECT 1 FROM instagram_attempts WHERE target_date=? AND slot=?',
                           (row['target_date'], row['slot'])).fetchone():
                 raise ValueError('送信開始済みです')
-            db.execute('UPDATE instagram_candidates SET state=?,actor=?,approved=?,nonce_hash=NULL WHERE target_date=? AND slot=?',
-                       (decision, actor, instant(now).timestamp(), row['target_date'], row['slot']))
+            recovery = 'recovery' in json.loads(row['payload'])['source']
+            scheduled = instant(now).timestamp() if recovery and decision == 'approved' else row['scheduled']
+            db.execute('UPDATE instagram_candidates SET state=?,actor=?,approved=?,scheduled=?,nonce_hash=NULL WHERE target_date=? AND slot=?',
+                       (decision, actor, instant(now).timestamp(), scheduled, row['target_date'], row['slot']))
         return decision
 
     def claim_due(self, now):
@@ -159,12 +176,14 @@ class InstagramStore:
         with self.transaction() as db:
             current = db.execute('SELECT * FROM instagram_candidates WHERE target_date=? AND slot=?',
                                  (row['target_date'], row['slot'])).fetchone()
-            if not current or current['state'] != 'dispatching' or current['digest'] != row['digest']:
+            if (not current or current['state'] != 'dispatching' or current['digest'] != row['digest'] or
+                    current['revision'] != row['revision'] or current['scheduled'] != row['scheduled'] or
+                    current['actor'] != row['actor'] or current['approved'] != row['approved']):
                 raise ValueError('送信枠を所有していません')
             db.execute("INSERT INTO instagram_attempts(target_date,slot,revision,digest,state,request_json,started) VALUES(?,?,?,?,'attempting',?,?)",
                        (row['target_date'], row['slot'], row['revision'], row['digest'], json.dumps(request, ensure_ascii=False), instant(now).timestamp()))
 
-    def mark(self, row, state, post=None, external_url=None):
+    def mark(self, row, state, post=None, external_url=None, failure=None):
         if state not in ('accepted', 'published', 'outcome_unknown', 'held'):
             raise ValueError('公開状態が不正です')
         with self.transaction() as db:
@@ -188,6 +207,11 @@ class InstagramStore:
                            '送信の成否を確認できないため停止しました。自動再送せず照合が必要です。')
                 payload = {'content': f"Instagram {row['target_date']} {row['slot']}：{message}",
                            'allowed_mentions': {'parse': []}}
+                if failure:
+                    # 安全化した分類だけを残し、外部応答や例外原文は通知へ出さない。
+                    payload['content'] += f"\n停止工程：{failure['stage']}／分類：{failure['reason']}"
+                    db.execute('UPDATE instagram_candidates SET reason=? WHERE target_date=? AND slot=?',
+                               (json.dumps(failure, ensure_ascii=False), row['target_date'], row['slot']))
                 db.execute('INSERT OR IGNORE INTO instagram_notices(target_date,slot,revision,kind,payload) VALUES(?,?,?,?,?)',
                            (row['target_date'], row['slot'], row['revision'], state, json.dumps(payload, ensure_ascii=False)))
 

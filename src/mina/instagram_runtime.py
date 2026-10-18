@@ -58,7 +58,7 @@ class InstagramRuntime:
         return self.api or InstagramBufferClient(self.store)
 
     def state(self, target):
-        return await_checked_at((self.meal or meal_client()).day_state(target))
+        return await_checked_at((self.meal or meal_client()).day_state(target), max_ahead=5)
 
     def render(self, target):
         state = self.state(target)
@@ -131,7 +131,11 @@ class InstagramRuntime:
                 or candidate.caption != caption(bundle, candidate.slot)):
             raise ValueError('画像または本文が正本と一致しません')
         source = {k: bundle[k] for k in ('bundle_sha256', 'state_version', 'x_digests')}
-        if source != candidate.source or digest({k: v for k, v in bundle.items() if k != 'bundle_sha256'}) != bundle['bundle_sha256']:
+        from .instagram_recovery import base_source, publication_window
+        if 'recovery' in candidate.source:
+            row = next(r for r in self.store.rows(candidate.target_date) if r['slot'] == candidate.slot)
+            publication_window(self.store, row, candidate)
+        if source != base_source(candidate) or digest({k: v for k, v in bundle.items() if k != 'bundle_sha256'}) != bundle['bundle_sha256']:
             raise ValueError('食事正本の記録が変わっています')
         return verify_bundle(bundle, self.database, self.daily_directory, self.state(candidate.target_date), datetime.now(UTC))
 
@@ -150,6 +154,19 @@ class InstagramRuntime:
             if row['state'] == 'approval_pending':
                 self.store.queue_approval(row)
         return self.send_notices()
+
+    def recover(self, target, slot, until):
+        """未送信保留の一枠を再点検し、承認後公開の新カードを作る。"""
+        from .clients import require_live
+        from .instagram_recovery import prepare_recovery
+        from .instagram_media import verify_public
+        require_live()
+        if os.getenv('MINA_INSTAGRAM_APPROVAL_ENABLED', 'false').lower() != 'true':
+            raise ValueError('Instagram承認受付が無効です')
+        row = next(r for r in self.store.rows(target) if r['slot'] == slot)
+        recovered = prepare_recovery(self.store, row, datetime.now(UTC), until, HOSTS, self.verify, verify_public)
+        self.store.queue_approval(recovered)
+        return {'target_date': target, 'slot': slot, 'revision': recovered['revision'], 'published': False}
 
     def send_notices(self):
         if os.getenv('MINA_INSTAGRAM_NOTIFY_ENABLED', 'false').lower() != 'true':
