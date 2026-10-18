@@ -1,0 +1,100 @@
+{
+  "schema_sha256": "2c2a44cc3830ef07bd0666182915b0e5e4bbab11239bb6aec6745f0d9d37a4f6",
+  "http_methods": [
+    "GET"
+  ],
+  "dates": [
+    {
+      "target_date": "2026-10-18",
+      "http_status": 200,
+      "cache_control": "no-store",
+      "schema_valid": true,
+      "complete": true,
+      "calories": 1727,
+      "meal_calories": {
+        "breakfast": 484,
+        "lunch": 633,
+        "dinner": 610
+      },
+      "share_statuses": [
+        "active",
+        "active",
+        "active"
+      ],
+      "daily_share_present": false,
+      "policy": {
+        "policy_version": "unconfigured",
+        "budget_policy_digest": null,
+        "budget_configured": false,
+        "existing_preparation_deadline_verified": false,
+        "max_replans": 2,
+        "daily_analysis_limit": 60,
+        "hard_deadline_at": null,
+        "used_replan_ordinals": [],
+        "available_replans": 2,
+        "blocking_reasons": [
+          "service_unavailable",
+          "budget_unconfigured",
+          "deadline_unverified"
+        ]
+      },
+      "freshness_checked_at": "2026-10-18T11:15:08.425Z"
+    },
+    {
+      "target_date": "2026-10-19",
+      "http_status": 200,
+      "cache_control": "no-store",
+      "schema_valid": true,
+      "complete": true,
+      "calories": 1858,
+      "meal_calories": {
+        "breakfast": 467,
+        "lunch": 727,
+        "dinner": 664
+      },
+      "share_statuses": [
+        "active",
+        "active",
+        "active"
+      ],
+      "daily_share_present": true,
+      "policy": {
+        "policy_version": "unconfigured",
+        "budget_policy_digest": null,
+        "budget_configured": false,
+        "existing_preparation_deadline_verified": false,
+        "max_replans": 2,
+        "daily_analysis_limit": 60,
+        "hard_deadline_at": null,
+        "used_replan_ordinals": [],
+        "available_replans": 2,
+        "blocking_reasons": [
+          "service_unavailable",
+          "budget_unconfigured",
+          "deadline_unverified"
+        ]
+      },
+      "freshness_checked_at": "2026-10-18T11:15:08.815Z",
+      "m1_foods_nutrients_and_image_shas_match": true,
+      "ambiguity_projection": [
+        {
+          "slot": "breakfast",
+          "m1": false,
+          "replacement": null
+        },
+        {
+          "slot": "lunch",
+          "m1": false,
+          "replacement": null
+        },
+        {
+          "slot": "dinner",
+          "m1": false,
+          "replacement": null
+        }
+      ],
+      "ambiguity_projection_match": false
+    }
+  ],
+  "observed_at": "2026-10-18T11:15:32.370331+00:00"
+}
