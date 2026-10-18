@@ -188,6 +188,11 @@ def preparation_client(base_url, token):
     return MealClient(base_url, token, max_clock_ahead=5)
 
 
+def publication_source_client(base_url, token):
+    """公開前のGETも最大5秒実待機する。未来判定・120秒の鮮度検査は維持する。"""
+    return MealClient(base_url, token, max_clock_ahead=5)
+
+
 class MealClient:
     """固定みな境界の内部API。失われた応答を新UUIDで再送しない。"""
 

@@ -109,9 +109,9 @@ def cycle(store: Store, now: datetime):
         # 公開開始には承認設定も必須。確認用PINGだけで公開を有効にしない。
         policy_from_env()
         from .m1_contract import verify_source
-        from .clients import MealClient
+        from .clients import publication_source_client
         from .ogp import capture_ogp
-        meal_client = MealClient(os.getenv('MINA_MEAL_API_BASE_URL', ''), os.getenv('MINA_AGENT_API_TOKEN', ''))
+        meal_client = publication_source_client(os.getenv('MINA_MEAL_API_BASE_URL', ''), os.getenv('MINA_AGENT_API_TOKEN', ''))
         from .source_audit import verify_audited
         published = publish_due(store, XClient(), now, host, lambda c: verify_audited(c, meal_client, host, capture_ogp,store))
     store.audit.maintain(now)
