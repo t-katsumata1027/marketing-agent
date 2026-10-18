@@ -1,0 +1,24 @@
+{
+  "target_date": "2026-10-18",
+  "observed_at": "2026-10-18T00:40:14.496209+00:00",
+  "external_mutations": 0,
+  "business_writes": 0,
+  "usage_accounting_only": true,
+  "requests": 4,
+  "finished_at": "2026-10-18T00:40:15.950476+00:00",
+  "channels": [
+    {
+      "channel": "x",
+      "connected": true,
+      "complete": true,
+      "pages": 1,
+      "target_or_undated_posts": 0,
+      "undated_posts": 0,
+      "unknown_status_posts": 0,
+      "counts": {
+        "sent": 7
+      }
+    }
+  ],
+  "scope": "Xのみ。過去共通照会の原文は保護されたtmpに保全"
+}

@@ -1,0 +1,21 @@
+{
+  "approval_explanation": "提示された計画および隔離コードは、本人の3依頼（①10/18遅延Xの応急計画、②日々のX安定化計画見直し、③APIを待たずにできる作業開始）に対し、本番不変更・読取専用・品質基準（日次1800..2000kcal、未来拒否、120秒鮮度、本人承認）を一切迂回せず、17日の+1079.563ms時計スキュー停止と18日の作成保留（1727kcal・夕食保留）を正確に切り分けて対処できているため、計画および隔離コードの範囲でGOと判定する。",
+  "approved_scope": "計画および提示された隔離コード（continuity.pyによる読取専用診断、clients.pyのpublication_source_clientにおけるmax_clock_ahead=5実時間待機、__main__.pyの公開前検証クライアント切替、および単体テスト）のみを承認する。本番配置・有効化・10/18置換・外部削除/取消・未提示の朝昼個別救済経路の実行は承認範囲外とする。",
+  "blockers": [],
+  "cause_assessment": [
+    "2026-10-18分は作成・品質点検段階で朝食484kcal・昼食633kcal（publishable）、夕食610kcal（識別保留: hold）となり、日合計1727kcalで日次基準（1800〜2000kcal）を満たさず、preparationがheld:context_reviewで停止したため18日候補が0件となった（Bufferの送信失敗ではない）。",
+    "2026-10-17の日次投稿停止は、初回GET（+700.983ms）が待機成功した一方、最終GET（source_final）の+1079.563msが公開側クライアントの既定1秒上限（max_clock_ahead=1）を超過し、送信前にClockSkewErrorで安全停止したことが原因である。",
+    "外部在庫はXが過去sent 7件（対象/不明日時0件）である一方、IGにsent 1件と日時不明draft 4件が残存しているため、Buffer共通チャネル上の『共通外部不存在』は成立しない。"
+  ],
+  "decision": "GO",
+  "major_findings": [
+    "summarize関数はSQLiteをURIのmode=roかつPRAGMA query_only=ONで開き、台帳の不完全性・JSON破損時には部分推測や生データ露出を行わず安全にフェイルクローズする設計となっている（ハッシュ不変テストでも検証済み）。",
+    "10/18の朝・昼（publishable）はindividual_source_recheck_candidate、夕（hold）はsaved_meal_quality_hold、日次はdaily_energy_out_of_rangeへ正確に分離され、未解決リクエストや外部送信形跡がある場合はreconciliation必須へ優先遷移する順序が担保されている。",
+    "publication_source_clientはmax_clock_ahead=5で実時間sleepを行い、応答時刻の書き換えを行わず、sleep後も未来時刻であれば拒否し、validate_state側の未来拒否および120秒鮮度検査を維持している。",
+    "朝昼個別救済の実行経路は現行CLIに未実装であり、提示コードはあくまで診断・分類（planning_only=True）と時計スキュー待機緩和の隔離実装に留まるため、直ちに本番で個別救済を実行できる状態ではないことが明確に区別されている。"
+  ],
+  "required_plan_changes": [
+    "計画GO後の本人説明および本番/応急実行承認プロセスにおいて、IGの日時不明draft 4件・sent 1件の扱い（削除・取消を行わない前提での整合確認）と、10/18夕食（610kcal保留）および朝昼個別救済をどう扱うかの明示的スロット方針（explicit_slot_policy）を提示して承認を得ること。",
+    "朝昼個別救済を実施する場合は、現行CLIには経路が未実装であるため、別途救済経路の設計・隔離実装・レビューを経てから実行へ進むこと。"
+  ]
+}
