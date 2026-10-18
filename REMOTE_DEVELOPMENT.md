@@ -1,5 +1,9 @@
 # サブPCでの開発
 
+## 2026年10月19日・Instagram公開前停止の修正配置
+
+稼働基点`de3d571`から切り出した`c2f8b49`を配置した。Windows・隔離Linux全体385件、CI、実正本4枠と画像8枚の読取照合が成功。切替時の業務14台帳を保持し、朝食だけを新時刻の再承認へ移した。新承認後07:41 JSTに公開確定。3サービス・3タイマーともactive。保護バックアップは`/var/lib/mina-agent/deployment-instagram-incident-c2f8b49687`。詳細は`MINA_INSTAGRAM_INCIDENT_20261019.md`。置換API統合や予算・機能有効化は今回の配布へ含めていない。
+
 ## 接続と配置
 
 ChatGPTアプリのSSH接続は`katsu-server1-wsl`を使用する。Windowsへの管理用SSH別名`katsu-server1`は、この接続の経由先なのでSSH設定から削除しない。
