@@ -112,6 +112,7 @@ def publish_once(store, row, verify_source, hosts, client=None, clock=lambda: da
     client = client or InstagramBufferClient(store)
     started = time.monotonic()
     attempted = False
+    stage = 'authorization'
     try:
         require_live()
         if os.getenv('MINA_INSTAGRAM_PUBLISH_ENABLED', 'false').lower() != 'true':
@@ -121,31 +122,40 @@ def publish_once(store, row, verify_source, hosts, client=None, clock=lambda: da
                     or not db.execute('SELECT 1 FROM instagram_acceptance WHERE channel_id=? AND format=? AND layout_version=?',
                                       (c.channel_id, c.format, c.layout_version)).fetchone()):
                 raise ProbeError('instagram_draft_acceptance_required')
-        if not 0 <= (instant(clock()) - c.scheduled_at).total_seconds() <= 120:
+        from .instagram_recovery import publication_window
+        due, deadline = publication_window(store, row, c)
+        if (not 0 <= (instant(clock()) - due).total_seconds() <= 120 or
+                (deadline is not None and instant(clock()) >= deadline)):
             raise ProbeError('instagram_deadline_expired')
+        stage = 'account'
         channel = instagram_channel(client)
         if channel['id'] != c.channel_id or channel['serviceId'] != c.account_id:
             raise ProbeError('instagram_target_changed')
+        stage = 'source'
         verify_source(c)
+        stage = 'media'
         for asset in c.assets:
             media_url(asset['url'], hosts)
             verify_media(asset)
         if (time.monotonic() - started > 120 or
-                not 0 <= (instant(clock()) - c.scheduled_at).total_seconds() <= 120):
+                not 0 <= (instant(clock()) - due).total_seconds() <= 120 or
+                (deadline is not None and instant(clock()) >= deadline)):
             raise ProbeError('instagram_preflight_expired')
         request = request_for(c)
         store.begin(row, request, clock())
         attempted = True
+        stage = 'submission'
         result = client._request(CREATE, {'input': request})['createPost']
         if result.get('__typename') != 'PostActionSuccess' or not result.get('post', {}).get('id'):
             raise ProbeError('instagram_submission_unknown')
         post = result['post']
         store.mark(row, 'accepted', post)
+        stage = 'delivery'
         for attempt in range(7):
             url = validate_post(c, post)
             if url:
                 sent = instant(datetime.fromisoformat(post['sentAt'].replace('Z', '+00:00')))
-                if not 0 <= (sent - c.scheduled_at).total_seconds() <= 120:
+                if not 0 <= (sent - due).total_seconds() <= 120:
                     raise ProbeError('instagram_delivery_late')
                 store.mark(row, 'published', post, url)
                 return url
@@ -157,8 +167,10 @@ def publish_once(store, row, verify_source, hosts, client=None, clock=lambda: da
             if post.get('id') != post_id:
                 raise ProbeError('instagram_post_id_changed')
         raise ProbeError('instagram_delivery_unknown')
-    except Exception:
-        store.mark(row, 'outcome_unknown' if attempted else 'held')
+    except Exception as error:
+        from .audit import safe_failure
+        reason, details = safe_failure(error)
+        store.mark(row, 'outcome_unknown' if attempted else 'held', failure={'stage': stage, 'reason': reason, **details})
         raise
 
 
