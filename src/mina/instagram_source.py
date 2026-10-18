@@ -13,11 +13,17 @@ from .instagram_domain import digest, nutrition
 from .m1_contract import validate_state
 
 
-def load_meal_bundle(database, directory, target, state, now=None):
+def load_meal_bundle(database, directory, target, state, now=None,artifact_directory=None):
     """現在API・X候補・検査済み原本画像が一致した日だけ取り出す。"""
     now = now or datetime.now(UTC)
     version = validate_state(state, target, now)
     base = Path(directory).resolve() / target
+    from .replacement_artifacts import resolve
+    if artifact_directory is None:base = resolve(base)
+    else:
+        selected=Path(artifact_directory)
+        if selected.is_symlink() or not selected.resolve().is_relative_to(base.resolve()):raise ValueError('replacement_artifact_escape')
+        base=selected.resolve()
     saved_file = base / 'drive-final.json'
     if not saved_file.exists():
         saved_file = base / 'drive.json'
@@ -106,9 +112,9 @@ def load_meal_bundle(database, directory, target, state, now=None):
     return bundle
 
 
-def load_bundle(database, directory, target, state, now=None):
+def load_bundle(database, directory, target, state, now=None,artifact_directory=None):
     """目標も含めた公開用正本。API未提供と未設定を取り違えない。"""
-    bundle = load_meal_bundle(database, directory, target, state, now)
+    bundle = load_meal_bundle(database, directory, target, state, now,artifact_directory=artifact_directory)
     targets = state.get('nutrition_targets')
     if not isinstance(targets, dict) or set(targets) != {'calories', 'protein', 'fat', 'carbs'}:
         raise ValueError('logeats_nutrition_targets_not_exposed')

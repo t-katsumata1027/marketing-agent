@@ -1,0 +1,3408 @@
+{
+  "fixture_version": "mina-replace-plan-v2.1",
+  "description": "全値は合成。画像は1pxであり食品独立点検・実API・本番状態の証拠ではない。金額/予算digestも承認済み運用値ではない。",
+  "hash_vectors": {
+    "precondition": {
+      "payload": {
+        "target_date": "2030-01-01",
+        "target_slot": "dinner",
+        "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+        "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+        "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+        "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+        "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+        "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+      },
+      "expected": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9"
+    },
+    "analysis": {
+      "payload": {
+        "spec": "mina-candidate-analysis-v1",
+        "analysis_source": "candidate_analysis",
+        "analyzer_spec": "synthetic-analyzer-v1",
+        "quality_spec": "mina-nutrition-v1",
+        "foods": [
+          {
+            "name": "合成新夕食",
+            "amount": "1食",
+            "calories": 750,
+            "protein": 40,
+            "fat": 30,
+            "carbs": 80
+          }
+        ],
+        "summary": {
+          "totalCalories": 750,
+          "totalProtein": 40,
+          "totalFat": 30,
+          "totalCarbs": 80
+        },
+        "is_ambiguous": false,
+        "quality": {
+          "status": "pass",
+          "atwater_calories": 750,
+          "calorie_difference": 0,
+          "calorie_difference_ratio": 0,
+          "warnings": []
+        }
+      },
+      "canonical_utf8": "{\"analysis_source\":\"candidate_analysis\",\"analyzer_spec\":\"synthetic-analyzer-v1\",\"foods\":[{\"amount\":\"1食\",\"calories\":750,\"carbs\":80,\"fat\":30,\"name\":\"合成新夕食\",\"protein\":40}],\"is_ambiguous\":false,\"quality\":{\"atwater_calories\":750,\"calorie_difference\":0,\"calorie_difference_ratio\":0,\"status\":\"pass\",\"warnings\":[]},\"quality_spec\":\"mina-nutrition-v1\",\"spec\":\"mina-candidate-analysis-v1\",\"summary\":{\"totalCalories\":750,\"totalCarbs\":80,\"totalFat\":30,\"totalProtein\":40}}",
+      "expected": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8"
+    },
+    "candidate": {
+      "payload": {
+        "spec": "mina-meal-replacement-candidate-v1",
+        "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+        "target_date": "2030-01-01",
+        "target_slot": "dinner",
+        "prepared_preconditions": {
+          "target_date": "2030-01-01",
+          "target_slot": "dinner",
+          "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+          "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+          "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+          "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+          "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+          "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+        },
+        "prepared_publication_hold": {
+          "hold_epoch": 1,
+          "pause_receipt_digest": "427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf",
+          "provider_check_digest": "d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447",
+          "provider_checked_at": "2030-01-01T00:01:00.000Z"
+        },
+        "original_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+        "stored_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+        "original_mime": "image/png",
+        "stored_mime": "image/webp",
+        "original_byte_length": 69,
+        "stored_byte_length": 38,
+        "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+        "normalized_comment": "合成fixture",
+        "policy_version": "synthetic-policy-v1",
+        "hard_deadline_at": "2030-01-01T00:15:00.000Z",
+        "candidate_expires_at": "2030-01-01T00:15:00.000Z",
+        "attempt_ordinal": 1
+      },
+      "canonical_utf8": "{\"analysis_digest\":\"ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8\",\"attempt_ordinal\":1,\"candidate_expires_at\":\"2030-01-01T00:15:00.000Z\",\"hard_deadline_at\":\"2030-01-01T00:15:00.000Z\",\"normalized_comment\":\"合成fixture\",\"original_byte_length\":69,\"original_mime\":\"image/png\",\"original_sha256\":\"0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9\",\"policy_version\":\"synthetic-policy-v1\",\"prepare_uuid\":\"00000000-0000-4000-8000-000000000001\",\"prepared_preconditions\":{\"account_generation\":\"gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2\",\"day_generation\":\"gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec\",\"meal_generation\":\"gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1\",\"state_version\":\"sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa\",\"target_date\":\"2030-01-01\",\"target_result_version\":\"rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1\",\"target_share_url\":\"https://www.log-eats.com/s/syntheticdinner\",\"target_slot\":\"dinner\"},\"prepared_publication_hold\":{\"hold_epoch\":1,\"pause_receipt_digest\":\"427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf\",\"provider_check_digest\":\"d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447\",\"provider_checked_at\":\"2030-01-01T00:01:00.000Z\"},\"spec\":\"mina-meal-replacement-candidate-v1\",\"stored_byte_length\":38,\"stored_mime\":\"image/webp\",\"stored_sha256\":\"413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629\",\"target_date\":\"2030-01-01\",\"target_slot\":\"dinner\"}",
+      "expected": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c"
+    }
+  },
+  "binary_fixtures": {
+    "original": {
+      "mime": "image/png",
+      "base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP48OEDAAWkAtFabOJuAAAAAElFTkSuQmCC",
+      "sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+      "length": 69
+    },
+    "stored": {
+      "mime": "image/webp",
+      "base64": "UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAAdQ+MIXvv+BiOh/AAA=",
+      "sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+      "length": 38
+    }
+  },
+  "samples": [
+    {
+      "case_id": "precondition_success",
+      "schema": "PreconditionResponse",
+      "http": 200,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "date": "2030-01-01",
+        "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+        "meals": [
+          {
+            "expected": {
+              "target_date": "2030-01-01",
+              "target_slot": "breakfast",
+              "target_share_url": "https://www.log-eats.com/s/syntheticbreakfast",
+              "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+              "target_result_version": "rv1_5095c63da385202495ae170c3ff867c0112d8f630e07c79c2d23807a2a47074f",
+              "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+              "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+              "meal_generation": "gn1_7c58ea253628feed6583e78db4fd9fab131e0016ade168b4c200eb41d6aa93b1"
+            },
+            "precondition_digest": "pc1_57448b2ed2f757e9e66128c01bc81b5971400a673c1186337360a3f702d84289",
+            "analysis": {
+              "spec": "mina-candidate-analysis-v1",
+              "analysis_source": "stored_canonical",
+              "analyzer_spec": "stored-canonical-projection-v1",
+              "quality_spec": "mina-nutrition-v1",
+              "foods": [
+                {
+                  "name": "合成朝食",
+                  "amount": null,
+                  "calories": 484,
+                  "protein": 25,
+                  "fat": 16,
+                  "carbs": 60
+                }
+              ],
+              "summary": {
+                "totalCalories": 484,
+                "totalProtein": 25,
+                "totalFat": 16,
+                "totalCarbs": 60
+              },
+              "is_ambiguous": null,
+              "quality": {
+                "status": "pass",
+                "atwater_calories": 484,
+                "calorie_difference": 0,
+                "calorie_difference_ratio": 0,
+                "warnings": []
+              }
+            },
+            "analysis_digest": "ad1_1bd3f00cb37ae16e19485ff3bec5b48f0e8f0711f6e634c29069a6fb96d6df90",
+            "image_sha256": "e505a2a986a148c4222f282829d1f708b8d7d42abc37803391ff28a68e65b0a7",
+            "stored_image_sha256": "28078fa578740adf3db68690188171e2cd09bbad8e3a877b87a63607b17c3e50",
+            "share_status": "active"
+          },
+          {
+            "expected": {
+              "target_date": "2030-01-01",
+              "target_slot": "lunch",
+              "target_share_url": "https://www.log-eats.com/s/syntheticlunch",
+              "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+              "target_result_version": "rv1_d5ce297f97140605562e3c9a146fb71996ff46e4c8ae8900f4fc9aaa3cb8e6b5",
+              "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+              "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+              "meal_generation": "gn1_f3bb79e48a7a8af1d028f6acb7fa34b0c7f75da596fc205907d2a708fe28ebef"
+            },
+            "precondition_digest": "pc1_c5a3390421fa08b9e4a8d9f3bf809cae2b7652fbca76bc7045f7b35c5a26f710",
+            "analysis": {
+              "spec": "mina-candidate-analysis-v1",
+              "analysis_source": "stored_canonical",
+              "analyzer_spec": "stored-canonical-projection-v1",
+              "quality_spec": "mina-nutrition-v1",
+              "foods": [
+                {
+                  "name": "合成昼食",
+                  "amount": "1食",
+                  "calories": 633,
+                  "protein": 30,
+                  "fat": 25,
+                  "carbs": 72
+                }
+              ],
+              "summary": {
+                "totalCalories": 633,
+                "totalProtein": 30,
+                "totalFat": 25,
+                "totalCarbs": 72
+              },
+              "is_ambiguous": null,
+              "quality": {
+                "status": "pass",
+                "atwater_calories": 633,
+                "calorie_difference": 0,
+                "calorie_difference_ratio": 0,
+                "warnings": []
+              }
+            },
+            "analysis_digest": "ad1_f8dbc4a7386b9df872bae3dce9b76152a56006b4b9ae317f23cba5840104b213",
+            "image_sha256": "df98d17c75f7b5a2138bb697020ddf4204984d86e013b9dec56d63303168be71",
+            "stored_image_sha256": "c9b002e487c20aa317390ce83668e3dc970b65021023e54927ca2eca8dbd58b8",
+            "share_status": "active"
+          },
+          {
+            "expected": {
+              "target_date": "2030-01-01",
+              "target_slot": "dinner",
+              "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+              "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+              "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+              "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+              "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+              "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+            },
+            "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+            "analysis": {
+              "spec": "mina-candidate-analysis-v1",
+              "analysis_source": "stored_canonical",
+              "analyzer_spec": "stored-canonical-projection-v1",
+              "quality_spec": "mina-nutrition-v1",
+              "foods": [
+                {
+                  "name": "合成旧夕食",
+                  "amount": "1食",
+                  "calories": 610,
+                  "protein": 40,
+                  "fat": 18,
+                  "carbs": 72
+                }
+              ],
+              "summary": {
+                "totalCalories": 610,
+                "totalProtein": 40,
+                "totalFat": 18,
+                "totalCarbs": 72
+              },
+              "is_ambiguous": null,
+              "quality": {
+                "status": "pass",
+                "atwater_calories": 610,
+                "calorie_difference": 0,
+                "calorie_difference_ratio": 0,
+                "warnings": []
+              }
+            },
+            "analysis_digest": "ad1_cd72b8bdc849aad7d77ab8be8bc8a7b04c33308f4ed7e49c5970f20f27cd8f44",
+            "image_sha256": "d0b307162a203589eae2e8cdfb8f06065ba3303691e0d13f1edc63c1f919f28e",
+            "stored_image_sha256": "e931ab40034b071f9019548d24cee96c9c2635a58d4f78f2f955310b55623812",
+            "share_status": "active"
+          }
+        ],
+        "summary": {
+          "totalCalories": 1727,
+          "totalProtein": 95,
+          "totalFat": 59,
+          "totalCarbs": 204
+        },
+        "daily_share": null,
+        "policy": {
+          "policy_version": "synthetic-policy-v1",
+          "budget_policy_digest": "b2079dd4661916b5f62808e3d5fa8d19158e02641157d1c08c0b1e06b39c024b",
+          "budget_configured": true,
+          "existing_preparation_deadline_verified": true,
+          "max_replans": 2,
+          "daily_analysis_limit": 60,
+          "hard_deadline_at": "2030-01-01T00:15:00.000Z",
+          "used_replan_ordinals": [],
+          "available_replans": 2,
+          "blocking_reasons": []
+        },
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        }
+      }
+    },
+    {
+      "case_id": "prepare_input",
+      "schema": "PrepareInput",
+      "http": 200,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request_uuid": "00000000-0000-4000-8000-000000000001",
+        "expected": {
+          "target_date": "2030-01-01",
+          "target_slot": "dinner",
+          "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+          "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+          "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+          "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+          "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+          "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+        },
+        "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+        "input_image_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+        "original_mime": "image/png",
+        "normalized_comment": "合成fixture",
+        "reason": "menu_replan_after_quality_hold",
+        "migration": {
+          "receipt_digest": "a237a4c58efca5e82da69abb10e5f9fb3adfb44f22f99f05202da5466e851ebb",
+          "prior_consumed_ordinals": [],
+          "attempt_ordinal": 1,
+          "agent_step_key": "meal_replan:dinner:1",
+          "first_replan_started_at": "2030-01-01T00:00:00.000Z",
+          "existing_preparation_deadline_at": "2030-01-01T00:30:00.000Z",
+          "policy_version": "synthetic-policy-v1",
+          "budget_policy_digest": "b2079dd4661916b5f62808e3d5fa8d19158e02641157d1c08c0b1e06b39c024b",
+          "fee_reservation_digest": "0d81438eef012f1d4cbce9aa9de70017327e1c765176e4792659fd5222621120"
+        },
+        "publication_hold": {
+          "hold_epoch": 1,
+          "pause_receipt_digest": "427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf",
+          "provider_check_digest": "d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447",
+          "provider_checked_at": "2030-01-01T00:01:00.000Z"
+        }
+      }
+    },
+    {
+      "case_id": "discard_input",
+      "schema": "DiscardInput",
+      "http": 200,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request_uuid": "00000000-0000-4000-8000-000000000003",
+        "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+        "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+        "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+        "expected_control_revision": 1,
+        "reason": "independent_review_failed",
+        "review_evidence_digest": "36cfaeb5b4476142bc31e837d6633b5a43b5d01a12f82f11095f670a5b3ad654",
+        "review": {
+          "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+          "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+          "original_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "stored_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+          "reviewer_role": "independent_reviewer",
+          "reviewed_at": "2030-01-01T00:01:00.000Z",
+          "verdict": "fail",
+          "observations": [
+            "image_analysis_mismatch"
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "commit_input",
+      "schema": "CommitInput",
+      "http": 200,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request_uuid": "00000000-0000-4000-8000-000000000002",
+        "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+        "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+        "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+        "input_image_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+        "expected_control_revision": 1,
+        "expected": {
+          "target_date": "2030-01-01",
+          "target_slot": "dinner",
+          "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+          "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+          "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+          "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+          "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+          "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+        },
+        "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+        "publication_hold": {
+          "hold_epoch": 1,
+          "pause_receipt_digest": "427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf",
+          "provider_check_digest": "d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447",
+          "provider_checked_at": "2030-01-01T00:01:00.000Z"
+        },
+        "review_evidence_digest": "0987ea0f632af6e0e473ed291337c86a080b8341d8bfd784183267a30e3bbd8d",
+        "drive_evidence_digest": "8e9dcae61bc501584bb90b23d873a400ed8f5c0230324fa2316ad071ec01f121",
+        "nutrition_check": {
+          "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+          "candidate_analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+          "other_meals_analysis_digests": [
+            "ad1_1bd3f00cb37ae16e19485ff3bec5b48f0e8f0711f6e634c29069a6fb96d6df90",
+            "ad1_f8dbc4a7386b9df872bae3dce9b76152a56006b4b9ae317f23cba5840104b213"
+          ],
+          "other_meals_total_calories": 1117,
+          "candidate_total_calories": 750,
+          "total_calories": 1867,
+          "min_calories": 1800,
+          "max_calories": 2000,
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "evidence_digest": "67a72d763434e6a4fb5f34c912bad329d130c9f0385d59df22ed98a86eb8e122"
+        },
+        "review": {
+          "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+          "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+          "original_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "stored_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+          "reviewer_role": "independent_reviewer",
+          "review_method": "合成の契約fixture。食品点検の合格証跡ではない",
+          "reviewed_at": "2030-01-01T00:01:00.000Z",
+          "verdict": "pass"
+        },
+        "drive_check": {
+          "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+          "original_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "original_download_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "previous_original_sha256": "b6a598b66e3a4f4c2c9cff68f046edaf725811e6536db577d51dcb2a87db7eb0",
+          "previous_download_sha256": "b6a598b66e3a4f4c2c9cff68f046edaf725811e6536db577d51dcb2a87db7eb0",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "verdict": "pass"
+        }
+      }
+    },
+    {
+      "case_id": "prepare_ready",
+      "schema": "CandidateResponse",
+      "http": 201,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000001",
+          "operation": "candidate_prepare",
+          "input_hash": "ih1_85f4046b3152ed5640f916499c4f9fc58ebf9703b5700f85f7ccd2d831d0ea58",
+          "outcome": "applied",
+          "stage": "ready",
+          "reason": null,
+          "discard_input": null
+        },
+        "candidate": {
+          "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+          "candidate_state": "ready",
+          "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+          "control_revision": 1,
+          "prepared_preconditions": {
+            "target_date": "2030-01-01",
+            "target_slot": "dinner",
+            "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+            "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+            "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+            "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+            "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+            "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+          },
+          "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+          "analysis": {
+            "spec": "mina-candidate-analysis-v1",
+            "analysis_source": "candidate_analysis",
+            "analyzer_spec": "synthetic-analyzer-v1",
+            "quality_spec": "mina-nutrition-v1",
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false,
+            "quality": {
+              "status": "pass",
+              "atwater_calories": 750,
+              "calorie_difference": 0,
+              "calorie_difference_ratio": 0,
+              "warnings": []
+            }
+          },
+          "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+          "normalized_comment": "合成fixture",
+          "original": {
+            "mime": "image/png",
+            "sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+            "byte_length": 69,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/original"
+          },
+          "stored": {
+            "mime": "image/webp",
+            "sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+            "byte_length": 38,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/stored"
+          },
+          "policy_version": "synthetic-policy-v1",
+          "attempt_ordinal": 1,
+          "hard_deadline_at": "2030-01-01T00:15:00.000Z",
+          "candidate_expires_at": "2030-01-01T00:15:00.000Z",
+          "effective_usable": true,
+          "last_control_request_uuid": "00000000-0000-4000-8000-000000000001",
+          "commit_request_uuid": null,
+          "prepared_publication_hold": {
+            "hold_epoch": 1,
+            "pause_receipt_digest": "427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf",
+            "provider_check_digest": "d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447",
+            "provider_checked_at": "2030-01-01T00:01:00.000Z"
+          }
+        },
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        },
+        "reason": null
+      }
+    },
+    {
+      "case_id": "candidate_get_ready",
+      "schema": "CandidateResponse",
+      "http": 200,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000001",
+          "operation": "candidate_prepare",
+          "input_hash": "ih1_85f4046b3152ed5640f916499c4f9fc58ebf9703b5700f85f7ccd2d831d0ea58",
+          "outcome": "applied",
+          "stage": "ready",
+          "reason": null,
+          "discard_input": null
+        },
+        "candidate": {
+          "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+          "candidate_state": "ready",
+          "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+          "control_revision": 1,
+          "prepared_preconditions": {
+            "target_date": "2030-01-01",
+            "target_slot": "dinner",
+            "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+            "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+            "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+            "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+            "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+            "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+          },
+          "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+          "analysis": {
+            "spec": "mina-candidate-analysis-v1",
+            "analysis_source": "candidate_analysis",
+            "analyzer_spec": "synthetic-analyzer-v1",
+            "quality_spec": "mina-nutrition-v1",
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false,
+            "quality": {
+              "status": "pass",
+              "atwater_calories": 750,
+              "calorie_difference": 0,
+              "calorie_difference_ratio": 0,
+              "warnings": []
+            }
+          },
+          "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+          "normalized_comment": "合成fixture",
+          "original": {
+            "mime": "image/png",
+            "sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+            "byte_length": 69,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/original"
+          },
+          "stored": {
+            "mime": "image/webp",
+            "sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+            "byte_length": 38,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/stored"
+          },
+          "policy_version": "synthetic-policy-v1",
+          "attempt_ordinal": 1,
+          "hard_deadline_at": "2030-01-01T00:15:00.000Z",
+          "candidate_expires_at": "2030-01-01T00:15:00.000Z",
+          "effective_usable": true,
+          "last_control_request_uuid": "00000000-0000-4000-8000-000000000001",
+          "commit_request_uuid": null,
+          "prepared_publication_hold": {
+            "hold_epoch": 1,
+            "pause_receipt_digest": "427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf",
+            "provider_check_digest": "d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447",
+            "provider_checked_at": "2030-01-01T00:01:00.000Z"
+          }
+        },
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        },
+        "reason": null
+      }
+    },
+    {
+      "case_id": "discard_success",
+      "schema": "CandidateResponse",
+      "http": 200,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000003",
+          "operation": "candidate_discard",
+          "input_hash": "ih1_33de281b7cb944b6608db28b447566b03080ae6e90ed997a3c59395d1c60064d",
+          "outcome": "applied",
+          "stage": "discarded",
+          "reason": null,
+          "discard_input": {
+            "contract_version": "mina-replace-v1",
+            "request_uuid": "00000000-0000-4000-8000-000000000003",
+            "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+            "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+            "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+            "expected_control_revision": 1,
+            "reason": "independent_review_failed",
+            "review_evidence_digest": "36cfaeb5b4476142bc31e837d6633b5a43b5d01a12f82f11095f670a5b3ad654",
+            "review": {
+              "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+              "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+              "original_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+              "stored_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+              "reviewer_role": "independent_reviewer",
+              "reviewed_at": "2030-01-01T00:01:00.000Z",
+              "verdict": "fail",
+              "observations": [
+                "image_analysis_mismatch"
+              ]
+            }
+          }
+        },
+        "candidate": {
+          "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+          "candidate_state": "discarded",
+          "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+          "control_revision": 2,
+          "prepared_preconditions": {
+            "target_date": "2030-01-01",
+            "target_slot": "dinner",
+            "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+            "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+            "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+            "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+            "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+            "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+          },
+          "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+          "analysis": {
+            "spec": "mina-candidate-analysis-v1",
+            "analysis_source": "candidate_analysis",
+            "analyzer_spec": "synthetic-analyzer-v1",
+            "quality_spec": "mina-nutrition-v1",
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false,
+            "quality": {
+              "status": "pass",
+              "atwater_calories": 750,
+              "calorie_difference": 0,
+              "calorie_difference_ratio": 0,
+              "warnings": []
+            }
+          },
+          "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+          "normalized_comment": "合成fixture",
+          "original": {
+            "mime": "image/png",
+            "sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+            "byte_length": 69,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/original"
+          },
+          "stored": {
+            "mime": "image/webp",
+            "sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+            "byte_length": 38,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/stored"
+          },
+          "policy_version": "synthetic-policy-v1",
+          "attempt_ordinal": 1,
+          "hard_deadline_at": "2030-01-01T00:15:00.000Z",
+          "candidate_expires_at": "2030-01-01T00:15:00.000Z",
+          "effective_usable": false,
+          "last_control_request_uuid": "00000000-0000-4000-8000-000000000003",
+          "commit_request_uuid": null,
+          "prepared_publication_hold": {
+            "hold_epoch": 1,
+            "pause_receipt_digest": "427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf",
+            "provider_check_digest": "d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447",
+            "provider_checked_at": "2030-01-01T00:01:00.000Z"
+          }
+        },
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        },
+        "reason": null
+      }
+    },
+    {
+      "case_id": "discard_lookup_success",
+      "schema": "ControlLookupResponse",
+      "http": 200,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000003",
+          "operation": "candidate_discard",
+          "input_hash": "ih1_33de281b7cb944b6608db28b447566b03080ae6e90ed997a3c59395d1c60064d",
+          "outcome": "applied",
+          "stage": "discarded",
+          "reason": null,
+          "discard_input": {
+            "contract_version": "mina-replace-v1",
+            "request_uuid": "00000000-0000-4000-8000-000000000003",
+            "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+            "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+            "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+            "expected_control_revision": 1,
+            "reason": "independent_review_failed",
+            "review_evidence_digest": "36cfaeb5b4476142bc31e837d6633b5a43b5d01a12f82f11095f670a5b3ad654",
+            "review": {
+              "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+              "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+              "original_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+              "stored_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+              "reviewer_role": "independent_reviewer",
+              "reviewed_at": "2030-01-01T00:01:00.000Z",
+              "verdict": "fail",
+              "observations": [
+                "image_analysis_mismatch"
+              ]
+            }
+          }
+        },
+        "candidate": {
+          "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+          "candidate_state": "discarded",
+          "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+          "control_revision": 2,
+          "prepared_preconditions": {
+            "target_date": "2030-01-01",
+            "target_slot": "dinner",
+            "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+            "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+            "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+            "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+            "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+            "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+          },
+          "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+          "analysis": {
+            "spec": "mina-candidate-analysis-v1",
+            "analysis_source": "candidate_analysis",
+            "analyzer_spec": "synthetic-analyzer-v1",
+            "quality_spec": "mina-nutrition-v1",
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false,
+            "quality": {
+              "status": "pass",
+              "atwater_calories": 750,
+              "calorie_difference": 0,
+              "calorie_difference_ratio": 0,
+              "warnings": []
+            }
+          },
+          "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+          "normalized_comment": "合成fixture",
+          "original": {
+            "mime": "image/png",
+            "sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+            "byte_length": 69,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/original"
+          },
+          "stored": {
+            "mime": "image/webp",
+            "sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+            "byte_length": 38,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/stored"
+          },
+          "policy_version": "synthetic-policy-v1",
+          "attempt_ordinal": 1,
+          "hard_deadline_at": "2030-01-01T00:15:00.000Z",
+          "candidate_expires_at": "2030-01-01T00:15:00.000Z",
+          "effective_usable": false,
+          "last_control_request_uuid": "00000000-0000-4000-8000-000000000003",
+          "commit_request_uuid": null,
+          "prepared_publication_hold": {
+            "hold_epoch": 1,
+            "pause_receipt_digest": "427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf",
+            "provider_check_digest": "d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447",
+            "provider_checked_at": "2030-01-01T00:01:00.000Z"
+          }
+        },
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        },
+        "reason": null
+      }
+    },
+    {
+      "case_id": "prepare_lookup_success",
+      "schema": "ControlLookupResponse",
+      "http": 200,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000001",
+          "operation": "candidate_prepare",
+          "input_hash": "ih1_85f4046b3152ed5640f916499c4f9fc58ebf9703b5700f85f7ccd2d831d0ea58",
+          "outcome": "applied",
+          "stage": "ready",
+          "reason": null,
+          "discard_input": null
+        },
+        "candidate": {
+          "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+          "candidate_state": "ready",
+          "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+          "control_revision": 1,
+          "prepared_preconditions": {
+            "target_date": "2030-01-01",
+            "target_slot": "dinner",
+            "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+            "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+            "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+            "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+            "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+            "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+          },
+          "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+          "analysis": {
+            "spec": "mina-candidate-analysis-v1",
+            "analysis_source": "candidate_analysis",
+            "analyzer_spec": "synthetic-analyzer-v1",
+            "quality_spec": "mina-nutrition-v1",
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false,
+            "quality": {
+              "status": "pass",
+              "atwater_calories": 750,
+              "calorie_difference": 0,
+              "calorie_difference_ratio": 0,
+              "warnings": []
+            }
+          },
+          "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+          "normalized_comment": "合成fixture",
+          "original": {
+            "mime": "image/png",
+            "sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+            "byte_length": 69,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/original"
+          },
+          "stored": {
+            "mime": "image/webp",
+            "sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+            "byte_length": 38,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/stored"
+          },
+          "policy_version": "synthetic-policy-v1",
+          "attempt_ordinal": 1,
+          "hard_deadline_at": "2030-01-01T00:15:00.000Z",
+          "candidate_expires_at": "2030-01-01T00:15:00.000Z",
+          "effective_usable": true,
+          "last_control_request_uuid": "00000000-0000-4000-8000-000000000001",
+          "commit_request_uuid": null,
+          "prepared_publication_hold": {
+            "hold_epoch": 1,
+            "pause_receipt_digest": "427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf",
+            "provider_check_digest": "d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447",
+            "provider_checked_at": "2030-01-01T00:01:00.000Z"
+          }
+        },
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        },
+        "reason": null
+      }
+    },
+    {
+      "case_id": "commit_success",
+      "schema": "CommitResponse",
+      "http": 200,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000002",
+          "operation": "meal_replace",
+          "input_hash": "ih1_ec5876f3d4eb1e5d1960b820df2fa05c9316ea225c388c004588726f0c32b341",
+          "status": "succeeded",
+          "persistence": "saved",
+          "stage": "completed",
+          "reason": null
+        },
+        "reason": null,
+        "result_status": "unchanged",
+        "result_hold_reason": null,
+        "current_state_version": "sv1_400bea6d52e2f1bf5af5cc956400b01821d116f22d4bf629eafcfdbfa867de35",
+        "result": {
+          "normalized_comment": "合成fixture",
+          "image_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "stored_image_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+          "analysis": {
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false
+          },
+          "meal": {
+            "meal_type": "dinner",
+            "logged_at": "2030-01-01T09:00:00.000Z"
+          },
+          "quality": {
+            "status": "pass",
+            "atwater_calories": 750,
+            "calorie_difference": 0,
+            "calorie_difference_ratio": 0,
+            "warnings": []
+          },
+          "share": {
+            "url": "https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "x": {
+            "text": "合成fixture",
+            "intent_url": "https://x.com/intent/post",
+            "fixed_text": "合成fixture",
+            "publish_text": "合成fixture https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+          "ogp": {
+            "status": "ready",
+            "revision": "synthetic-v1",
+            "image_sha256": "2dae23f26b8e75731846fd8a050ca55a4088a7f3d20130081804c3d1d20b5507",
+            "source_result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+            "image_url": "https://www.log-eats.com/share/synthetic/opengraph-image",
+            "expires_at": "2030-01-02T00:00:00.000Z"
+          }
+        },
+        "current_result": {
+          "normalized_comment": "合成fixture",
+          "image_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "stored_image_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+          "analysis": {
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false
+          },
+          "meal": {
+            "meal_type": "dinner",
+            "logged_at": "2030-01-01T09:00:00.000Z"
+          },
+          "quality": {
+            "status": "pass",
+            "atwater_calories": 750,
+            "calorie_difference": 0,
+            "calorie_difference_ratio": 0,
+            "warnings": []
+          },
+          "share": {
+            "url": "https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "x": {
+            "text": "合成fixture",
+            "intent_url": "https://x.com/intent/post",
+            "fixed_text": "合成fixture",
+            "publish_text": "合成fixture https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+          "ogp": {
+            "status": "ready",
+            "revision": "synthetic-v1",
+            "image_sha256": "2dae23f26b8e75731846fd8a050ca55a4088a7f3d20130081804c3d1d20b5507",
+            "source_result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+            "image_url": "https://www.log-eats.com/share/synthetic/opengraph-image",
+            "expires_at": "2030-01-02T00:00:00.000Z"
+          }
+        },
+        "affected_daily_result": null,
+        "current_daily_result": null,
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        }
+      }
+    },
+    {
+      "case_id": "commit_lookup_success",
+      "schema": "CommitResponse",
+      "http": 200,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000002",
+          "operation": "meal_replace",
+          "input_hash": "ih1_ec5876f3d4eb1e5d1960b820df2fa05c9316ea225c388c004588726f0c32b341",
+          "status": "succeeded",
+          "persistence": "saved",
+          "stage": "completed",
+          "reason": null
+        },
+        "reason": null,
+        "result_status": "unchanged",
+        "result_hold_reason": null,
+        "current_state_version": "sv1_400bea6d52e2f1bf5af5cc956400b01821d116f22d4bf629eafcfdbfa867de35",
+        "result": {
+          "normalized_comment": "合成fixture",
+          "image_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "stored_image_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+          "analysis": {
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false
+          },
+          "meal": {
+            "meal_type": "dinner",
+            "logged_at": "2030-01-01T09:00:00.000Z"
+          },
+          "quality": {
+            "status": "pass",
+            "atwater_calories": 750,
+            "calorie_difference": 0,
+            "calorie_difference_ratio": 0,
+            "warnings": []
+          },
+          "share": {
+            "url": "https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "x": {
+            "text": "合成fixture",
+            "intent_url": "https://x.com/intent/post",
+            "fixed_text": "合成fixture",
+            "publish_text": "合成fixture https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+          "ogp": {
+            "status": "ready",
+            "revision": "synthetic-v1",
+            "image_sha256": "2dae23f26b8e75731846fd8a050ca55a4088a7f3d20130081804c3d1d20b5507",
+            "source_result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+            "image_url": "https://www.log-eats.com/share/synthetic/opengraph-image",
+            "expires_at": "2030-01-02T00:00:00.000Z"
+          }
+        },
+        "current_result": {
+          "normalized_comment": "合成fixture",
+          "image_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "stored_image_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+          "analysis": {
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false
+          },
+          "meal": {
+            "meal_type": "dinner",
+            "logged_at": "2030-01-01T09:00:00.000Z"
+          },
+          "quality": {
+            "status": "pass",
+            "atwater_calories": 750,
+            "calorie_difference": 0,
+            "calorie_difference_ratio": 0,
+            "warnings": []
+          },
+          "share": {
+            "url": "https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "x": {
+            "text": "合成fixture",
+            "intent_url": "https://x.com/intent/post",
+            "fixed_text": "合成fixture",
+            "publish_text": "合成fixture https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+          "ogp": {
+            "status": "ready",
+            "revision": "synthetic-v1",
+            "image_sha256": "2dae23f26b8e75731846fd8a050ca55a4088a7f3d20130081804c3d1d20b5507",
+            "source_result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+            "image_url": "https://www.log-eats.com/share/synthetic/opengraph-image",
+            "expires_at": "2030-01-02T00:00:00.000Z"
+          }
+        },
+        "affected_daily_result": null,
+        "current_daily_result": null,
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        }
+      }
+    },
+    {
+      "case_id": "precondition_rejected",
+      "schema": "Error",
+      "http": 422,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "error": "合成の固定エラー例",
+        "reason": "day_composition_invalid",
+        "read_outcome": "rejected",
+        "request": null,
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2030-01-01T00:01:00.000Z"
+      }
+    },
+    {
+      "case_id": "precondition_unknown",
+      "schema": "Error",
+      "http": 503,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "error": "合成の固定エラー例",
+        "reason": "read_failed",
+        "read_outcome": "unknown",
+        "request": null,
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2030-01-01T00:01:00.000Z"
+      }
+    },
+    {
+      "case_id": "prepare_rejected",
+      "schema": "CandidateResponse",
+      "http": 422,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000001",
+          "operation": "candidate_prepare",
+          "input_hash": "ih1_85f4046b3152ed5640f916499c4f9fc58ebf9703b5700f85f7ccd2d831d0ea58",
+          "outcome": "rejected",
+          "stage": "quality",
+          "reason": "quality_review_required",
+          "discard_input": null
+        },
+        "candidate": {
+          "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+          "candidate_state": "rejected",
+          "candidate_version": null,
+          "control_revision": 1,
+          "prepared_preconditions": {
+            "target_date": "2030-01-01",
+            "target_slot": "dinner",
+            "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+            "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+            "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+            "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+            "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+            "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+          },
+          "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+          "analysis": null,
+          "analysis_digest": null,
+          "normalized_comment": "合成fixture",
+          "original": null,
+          "stored": null,
+          "policy_version": "synthetic-policy-v1",
+          "attempt_ordinal": 1,
+          "hard_deadline_at": "2030-01-01T00:15:00.000Z",
+          "candidate_expires_at": null,
+          "effective_usable": false,
+          "last_control_request_uuid": "00000000-0000-4000-8000-000000000001",
+          "commit_request_uuid": null,
+          "prepared_publication_hold": {
+            "hold_epoch": 1,
+            "pause_receipt_digest": "427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf",
+            "provider_check_digest": "d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447",
+            "provider_checked_at": "2030-01-01T00:01:00.000Z"
+          }
+        },
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        },
+        "reason": "quality_review_required"
+      }
+    },
+    {
+      "case_id": "prepare_unknown",
+      "schema": "Error",
+      "http": 503,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "error": "合成の固定エラー例",
+        "reason": "read_failed",
+        "read_outcome": "unknown",
+        "request": null,
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2030-01-01T00:01:00.000Z"
+      }
+    },
+    {
+      "case_id": "candidate_get_rejected",
+      "schema": "Error",
+      "http": 404,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "error": "合成の固定エラー例",
+        "reason": "candidate_not_found",
+        "read_outcome": "unknown",
+        "request": null,
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2030-01-01T00:01:00.000Z"
+      }
+    },
+    {
+      "case_id": "candidate_get_unknown",
+      "schema": "Error",
+      "http": 503,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "error": "合成の固定エラー例",
+        "reason": "read_failed",
+        "read_outcome": "unknown",
+        "request": null,
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2030-01-01T00:01:00.000Z"
+      }
+    },
+    {
+      "case_id": "discard_rejected",
+      "schema": "CandidateResponse",
+      "http": 409,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000003",
+          "operation": "candidate_discard",
+          "input_hash": "ih1_33de281b7cb944b6608db28b447566b03080ae6e90ed997a3c59395d1c60064d",
+          "outcome": "rejected",
+          "stage": "precheck",
+          "reason": "candidate_not_ready",
+          "discard_input": {
+            "contract_version": "mina-replace-v1",
+            "request_uuid": "00000000-0000-4000-8000-000000000003",
+            "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+            "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+            "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+            "expected_control_revision": 1,
+            "reason": "independent_review_failed",
+            "review_evidence_digest": "36cfaeb5b4476142bc31e837d6633b5a43b5d01a12f82f11095f670a5b3ad654",
+            "review": {
+              "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+              "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+              "original_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+              "stored_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+              "reviewer_role": "independent_reviewer",
+              "reviewed_at": "2030-01-01T00:01:00.000Z",
+              "verdict": "fail",
+              "observations": [
+                "image_analysis_mismatch"
+              ]
+            }
+          }
+        },
+        "candidate": {
+          "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+          "candidate_state": "consumed",
+          "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+          "control_revision": 2,
+          "prepared_preconditions": {
+            "target_date": "2030-01-01",
+            "target_slot": "dinner",
+            "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+            "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+            "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+            "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+            "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+            "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+          },
+          "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+          "analysis": {
+            "spec": "mina-candidate-analysis-v1",
+            "analysis_source": "candidate_analysis",
+            "analyzer_spec": "synthetic-analyzer-v1",
+            "quality_spec": "mina-nutrition-v1",
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false,
+            "quality": {
+              "status": "pass",
+              "atwater_calories": 750,
+              "calorie_difference": 0,
+              "calorie_difference_ratio": 0,
+              "warnings": []
+            }
+          },
+          "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+          "normalized_comment": "合成fixture",
+          "original": {
+            "mime": "image/png",
+            "sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+            "byte_length": 69,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/original"
+          },
+          "stored": {
+            "mime": "image/webp",
+            "sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+            "byte_length": 38,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/stored"
+          },
+          "policy_version": "synthetic-policy-v1",
+          "attempt_ordinal": 1,
+          "hard_deadline_at": "2030-01-01T00:15:00.000Z",
+          "candidate_expires_at": "2030-01-01T00:15:00.000Z",
+          "effective_usable": false,
+          "last_control_request_uuid": "00000000-0000-4000-8000-000000000002",
+          "commit_request_uuid": "00000000-0000-4000-8000-000000000002",
+          "prepared_publication_hold": {
+            "hold_epoch": 1,
+            "pause_receipt_digest": "427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf",
+            "provider_check_digest": "d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447",
+            "provider_checked_at": "2030-01-01T00:01:00.000Z"
+          }
+        },
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        },
+        "reason": "candidate_not_ready"
+      }
+    },
+    {
+      "case_id": "discard_unknown",
+      "schema": "Error",
+      "http": 503,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "error": "合成の固定エラー例",
+        "reason": "read_failed",
+        "read_outcome": "unknown",
+        "request": null,
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2030-01-01T00:01:00.000Z"
+      }
+    },
+    {
+      "case_id": "prepare_lookup_rejected",
+      "schema": "Error",
+      "http": 404,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "error": "合成の固定エラー例",
+        "reason": "request_not_found",
+        "read_outcome": "unknown",
+        "request": null,
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2030-01-01T00:01:00.000Z"
+      }
+    },
+    {
+      "case_id": "prepare_lookup_unknown",
+      "schema": "Error",
+      "http": 404,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "error": "合成の固定エラー例",
+        "reason": "request_not_found",
+        "read_outcome": "unknown",
+        "request": null,
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2030-01-01T00:01:00.000Z"
+      }
+    },
+    {
+      "case_id": "discard_lookup_rejected",
+      "schema": "Error",
+      "http": 404,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "error": "合成の固定エラー例",
+        "reason": "request_not_found",
+        "read_outcome": "unknown",
+        "request": null,
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2030-01-01T00:01:00.000Z"
+      }
+    },
+    {
+      "case_id": "discard_lookup_unknown",
+      "schema": "Error",
+      "http": 404,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "error": "合成の固定エラー例",
+        "reason": "request_not_found",
+        "read_outcome": "unknown",
+        "request": null,
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2030-01-01T00:01:00.000Z"
+      }
+    },
+    {
+      "case_id": "commit_rejected",
+      "schema": "CommitResponse",
+      "http": 409,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000002",
+          "operation": "meal_replace",
+          "input_hash": "ih1_ec5876f3d4eb1e5d1960b820df2fa05c9316ea225c388c004588726f0c32b341",
+          "status": "failed",
+          "persistence": "not_saved",
+          "stage": "save_check",
+          "reason": "candidate_preconditions_mismatch"
+        },
+        "reason": "candidate_preconditions_mismatch",
+        "result_status": "unresolved",
+        "result_hold_reason": null,
+        "current_state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+        "result": null,
+        "current_result": null,
+        "affected_daily_result": null,
+        "current_daily_result": null,
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        }
+      }
+    },
+    {
+      "case_id": "commit_unknown",
+      "schema": "Error",
+      "http": 503,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "error": "合成の固定エラー例",
+        "reason": "read_failed",
+        "read_outcome": "unknown",
+        "request": null,
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2030-01-01T00:01:00.000Z"
+      }
+    },
+    {
+      "case_id": "commit_lookup_rejected",
+      "schema": "Error",
+      "http": 404,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "error": "合成の固定エラー例",
+        "reason": "request_not_found",
+        "read_outcome": "unknown",
+        "request": null,
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2030-01-01T00:01:00.000Z"
+      }
+    },
+    {
+      "case_id": "commit_lookup_unknown",
+      "schema": "Error",
+      "http": 404,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "error": "合成の固定エラー例",
+        "reason": "request_not_found",
+        "read_outcome": "unknown",
+        "request": null,
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2030-01-01T00:01:00.000Z"
+      }
+    },
+    {
+      "case_id": "image_original_rejected",
+      "schema": "Error",
+      "http": 503,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "error": "合成の固定エラー例",
+        "reason": "image_integrity_failed",
+        "read_outcome": "rejected",
+        "request": null,
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2030-01-01T00:01:00.000Z"
+      }
+    },
+    {
+      "case_id": "image_original_unknown",
+      "schema": "Error",
+      "http": 503,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "error": "合成の固定エラー例",
+        "reason": "read_failed",
+        "read_outcome": "unknown",
+        "request": null,
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2030-01-01T00:01:00.000Z"
+      }
+    },
+    {
+      "case_id": "image_stored_rejected",
+      "schema": "Error",
+      "http": 409,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "error": "合成の固定エラー例",
+        "reason": "candidate_version_mismatch",
+        "read_outcome": "rejected",
+        "request": null,
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2030-01-01T00:01:00.000Z"
+      }
+    },
+    {
+      "case_id": "image_stored_unknown",
+      "schema": "Error",
+      "http": 503,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "error": "合成の固定エラー例",
+        "reason": "read_failed",
+        "read_outcome": "unknown",
+        "request": null,
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2030-01-01T00:01:00.000Z"
+      }
+    },
+    {
+      "case_id": "commit_response_lost",
+      "schema": "Error",
+      "http": 500,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "error": "合成の固定エラー例",
+        "reason": "commit_outcome_unknown",
+        "read_outcome": "unknown",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000002",
+          "operation": "meal_replace",
+          "input_hash": "ih1_ec5876f3d4eb1e5d1960b820df2fa05c9316ea225c388c004588726f0c32b341",
+          "status": "reconciliation_required",
+          "persistence": "unknown",
+          "stage": "save",
+          "reason": "commit_outcome_unknown"
+        },
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2030-01-01T00:01:00.000Z"
+      }
+    },
+    {
+      "case_id": "discard_response_lost",
+      "schema": "Error",
+      "http": 500,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "error": "合成の固定エラー例",
+        "reason": "discard_outcome_unknown",
+        "read_outcome": "unknown",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000003",
+          "operation": "candidate_discard",
+          "input_hash": "ih1_33de281b7cb944b6608db28b447566b03080ae6e90ed997a3c59395d1c60064d",
+          "outcome": "unknown",
+          "stage": "reconciliation_required",
+          "reason": "discard_outcome_unknown",
+          "discard_input": {
+            "contract_version": "mina-replace-v1",
+            "request_uuid": "00000000-0000-4000-8000-000000000003",
+            "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+            "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+            "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+            "expected_control_revision": 1,
+            "reason": "independent_review_failed",
+            "review_evidence_digest": "36cfaeb5b4476142bc31e837d6633b5a43b5d01a12f82f11095f670a5b3ad654",
+            "review": {
+              "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+              "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+              "original_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+              "stored_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+              "reviewer_role": "independent_reviewer",
+              "reviewed_at": "2030-01-01T00:01:00.000Z",
+              "verdict": "fail",
+              "observations": [
+                "image_analysis_mismatch"
+              ]
+            }
+          }
+        },
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2030-01-01T00:01:00.000Z"
+      }
+    },
+    {
+      "case_id": "prepare_processing",
+      "schema": "CandidateResponse",
+      "http": 202,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000001",
+          "operation": "candidate_prepare",
+          "input_hash": "ih1_85f4046b3152ed5640f916499c4f9fc58ebf9703b5700f85f7ccd2d831d0ea58",
+          "outcome": "processing",
+          "stage": "reserved",
+          "reason": null,
+          "discard_input": null
+        },
+        "candidate": {
+          "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+          "candidate_state": "processing",
+          "candidate_version": null,
+          "control_revision": 0,
+          "prepared_preconditions": {
+            "target_date": "2030-01-01",
+            "target_slot": "dinner",
+            "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+            "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+            "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+            "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+            "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+            "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+          },
+          "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+          "analysis": null,
+          "analysis_digest": null,
+          "normalized_comment": "合成fixture",
+          "original": null,
+          "stored": null,
+          "policy_version": "synthetic-policy-v1",
+          "attempt_ordinal": 1,
+          "hard_deadline_at": "2030-01-01T00:15:00.000Z",
+          "candidate_expires_at": null,
+          "effective_usable": false,
+          "last_control_request_uuid": "00000000-0000-4000-8000-000000000001",
+          "commit_request_uuid": null,
+          "prepared_publication_hold": {
+            "hold_epoch": 1,
+            "pause_receipt_digest": "427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf",
+            "provider_check_digest": "d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447",
+            "provider_checked_at": "2030-01-01T00:01:00.000Z"
+          }
+        },
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        },
+        "reason": null
+      }
+    },
+    {
+      "case_id": "authentication_hidden",
+      "schema": "Hidden",
+      "http": 404,
+      "expected_valid": true,
+      "value": {
+        "error": "Not found"
+      }
+    },
+    {
+      "case_id": "prepare_duplicate_request_same_input",
+      "schema": "CandidateResponse",
+      "http": 409,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000001",
+          "operation": "candidate_prepare",
+          "input_hash": "ih1_85f4046b3152ed5640f916499c4f9fc58ebf9703b5700f85f7ccd2d831d0ea58",
+          "outcome": "applied",
+          "stage": "ready",
+          "reason": null,
+          "discard_input": null
+        },
+        "candidate": {
+          "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+          "candidate_state": "ready",
+          "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+          "control_revision": 1,
+          "prepared_preconditions": {
+            "target_date": "2030-01-01",
+            "target_slot": "dinner",
+            "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+            "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+            "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+            "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+            "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+            "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+          },
+          "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+          "analysis": {
+            "spec": "mina-candidate-analysis-v1",
+            "analysis_source": "candidate_analysis",
+            "analyzer_spec": "synthetic-analyzer-v1",
+            "quality_spec": "mina-nutrition-v1",
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false,
+            "quality": {
+              "status": "pass",
+              "atwater_calories": 750,
+              "calorie_difference": 0,
+              "calorie_difference_ratio": 0,
+              "warnings": []
+            }
+          },
+          "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+          "normalized_comment": "合成fixture",
+          "original": {
+            "mime": "image/png",
+            "sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+            "byte_length": 69,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/original"
+          },
+          "stored": {
+            "mime": "image/webp",
+            "sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+            "byte_length": 38,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/stored"
+          },
+          "policy_version": "synthetic-policy-v1",
+          "attempt_ordinal": 1,
+          "hard_deadline_at": "2030-01-01T00:15:00.000Z",
+          "candidate_expires_at": "2030-01-01T00:15:00.000Z",
+          "effective_usable": true,
+          "last_control_request_uuid": "00000000-0000-4000-8000-000000000001",
+          "commit_request_uuid": null,
+          "prepared_publication_hold": {
+            "hold_epoch": 1,
+            "pause_receipt_digest": "427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf",
+            "provider_check_digest": "d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447",
+            "provider_checked_at": "2030-01-01T00:01:00.000Z"
+          }
+        },
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        },
+        "reason": "duplicate_request_same_input"
+      }
+    },
+    {
+      "case_id": "discard_duplicate_request_same_input",
+      "schema": "CandidateResponse",
+      "http": 409,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000003",
+          "operation": "candidate_discard",
+          "input_hash": "ih1_33de281b7cb944b6608db28b447566b03080ae6e90ed997a3c59395d1c60064d",
+          "outcome": "applied",
+          "stage": "discarded",
+          "reason": null,
+          "discard_input": {
+            "contract_version": "mina-replace-v1",
+            "request_uuid": "00000000-0000-4000-8000-000000000003",
+            "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+            "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+            "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+            "expected_control_revision": 1,
+            "reason": "independent_review_failed",
+            "review_evidence_digest": "36cfaeb5b4476142bc31e837d6633b5a43b5d01a12f82f11095f670a5b3ad654",
+            "review": {
+              "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+              "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+              "original_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+              "stored_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+              "reviewer_role": "independent_reviewer",
+              "reviewed_at": "2030-01-01T00:01:00.000Z",
+              "verdict": "fail",
+              "observations": [
+                "image_analysis_mismatch"
+              ]
+            }
+          }
+        },
+        "candidate": {
+          "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+          "candidate_state": "discarded",
+          "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+          "control_revision": 2,
+          "prepared_preconditions": {
+            "target_date": "2030-01-01",
+            "target_slot": "dinner",
+            "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+            "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+            "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+            "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+            "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+            "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+          },
+          "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+          "analysis": {
+            "spec": "mina-candidate-analysis-v1",
+            "analysis_source": "candidate_analysis",
+            "analyzer_spec": "synthetic-analyzer-v1",
+            "quality_spec": "mina-nutrition-v1",
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false,
+            "quality": {
+              "status": "pass",
+              "atwater_calories": 750,
+              "calorie_difference": 0,
+              "calorie_difference_ratio": 0,
+              "warnings": []
+            }
+          },
+          "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+          "normalized_comment": "合成fixture",
+          "original": {
+            "mime": "image/png",
+            "sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+            "byte_length": 69,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/original"
+          },
+          "stored": {
+            "mime": "image/webp",
+            "sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+            "byte_length": 38,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/stored"
+          },
+          "policy_version": "synthetic-policy-v1",
+          "attempt_ordinal": 1,
+          "hard_deadline_at": "2030-01-01T00:15:00.000Z",
+          "candidate_expires_at": "2030-01-01T00:15:00.000Z",
+          "effective_usable": false,
+          "last_control_request_uuid": "00000000-0000-4000-8000-000000000003",
+          "commit_request_uuid": null,
+          "prepared_publication_hold": {
+            "hold_epoch": 1,
+            "pause_receipt_digest": "427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf",
+            "provider_check_digest": "d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447",
+            "provider_checked_at": "2030-01-01T00:01:00.000Z"
+          }
+        },
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        },
+        "reason": "duplicate_request_same_input"
+      }
+    },
+    {
+      "case_id": "commit_duplicate_request_same_input",
+      "schema": "CommitResponse",
+      "http": 409,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000002",
+          "operation": "meal_replace",
+          "input_hash": "ih1_ec5876f3d4eb1e5d1960b820df2fa05c9316ea225c388c004588726f0c32b341",
+          "status": "succeeded",
+          "persistence": "saved",
+          "stage": "completed",
+          "reason": null
+        },
+        "reason": "duplicate_request_same_input",
+        "result_status": "unchanged",
+        "result_hold_reason": null,
+        "current_state_version": "sv1_400bea6d52e2f1bf5af5cc956400b01821d116f22d4bf629eafcfdbfa867de35",
+        "result": {
+          "normalized_comment": "合成fixture",
+          "image_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "stored_image_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+          "analysis": {
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false
+          },
+          "meal": {
+            "meal_type": "dinner",
+            "logged_at": "2030-01-01T09:00:00.000Z"
+          },
+          "quality": {
+            "status": "pass",
+            "atwater_calories": 750,
+            "calorie_difference": 0,
+            "calorie_difference_ratio": 0,
+            "warnings": []
+          },
+          "share": {
+            "url": "https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "x": {
+            "text": "合成fixture",
+            "intent_url": "https://x.com/intent/post",
+            "fixed_text": "合成fixture",
+            "publish_text": "合成fixture https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+          "ogp": {
+            "status": "ready",
+            "revision": "synthetic-v1",
+            "image_sha256": "2dae23f26b8e75731846fd8a050ca55a4088a7f3d20130081804c3d1d20b5507",
+            "source_result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+            "image_url": "https://www.log-eats.com/share/synthetic/opengraph-image",
+            "expires_at": "2030-01-02T00:00:00.000Z"
+          }
+        },
+        "current_result": {
+          "normalized_comment": "合成fixture",
+          "image_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "stored_image_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+          "analysis": {
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false
+          },
+          "meal": {
+            "meal_type": "dinner",
+            "logged_at": "2030-01-01T09:00:00.000Z"
+          },
+          "quality": {
+            "status": "pass",
+            "atwater_calories": 750,
+            "calorie_difference": 0,
+            "calorie_difference_ratio": 0,
+            "warnings": []
+          },
+          "share": {
+            "url": "https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "x": {
+            "text": "合成fixture",
+            "intent_url": "https://x.com/intent/post",
+            "fixed_text": "合成fixture",
+            "publish_text": "合成fixture https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+          "ogp": {
+            "status": "ready",
+            "revision": "synthetic-v1",
+            "image_sha256": "2dae23f26b8e75731846fd8a050ca55a4088a7f3d20130081804c3d1d20b5507",
+            "source_result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+            "image_url": "https://www.log-eats.com/share/synthetic/opengraph-image",
+            "expires_at": "2030-01-02T00:00:00.000Z"
+          }
+        },
+        "affected_daily_result": null,
+        "current_daily_result": null,
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        }
+      }
+    },
+    {
+      "case_id": "prepare_duplicate_request_different_input",
+      "schema": "CandidateResponse",
+      "http": 409,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000001",
+          "operation": "candidate_prepare",
+          "input_hash": "ih1_85f4046b3152ed5640f916499c4f9fc58ebf9703b5700f85f7ccd2d831d0ea58",
+          "outcome": "applied",
+          "stage": "ready",
+          "reason": null,
+          "discard_input": null
+        },
+        "candidate": {
+          "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+          "candidate_state": "ready",
+          "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+          "control_revision": 1,
+          "prepared_preconditions": {
+            "target_date": "2030-01-01",
+            "target_slot": "dinner",
+            "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+            "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+            "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+            "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+            "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+            "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+          },
+          "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+          "analysis": {
+            "spec": "mina-candidate-analysis-v1",
+            "analysis_source": "candidate_analysis",
+            "analyzer_spec": "synthetic-analyzer-v1",
+            "quality_spec": "mina-nutrition-v1",
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false,
+            "quality": {
+              "status": "pass",
+              "atwater_calories": 750,
+              "calorie_difference": 0,
+              "calorie_difference_ratio": 0,
+              "warnings": []
+            }
+          },
+          "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+          "normalized_comment": "合成fixture",
+          "original": {
+            "mime": "image/png",
+            "sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+            "byte_length": 69,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/original"
+          },
+          "stored": {
+            "mime": "image/webp",
+            "sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+            "byte_length": 38,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/stored"
+          },
+          "policy_version": "synthetic-policy-v1",
+          "attempt_ordinal": 1,
+          "hard_deadline_at": "2030-01-01T00:15:00.000Z",
+          "candidate_expires_at": "2030-01-01T00:15:00.000Z",
+          "effective_usable": true,
+          "last_control_request_uuid": "00000000-0000-4000-8000-000000000001",
+          "commit_request_uuid": null,
+          "prepared_publication_hold": {
+            "hold_epoch": 1,
+            "pause_receipt_digest": "427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf",
+            "provider_check_digest": "d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447",
+            "provider_checked_at": "2030-01-01T00:01:00.000Z"
+          }
+        },
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        },
+        "reason": "duplicate_request_different_input"
+      }
+    },
+    {
+      "case_id": "discard_duplicate_request_different_input",
+      "schema": "CandidateResponse",
+      "http": 409,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000003",
+          "operation": "candidate_discard",
+          "input_hash": "ih1_33de281b7cb944b6608db28b447566b03080ae6e90ed997a3c59395d1c60064d",
+          "outcome": "applied",
+          "stage": "discarded",
+          "reason": null,
+          "discard_input": {
+            "contract_version": "mina-replace-v1",
+            "request_uuid": "00000000-0000-4000-8000-000000000003",
+            "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+            "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+            "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+            "expected_control_revision": 1,
+            "reason": "independent_review_failed",
+            "review_evidence_digest": "36cfaeb5b4476142bc31e837d6633b5a43b5d01a12f82f11095f670a5b3ad654",
+            "review": {
+              "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+              "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+              "original_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+              "stored_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+              "reviewer_role": "independent_reviewer",
+              "reviewed_at": "2030-01-01T00:01:00.000Z",
+              "verdict": "fail",
+              "observations": [
+                "image_analysis_mismatch"
+              ]
+            }
+          }
+        },
+        "candidate": {
+          "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+          "candidate_state": "discarded",
+          "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+          "control_revision": 2,
+          "prepared_preconditions": {
+            "target_date": "2030-01-01",
+            "target_slot": "dinner",
+            "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+            "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+            "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+            "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+            "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+            "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+          },
+          "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+          "analysis": {
+            "spec": "mina-candidate-analysis-v1",
+            "analysis_source": "candidate_analysis",
+            "analyzer_spec": "synthetic-analyzer-v1",
+            "quality_spec": "mina-nutrition-v1",
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false,
+            "quality": {
+              "status": "pass",
+              "atwater_calories": 750,
+              "calorie_difference": 0,
+              "calorie_difference_ratio": 0,
+              "warnings": []
+            }
+          },
+          "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+          "normalized_comment": "合成fixture",
+          "original": {
+            "mime": "image/png",
+            "sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+            "byte_length": 69,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/original"
+          },
+          "stored": {
+            "mime": "image/webp",
+            "sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+            "byte_length": 38,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/stored"
+          },
+          "policy_version": "synthetic-policy-v1",
+          "attempt_ordinal": 1,
+          "hard_deadline_at": "2030-01-01T00:15:00.000Z",
+          "candidate_expires_at": "2030-01-01T00:15:00.000Z",
+          "effective_usable": false,
+          "last_control_request_uuid": "00000000-0000-4000-8000-000000000003",
+          "commit_request_uuid": null,
+          "prepared_publication_hold": {
+            "hold_epoch": 1,
+            "pause_receipt_digest": "427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf",
+            "provider_check_digest": "d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447",
+            "provider_checked_at": "2030-01-01T00:01:00.000Z"
+          }
+        },
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        },
+        "reason": "duplicate_request_different_input"
+      }
+    },
+    {
+      "case_id": "commit_duplicate_request_different_input",
+      "schema": "CommitResponse",
+      "http": 409,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000002",
+          "operation": "meal_replace",
+          "input_hash": "ih1_ec5876f3d4eb1e5d1960b820df2fa05c9316ea225c388c004588726f0c32b341",
+          "status": "succeeded",
+          "persistence": "saved",
+          "stage": "completed",
+          "reason": null
+        },
+        "reason": "duplicate_request_different_input",
+        "result_status": "unchanged",
+        "result_hold_reason": null,
+        "current_state_version": "sv1_400bea6d52e2f1bf5af5cc956400b01821d116f22d4bf629eafcfdbfa867de35",
+        "result": {
+          "normalized_comment": "合成fixture",
+          "image_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "stored_image_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+          "analysis": {
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false
+          },
+          "meal": {
+            "meal_type": "dinner",
+            "logged_at": "2030-01-01T09:00:00.000Z"
+          },
+          "quality": {
+            "status": "pass",
+            "atwater_calories": 750,
+            "calorie_difference": 0,
+            "calorie_difference_ratio": 0,
+            "warnings": []
+          },
+          "share": {
+            "url": "https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "x": {
+            "text": "合成fixture",
+            "intent_url": "https://x.com/intent/post",
+            "fixed_text": "合成fixture",
+            "publish_text": "合成fixture https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+          "ogp": {
+            "status": "ready",
+            "revision": "synthetic-v1",
+            "image_sha256": "2dae23f26b8e75731846fd8a050ca55a4088a7f3d20130081804c3d1d20b5507",
+            "source_result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+            "image_url": "https://www.log-eats.com/share/synthetic/opengraph-image",
+            "expires_at": "2030-01-02T00:00:00.000Z"
+          }
+        },
+        "current_result": {
+          "normalized_comment": "合成fixture",
+          "image_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "stored_image_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+          "analysis": {
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false
+          },
+          "meal": {
+            "meal_type": "dinner",
+            "logged_at": "2030-01-01T09:00:00.000Z"
+          },
+          "quality": {
+            "status": "pass",
+            "atwater_calories": 750,
+            "calorie_difference": 0,
+            "calorie_difference_ratio": 0,
+            "warnings": []
+          },
+          "share": {
+            "url": "https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "x": {
+            "text": "合成fixture",
+            "intent_url": "https://x.com/intent/post",
+            "fixed_text": "合成fixture",
+            "publish_text": "合成fixture https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+          "ogp": {
+            "status": "ready",
+            "revision": "synthetic-v1",
+            "image_sha256": "2dae23f26b8e75731846fd8a050ca55a4088a7f3d20130081804c3d1d20b5507",
+            "source_result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+            "image_url": "https://www.log-eats.com/share/synthetic/opengraph-image",
+            "expires_at": "2030-01-02T00:00:00.000Z"
+          }
+        },
+        "affected_daily_result": null,
+        "current_daily_result": null,
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        }
+      }
+    },
+    {
+      "case_id": "saved_source_changed",
+      "schema": "CommitResponse",
+      "http": 409,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000002",
+          "operation": "meal_replace",
+          "input_hash": "ih1_ec5876f3d4eb1e5d1960b820df2fa05c9316ea225c388c004588726f0c32b341",
+          "status": "failed",
+          "persistence": "saved",
+          "stage": "ogp_source_check",
+          "reason": "source_changed"
+        },
+        "reason": "source_changed",
+        "result_status": "modified",
+        "result_hold_reason": null,
+        "current_state_version": "sv1_f18e2be4d7d91dbd5d115199add32a332614f8a5382729390c5d8d4af51109e5",
+        "result": {
+          "normalized_comment": "合成fixture",
+          "image_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "stored_image_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+          "analysis": {
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false
+          },
+          "meal": {
+            "meal_type": "dinner",
+            "logged_at": "2030-01-01T09:00:00.000Z"
+          },
+          "quality": {
+            "status": "pass",
+            "atwater_calories": 750,
+            "calorie_difference": 0,
+            "calorie_difference_ratio": 0,
+            "warnings": []
+          },
+          "share": {
+            "url": "https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "x": {
+            "text": "合成fixture",
+            "intent_url": "https://x.com/intent/post",
+            "fixed_text": "合成fixture",
+            "publish_text": "合成fixture https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+          "ogp": {
+            "status": "ready",
+            "revision": "synthetic-v1",
+            "image_sha256": "2dae23f26b8e75731846fd8a050ca55a4088a7f3d20130081804c3d1d20b5507",
+            "source_result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+            "image_url": "https://www.log-eats.com/share/synthetic/opengraph-image",
+            "expires_at": "2030-01-02T00:00:00.000Z"
+          }
+        },
+        "current_result": {
+          "normalized_comment": "合成fixture",
+          "image_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "stored_image_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+          "analysis": {
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false
+          },
+          "meal": {
+            "meal_type": "dinner",
+            "logged_at": "2030-01-01T09:00:00.000Z"
+          },
+          "quality": {
+            "status": "pass",
+            "atwater_calories": 750,
+            "calorie_difference": 0,
+            "calorie_difference_ratio": 0,
+            "warnings": []
+          },
+          "share": {
+            "url": "https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "x": {
+            "text": "合成fixture",
+            "intent_url": "https://x.com/intent/post",
+            "fixed_text": "合成fixture",
+            "publish_text": "合成fixture https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "result_version": "rv1_6333b8622516bf88d90aa029238e15ca045d0f70e90980cfbd15ca81e9c663fc",
+          "ogp": {
+            "status": "ready",
+            "revision": "synthetic-v1",
+            "image_sha256": "2dae23f26b8e75731846fd8a050ca55a4088a7f3d20130081804c3d1d20b5507",
+            "source_result_version": "rv1_6333b8622516bf88d90aa029238e15ca045d0f70e90980cfbd15ca81e9c663fc",
+            "image_url": "https://www.log-eats.com/share/synthetic/opengraph-image",
+            "expires_at": "2030-01-02T00:00:00.000Z"
+          }
+        },
+        "affected_daily_result": null,
+        "current_daily_result": null,
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        }
+      }
+    },
+    {
+      "case_id": "saved_og_image_preparation_failed",
+      "schema": "CommitResponse",
+      "http": 503,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000002",
+          "operation": "meal_replace",
+          "input_hash": "ih1_ec5876f3d4eb1e5d1960b820df2fa05c9316ea225c388c004588726f0c32b341",
+          "status": "failed",
+          "persistence": "saved",
+          "stage": "ogp_failed",
+          "reason": "og_image_preparation_failed"
+        },
+        "reason": "og_image_preparation_failed",
+        "result_status": "unchanged",
+        "result_hold_reason": null,
+        "current_state_version": "sv1_400bea6d52e2f1bf5af5cc956400b01821d116f22d4bf629eafcfdbfa867de35",
+        "result": {
+          "normalized_comment": "合成fixture",
+          "image_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "stored_image_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+          "analysis": {
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false
+          },
+          "meal": {
+            "meal_type": "dinner",
+            "logged_at": "2030-01-01T09:00:00.000Z"
+          },
+          "quality": {
+            "status": "pass",
+            "atwater_calories": 750,
+            "calorie_difference": 0,
+            "calorie_difference_ratio": 0,
+            "warnings": []
+          },
+          "share": {
+            "url": "https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "x": {
+            "text": "合成fixture",
+            "intent_url": "https://x.com/intent/post",
+            "fixed_text": "合成fixture",
+            "publish_text": "合成fixture https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+          "ogp": {
+            "status": "ready",
+            "revision": "synthetic-v1",
+            "image_sha256": "2dae23f26b8e75731846fd8a050ca55a4088a7f3d20130081804c3d1d20b5507",
+            "source_result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+            "image_url": "https://www.log-eats.com/share/synthetic/opengraph-image",
+            "expires_at": "2030-01-02T00:00:00.000Z"
+          }
+        },
+        "current_result": {
+          "normalized_comment": "合成fixture",
+          "image_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "stored_image_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+          "analysis": {
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false
+          },
+          "meal": {
+            "meal_type": "dinner",
+            "logged_at": "2030-01-01T09:00:00.000Z"
+          },
+          "quality": {
+            "status": "pass",
+            "atwater_calories": 750,
+            "calorie_difference": 0,
+            "calorie_difference_ratio": 0,
+            "warnings": []
+          },
+          "share": {
+            "url": "https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "x": {
+            "text": "合成fixture",
+            "intent_url": "https://x.com/intent/post",
+            "fixed_text": "合成fixture",
+            "publish_text": "合成fixture https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+          "ogp": {
+            "status": "failed",
+            "revision": "synthetic-v1",
+            "image_sha256": null,
+            "source_result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+            "image_url": null,
+            "expires_at": "2030-01-02T00:00:00.000Z"
+          }
+        },
+        "affected_daily_result": null,
+        "current_daily_result": null,
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        }
+      }
+    },
+    {
+      "case_id": "commit_known_not_saved",
+      "schema": "CommitResponse",
+      "http": 409,
+      "expected_valid": true,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000002",
+          "operation": "meal_replace",
+          "input_hash": "ih1_ec5876f3d4eb1e5d1960b820df2fa05c9316ea225c388c004588726f0c32b341",
+          "status": "failed",
+          "persistence": "not_saved",
+          "stage": "save_check",
+          "reason": "candidate_preconditions_mismatch"
+        },
+        "reason": "candidate_preconditions_mismatch",
+        "result_status": "unresolved",
+        "result_hold_reason": null,
+        "current_state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+        "result": null,
+        "current_result": null,
+        "affected_daily_result": null,
+        "current_daily_result": null,
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        }
+      }
+    },
+    {
+      "case_id": "image_original_success_headers",
+      "schema": "BinaryHeaders",
+      "http": 200,
+      "expected_valid": true,
+      "value": {
+        "Content-Type": "image/png",
+        "Content-Length": "69",
+        "Content-Digest": "sha-256=:Cpf8jCoss/ZdhGmdNHlFG/orJCSxAn9CnLRcPZGq9Lk=:",
+        "X-Mina-Candidate-Version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+        "X-Mina-Image-SHA256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+        "X-Mina-Complete": "true",
+        "X-Mina-Checked-At": "2030-01-01T00:01:00.000Z",
+        "X-Mina-Valid-Until": "2030-01-01T00:03:00.000Z",
+        "Cache-Control": "no-store"
+      }
+    },
+    {
+      "case_id": "image_stored_success_headers",
+      "schema": "BinaryHeaders",
+      "http": 200,
+      "expected_valid": true,
+      "value": {
+        "Content-Type": "image/webp",
+        "Content-Length": "38",
+        "Content-Digest": "sha-256=:QTkG7v4AuUaQn8lN9r+AswPUgTGIbSZ9N0B+p7guRik=:",
+        "X-Mina-Candidate-Version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+        "X-Mina-Image-SHA256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+        "X-Mina-Complete": "true",
+        "X-Mina-Checked-At": "2030-01-01T00:01:00.000Z",
+        "X-Mina-Valid-Until": "2030-01-01T00:03:00.000Z",
+        "Cache-Control": "no-store"
+      }
+    },
+    {
+      "case_id": "invalid_nutrition_total",
+      "schema": "CommitInput",
+      "http": 400,
+      "expected_valid": false,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request_uuid": "00000000-0000-4000-8000-000000000002",
+        "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+        "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+        "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+        "input_image_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+        "expected_control_revision": 1,
+        "expected": {
+          "target_date": "2030-01-01",
+          "target_slot": "dinner",
+          "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+          "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+          "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+          "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+          "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+          "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+        },
+        "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+        "publication_hold": {
+          "hold_epoch": 1,
+          "pause_receipt_digest": "427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf",
+          "provider_check_digest": "d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447",
+          "provider_checked_at": "2030-01-01T00:01:00.000Z"
+        },
+        "review_evidence_digest": "0987ea0f632af6e0e473ed291337c86a080b8341d8bfd784183267a30e3bbd8d",
+        "drive_evidence_digest": "8e9dcae61bc501584bb90b23d873a400ed8f5c0230324fa2316ad071ec01f121",
+        "nutrition_check": {
+          "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+          "candidate_analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+          "other_meals_analysis_digests": [
+            "ad1_1bd3f00cb37ae16e19485ff3bec5b48f0e8f0711f6e634c29069a6fb96d6df90",
+            "ad1_f8dbc4a7386b9df872bae3dce9b76152a56006b4b9ae317f23cba5840104b213"
+          ],
+          "other_meals_total_calories": 1117,
+          "candidate_total_calories": 750,
+          "total_calories": 1727,
+          "min_calories": 1800,
+          "max_calories": 2000,
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "evidence_digest": "67a72d763434e6a4fb5f34c912bad329d130c9f0385d59df22ed98a86eb8e122"
+        },
+        "review": {
+          "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+          "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+          "original_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "stored_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+          "reviewer_role": "independent_reviewer",
+          "review_method": "合成の契約fixture。食品点検の合格証跡ではない",
+          "reviewed_at": "2030-01-01T00:01:00.000Z",
+          "verdict": "pass"
+        },
+        "drive_check": {
+          "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+          "original_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "original_download_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "previous_original_sha256": "b6a598b66e3a4f4c2c9cff68f046edaf725811e6536db577d51dcb2a87db7eb0",
+          "previous_download_sha256": "b6a598b66e3a4f4c2c9cff68f046edaf725811e6536db577d51dcb2a87db7eb0",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "verdict": "pass"
+        }
+      }
+    },
+    {
+      "case_id": "missing_generation",
+      "schema": "CommitInput",
+      "http": 400,
+      "expected_valid": false,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request_uuid": "00000000-0000-4000-8000-000000000002",
+        "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+        "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+        "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+        "input_image_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+        "expected_control_revision": 1,
+        "expected": {
+          "target_date": "2030-01-01",
+          "target_slot": "dinner",
+          "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+          "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+          "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+          "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+          "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+        },
+        "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+        "publication_hold": {
+          "hold_epoch": 1,
+          "pause_receipt_digest": "427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf",
+          "provider_check_digest": "d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447",
+          "provider_checked_at": "2030-01-01T00:01:00.000Z"
+        },
+        "review_evidence_digest": "0987ea0f632af6e0e473ed291337c86a080b8341d8bfd784183267a30e3bbd8d",
+        "drive_evidence_digest": "8e9dcae61bc501584bb90b23d873a400ed8f5c0230324fa2316ad071ec01f121",
+        "nutrition_check": {
+          "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+          "candidate_analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+          "other_meals_analysis_digests": [
+            "ad1_1bd3f00cb37ae16e19485ff3bec5b48f0e8f0711f6e634c29069a6fb96d6df90",
+            "ad1_f8dbc4a7386b9df872bae3dce9b76152a56006b4b9ae317f23cba5840104b213"
+          ],
+          "other_meals_total_calories": 1117,
+          "candidate_total_calories": 750,
+          "total_calories": 1867,
+          "min_calories": 1800,
+          "max_calories": 2000,
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "evidence_digest": "67a72d763434e6a4fb5f34c912bad329d130c9f0385d59df22ed98a86eb8e122"
+        },
+        "review": {
+          "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+          "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+          "original_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "stored_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+          "reviewer_role": "independent_reviewer",
+          "review_method": "合成の契約fixture。食品点検の合格証跡ではない",
+          "reviewed_at": "2030-01-01T00:01:00.000Z",
+          "verdict": "pass"
+        },
+        "drive_check": {
+          "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+          "original_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "original_download_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "previous_original_sha256": "b6a598b66e3a4f4c2c9cff68f046edaf725811e6536db577d51dcb2a87db7eb0",
+          "previous_download_sha256": "b6a598b66e3a4f4c2c9cff68f046edaf725811e6536db577d51dcb2a87db7eb0",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "verdict": "pass"
+        }
+      }
+    },
+    {
+      "case_id": "ready_without_analysis",
+      "schema": "CandidateResponse",
+      "http": 500,
+      "expected_valid": false,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000001",
+          "operation": "candidate_prepare",
+          "input_hash": "ih1_85f4046b3152ed5640f916499c4f9fc58ebf9703b5700f85f7ccd2d831d0ea58",
+          "outcome": "applied",
+          "stage": "ready",
+          "reason": null,
+          "discard_input": null
+        },
+        "candidate": {
+          "prepare_uuid": "00000000-0000-4000-8000-000000000001",
+          "candidate_state": "ready",
+          "candidate_version": "cv1_e934e23ae9360a53ac55961b015118bb578a7e8e49c3d95945be2dad201b825c",
+          "control_revision": 1,
+          "prepared_preconditions": {
+            "target_date": "2030-01-01",
+            "target_slot": "dinner",
+            "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+            "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+            "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+            "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+            "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+            "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+          },
+          "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+          "analysis": null,
+          "analysis_digest": "ad1_f70d11ab5fb91d75df30b51ef7fe98d59ec8c5f37dc4f734c1a237475e125cb8",
+          "normalized_comment": "合成fixture",
+          "original": {
+            "mime": "image/png",
+            "sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+            "byte_length": 69,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/original"
+          },
+          "stored": {
+            "mime": "image/webp",
+            "sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+            "byte_length": 38,
+            "authenticated_path": "/api/internal/mina/meal-replacement-candidates/00000000-0000-4000-8000-000000000001/images/stored"
+          },
+          "policy_version": "synthetic-policy-v1",
+          "attempt_ordinal": 1,
+          "hard_deadline_at": "2030-01-01T00:15:00.000Z",
+          "candidate_expires_at": "2030-01-01T00:15:00.000Z",
+          "effective_usable": true,
+          "last_control_request_uuid": "00000000-0000-4000-8000-000000000001",
+          "commit_request_uuid": null,
+          "prepared_publication_hold": {
+            "hold_epoch": 1,
+            "pause_receipt_digest": "427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf",
+            "provider_check_digest": "d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447",
+            "provider_checked_at": "2030-01-01T00:01:00.000Z"
+          }
+        },
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        },
+        "reason": null
+      }
+    },
+    {
+      "case_id": "succeeded_not_saved_forbidden",
+      "schema": "CommitResponse",
+      "http": 500,
+      "expected_valid": false,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request": {
+          "request_uuid": "00000000-0000-4000-8000-000000000002",
+          "operation": "meal_replace",
+          "input_hash": "ih1_ec5876f3d4eb1e5d1960b820df2fa05c9316ea225c388c004588726f0c32b341",
+          "status": "succeeded",
+          "persistence": "not_saved",
+          "stage": "completed",
+          "reason": null
+        },
+        "reason": null,
+        "result_status": "unchanged",
+        "result_hold_reason": null,
+        "current_state_version": "sv1_400bea6d52e2f1bf5af5cc956400b01821d116f22d4bf629eafcfdbfa867de35",
+        "result": {
+          "normalized_comment": "合成fixture",
+          "image_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "stored_image_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+          "analysis": {
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false
+          },
+          "meal": {
+            "meal_type": "dinner",
+            "logged_at": "2030-01-01T09:00:00.000Z"
+          },
+          "quality": {
+            "status": "pass",
+            "atwater_calories": 750,
+            "calorie_difference": 0,
+            "calorie_difference_ratio": 0,
+            "warnings": []
+          },
+          "share": {
+            "url": "https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "x": {
+            "text": "合成fixture",
+            "intent_url": "https://x.com/intent/post",
+            "fixed_text": "合成fixture",
+            "publish_text": "合成fixture https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+          "ogp": {
+            "status": "ready",
+            "revision": "synthetic-v1",
+            "image_sha256": "2dae23f26b8e75731846fd8a050ca55a4088a7f3d20130081804c3d1d20b5507",
+            "source_result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+            "image_url": "https://www.log-eats.com/share/synthetic/opengraph-image",
+            "expires_at": "2030-01-02T00:00:00.000Z"
+          }
+        },
+        "current_result": {
+          "normalized_comment": "合成fixture",
+          "image_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+          "stored_image_sha256": "413906eefe00b946909fc94df6bf80b303d48131886d267d37407ea7b82e4629",
+          "analysis": {
+            "foods": [
+              {
+                "name": "合成新夕食",
+                "amount": "1食",
+                "calories": 750,
+                "protein": 40,
+                "fat": 30,
+                "carbs": 80
+              }
+            ],
+            "summary": {
+              "totalCalories": 750,
+              "totalProtein": 40,
+              "totalFat": 30,
+              "totalCarbs": 80
+            },
+            "is_ambiguous": false
+          },
+          "meal": {
+            "meal_type": "dinner",
+            "logged_at": "2030-01-01T09:00:00.000Z"
+          },
+          "quality": {
+            "status": "pass",
+            "atwater_calories": 750,
+            "calorie_difference": 0,
+            "calorie_difference_ratio": 0,
+            "warnings": []
+          },
+          "share": {
+            "url": "https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "x": {
+            "text": "合成fixture",
+            "intent_url": "https://x.com/intent/post",
+            "fixed_text": "合成fixture",
+            "publish_text": "合成fixture https://www.log-eats.com/s/syntheticnewdinner"
+          },
+          "result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+          "ogp": {
+            "status": "ready",
+            "revision": "synthetic-v1",
+            "image_sha256": "2dae23f26b8e75731846fd8a050ca55a4088a7f3d20130081804c3d1d20b5507",
+            "source_result_version": "rv1_f4a3519ff76f48633f376bb315c70719080cc0fdfe14320bfdb95bca381f6107",
+            "image_url": "https://www.log-eats.com/share/synthetic/opengraph-image",
+            "expires_at": "2030-01-02T00:00:00.000Z"
+          }
+        },
+        "affected_daily_result": null,
+        "current_daily_result": null,
+        "freshness": {
+          "read_started_at": "2030-01-01T00:01:00.000Z",
+          "checked_at": "2030-01-01T00:01:00.000Z",
+          "valid_until": "2030-01-01T00:03:00.000Z",
+          "complete": true
+        }
+      }
+    },
+    {
+      "case_id": "third_attempt_forbidden",
+      "schema": "PrepareInput",
+      "http": 400,
+      "expected_valid": false,
+      "value": {
+        "contract_version": "mina-replace-v1",
+        "request_uuid": "00000000-0000-4000-8000-000000000001",
+        "expected": {
+          "target_date": "2030-01-01",
+          "target_slot": "dinner",
+          "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+          "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+          "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+          "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+          "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+          "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+        },
+        "precondition_digest": "pc1_561cdb1dc325f07ff047add0e3a250535f8e89a7af6352b918cb79689a1b3be9",
+        "input_image_sha256": "0a97fc8c2a2cb3f65d84699d3479451bfa2b2424b1027f429cb45c3d91aaf4b9",
+        "original_mime": "image/png",
+        "normalized_comment": "合成fixture",
+        "reason": "menu_replan_after_quality_hold",
+        "migration": {
+          "receipt_digest": "a237a4c58efca5e82da69abb10e5f9fb3adfb44f22f99f05202da5466e851ebb",
+          "prior_consumed_ordinals": [],
+          "attempt_ordinal": 3,
+          "agent_step_key": "meal_replan:dinner:1",
+          "first_replan_started_at": "2030-01-01T00:00:00.000Z",
+          "existing_preparation_deadline_at": "2030-01-01T00:30:00.000Z",
+          "policy_version": "synthetic-policy-v1",
+          "budget_policy_digest": "b2079dd4661916b5f62808e3d5fa8d19158e02641157d1c08c0b1e06b39c024b",
+          "fee_reservation_digest": "0d81438eef012f1d4cbce9aa9de70017327e1c765176e4792659fd5222621120"
+        },
+        "publication_hold": {
+          "hold_epoch": 1,
+          "pause_receipt_digest": "427b4a213ac7c081cd8331861230d4ebf64d914d9a78d96d6d9745dd71b351bf",
+          "provider_check_digest": "d463a4aef23429f4d23ca56a64f614b9dae65a9955b76efeb01dfb1294d93447",
+          "provider_checked_at": "2030-01-01T00:01:00.000Z"
+        }
+      }
+    }
+  ],
+  "semantic_cases": [
+    {
+      "case": "P_C_current_equal",
+      "prepare": {
+        "target_date": "2030-01-01",
+        "target_slot": "dinner",
+        "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+        "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+        "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+        "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+        "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+        "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+      },
+      "commit": {
+        "target_date": "2030-01-01",
+        "target_slot": "dinner",
+        "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+        "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+        "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+        "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+        "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+        "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+      },
+      "current": {
+        "target_date": "2030-01-01",
+        "target_slot": "dinner",
+        "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+        "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+        "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+        "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+        "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+        "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+      },
+      "expected_reason": null
+    },
+    {
+      "case": "C_only_rebased",
+      "prepare": {
+        "target_date": "2030-01-01",
+        "target_slot": "dinner",
+        "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+        "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+        "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+        "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+        "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+        "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+      },
+      "commit": {
+        "target_date": "2030-01-01",
+        "target_slot": "dinner",
+        "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+        "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+        "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+        "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+        "day_generation": "gn1_ce5d2dc7b65dd2ae569c250dd638a6e7e3a4cea40a1dbc029d09940d49103b1d",
+        "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+      },
+      "current": {
+        "target_date": "2030-01-01",
+        "target_slot": "dinner",
+        "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+        "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+        "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+        "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+        "day_generation": "gn1_ce5d2dc7b65dd2ae569c250dd638a6e7e3a4cea40a1dbc029d09940d49103b1d",
+        "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+      },
+      "expected_reason": "candidate_preconditions_mismatch"
+    },
+    {
+      "case": "P_C_stale",
+      "prepare": {
+        "target_date": "2030-01-01",
+        "target_slot": "dinner",
+        "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+        "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+        "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+        "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+        "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+        "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+      },
+      "commit": {
+        "target_date": "2030-01-01",
+        "target_slot": "dinner",
+        "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+        "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+        "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+        "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+        "day_generation": "gn1_5b97ca043eb751fb8a81b3899118053fa9c87f8d4810a00ddedaa2a68778c9ec",
+        "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+      },
+      "current": {
+        "target_date": "2030-01-01",
+        "target_slot": "dinner",
+        "target_share_url": "https://www.log-eats.com/s/syntheticdinner",
+        "state_version": "sv1_56ef6fcca6fc2b5cdf4cbbf455149b726aa111c55b69f56b4c85ab51c37e46aa",
+        "target_result_version": "rv1_2d6cec52e6daf64dd723e990c225ffd3906d242a6587c8aae7a9b48c0de8b4b1",
+        "account_generation": "gn1_24e372169f9035aaeb1801a59488c8d0ee7e76d99fc38944e5281bfedef806c2",
+        "day_generation": "gn1_ce5d2dc7b65dd2ae569c250dd638a6e7e3a4cea40a1dbc029d09940d49103b1d",
+        "meal_generation": "gn1_dda209044ad44962b012ececcc2cb2f7efd35c72d22465586e294b6493bc21c1"
+      },
+      "expected_reason": "generation_conflict"
+    }
+  ],
+  "race_cases": [
+    {
+      "case": "D_first",
+      "first": "D",
+      "second": "C",
+      "final_candidate": "discarded",
+      "D": "applied",
+      "C": "not_saved"
+    },
+    {
+      "case": "C_first",
+      "first": "C",
+      "second": "D",
+      "final_candidate": "consumed",
+      "C": "saved",
+      "D": "rejected"
+    }
+  ]
+}

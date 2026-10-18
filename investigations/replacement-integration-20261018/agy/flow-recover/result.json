@@ -1,0 +1,15 @@
+{
+  "approval_explanation": "添付されたFlow後半コード（reconcile, finish, restore_old, candidate, decide_candidate）の論理および安全境界を精査した結果、状態遷移の排他制御、正本・証跡のdigest/version束縛、empty_queueの区別、D/C分岐条件がいずれも要件を満たしているため、本パケットの隔離コード範囲についてGOと判定する。隣接パケットおよび本番稼働ゲートは本承認に含まれない。",
+  "approved_scope": "提示されたFlow後半（reconcile, finish, restore_old, candidate, decide_candidate）の隔離コード範囲のみ（未提示のFlow前半・隣接モジュール・本番配置/有効化・外部adapter実動は対象外）",
+  "blockers": [],
+  "cause_assessment": [
+    "finishにおいて、C（meal_replace）のpersistence=='saved'・result_status=='unchanged'・実体sha256・栄養予算（1800〜2000kcal）を確認後にrebuildをキー付き台帳（self.call）経由で実行し、前後でのpreconditions不変性、proofのsource_digest一致、および生成候補のapproval_source（state_version, commit_uuid）束縛を検査してからstageへ渡す構造が一貫している。",
+    "restore_oldにおいて、全リクエストの終端状態（meal_replaceはnot_saved/failed、その他はapplied/rejectedかつcandidateがdiscarded/rejected/expired）とconflict不在をGET照会で確認し、旧正本digest不変、外部検証proofの鮮度（0〜120秒）・source_digest一致・verdict（passまたはempty_queue）を確認した上で、empty_queue時の旧キュー非空混入を拒否し、スナップショット完全一致とhold所有権を確認してreleased_oldへ遷移する安全条件が満たされている。",
+    "candidateおよびdecide_candidateにおいて、ready状態からの排他的遷移（stage='ready'条件付きUPDATE）、prepare時のwireメタデータ・material・実画像バイト列の整合性検証、独立レビュー結果と最新preconditionsに基づく栄養計算の判定、不合格時のcandidate_discard（D_prepared）送信と合格時のDrive検証・再照会後のmeal_replace（C_prepared）送信が、P.expected=C.expected=currentおよび一回送信原則に沿って実装されている。"
+  ],
+  "decision": "GO",
+  "major_findings": [
+    "今回のレビュー対象であるFlow後半の5メソッドについて、前回までの指摘事項（empty_queue時の旧キュー実体チェック、鮮度・source_digest束縛、C後再構築時の正本・commit_uuid束縛、栄養予算失敗時のD遷移など）が適切に反映されており、当該スコープ内に重大な論理・安全不具合は認められない。"
+  ],
+  "required_plan_changes": []
+}

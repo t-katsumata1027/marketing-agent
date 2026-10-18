@@ -45,6 +45,8 @@ def configure_policy(store, channel, now, review_until):
 
 def bind_route(db, row, channel):
     """外部送信前に日時枠と承認版を一意に保存する。"""
+    from .publication_hold import require_clear
+    require_clear(db, row['target_date'])
     if row['slot'] not in SLOTS or row['approved'] is None or not row['actor']:
         raise ProbeError('buffer_approved_slot_required')
     c = Candidate(**json.loads(row['payload']))
@@ -65,7 +67,9 @@ def production_client(store):
     def record(query):
         from .buffer_limits import record_request
         record_request(store, query)
-    return BufferTrialClient(os.getenv('BUFFER_API_KEY',''),on_request=record)
+    client = BufferTrialClient(os.getenv('BUFFER_API_KEY',''),on_request=record)
+    client.publication_store = store
+    return client
 
 
 def requires_x_verification(store, now):
@@ -123,6 +127,7 @@ class BufferPublisher:
 
     def __init__(self, store, row, route, api, clock=None, timer=None, sleep=None):
         self.store, self.row, self.route, self.api = store, row, route, api
+        self.api.publication_target = row['target_date']
         self.clock = clock or (lambda: datetime.now(UTC))
         self.timer, self.sleep = timer or time.monotonic, sleep or time.sleep
         self.proof = None
@@ -183,6 +188,8 @@ class BufferPublisher:
         request = {'channelId':self.route['channel_id'],'text':text,'assets':[],
                    'schedulingType':'automatic','mode':'shareNow','saveToDraft':False,'needsApproval':False}
         with self.store.transaction() as db:
+            from .publication_hold import require_clear
+            require_clear(db, self.row['target_date'])
             row = db.execute('SELECT * FROM candidates WHERE target_date=? AND slot=?',
                              (self.row['target_date'],self.row['slot'])).fetchone()
             if (not row or row['state'] != 'dispatching' or row['revision'] != self.row['revision']
@@ -200,6 +207,8 @@ class BufferPublisher:
                 or (immediate and instant(self.clock()) >= c.scheduled_at)
                 or instant(self.clock()) >= instant(datetime.fromisoformat(self.proof['expires_at']))):
             raise ProbeError('buffer_preflight_expired')
+        from .publication_hold import require_claim
+        require_claim(self.store, self.row)
         result = self.api._request(CREATE, {'input':request}).get('createPost')
         if not isinstance(result,dict) or result.get('__typename') != 'PostActionSuccess':
             raise ProbeError('buffer_submission_unconfirmed')

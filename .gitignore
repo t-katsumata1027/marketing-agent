@@ -17,3 +17,7 @@ backups/
 .DS_Store
 Thumbs.db
 .vscode/
+
+# 置換統合の隔離作業環境
+.venv-integration/
+tmp_*.py

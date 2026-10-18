@@ -1,0 +1,41 @@
+# 保存済み食事置換・本番実行Schemaへの隔離互換補正
+
+本人からAPI本番反映報告を受領し、既存のAgent先行準備・統合実装の範囲で、未配置PR #6のSchema互換補正を実施する。本体の反映報告を、本番配置・機能有効化・18日分置換・予算追加の操作承認へ読み替えない。作業基点は8a7d0ccfe18431c1310a6fbc154290404f0fb8a3。
+
+## 正式契約
+
+Log-Eatsのa24bd429504c70d9b4d799bd593308316f676c86にあるdocs/marketing/contracts/mina-replace-v1.schema.jsonだけをGitHubから取得した。指定のSHA-256 2c2a44cc3830ef07bd0666182915b0e5e4bbab11239bb6aec6745f0d9d37a4f6と取得した48,397バイトが一致した。本体コード・DB・管理資格は参照していない。
+
+src/mina/contracts/replacement_runtime/mina-replace-v1.schema.jsonへ原本の実バイトを同梱し、改行変換を無効化する。replacement_contract.Contractの参照先を正式契約へ変更し、readiness.contract_schema_sha256の比較先も正式SHAへ揃える。不存在・改ざん・履歴Schemaでの置換は通信前に拒否し、ネット取得や旧版への退避は行わない。SchemaはSHA照合した同じバイトから構築する。
+
+replacement_v21の凍結Schema・fixtureは原本のまま保持する。Schema SHA 8b5fc6ecce9a9b406e7197f60c6ae49cb8f94edd9702c3b2db33babe78396090、fixture SHA 6561ad1dbdeb755e9a6fca55f2981355dee1b879f404f069489e8c927ecf52c7は不変。固定51ケースは履歴Schemaで検証し、正式Schemaの追加URL回帰データを別ファイルにする。M1版計算・認証・意味検査・品質・予算・期限・状態遷移の仕様は変更しない。
+
+## 配布と回帰
+
+配布スクリプトは作業実体の固定SHAとsource.tar内の実バイトを明示検査し、正式Schema・凍結Schema・凍結fixtureの欠落や改ざんを拒否する。配布manifestのmeal_replacement_contractへ提供commit/path、正式Schemaと凍結履歴の同梱パス/SHAを記録する。activation_allowed=falseを維持し、readinessやサーバーpolicyの設定値は自動更新しない。
+
+追加7試験で、URL許否18ケース、ShareURL以外の全定義の同一性、固定SHAと改ざん/欠落/旧版置換の拒否、記号を含むprecondition/cv1、実関数P→D→P→C→照会の合成通し、旧readiness SHA拒否、新SHAでも未設定予算・未受入adapterの拒否、tarの各契約欠落/改ざんを確認する。URL変更時はpc1/cv1を正規の計算で更新し、不一致は従来どおり拒否する。凍結M1の版文字列を今回再定義しない。
+
+実APIのP/D/C送信、AI生成・従量課金・実Drive書込み・外部予約操作は行わない。追加試験の合成日時だけを有効な時計へ揃え、API本番の期限は変更しない。new preconditionのstored_canonical/is_ambiguous:nullもfalseへ補完しない。
+
+## 19日分のInstagram
+
+稼働版de3d571は変更せず、既存秘密管理のMINAトークンだけをサービス所有者で参照して読取検証した。19日分4枠は版1・approved・本人承認あり、公開試行0件。ストーリー3枠各1枚と日次カルーセル5枚について、実稼働InstagramRuntime.verify相当を構築副作用なしで実行し、同日のX候補・現在M1正本・栄養目標・ローカル原本・完成本文・画像manifest・承認digestの一致を確認した。さらに8枚のDrive配信画像をGETして実バイトを照合した。
+
+Instagram/Gateway/準備timerはactive、準備・通知・承認・公開の4フラグはtrue。検証前後の19日対象9テーブルの全行SHAが一致し、既存承認は保持された。Buffer要求・投稿・カード再作成・食事書込みは0件。この確認を明日の公開直前照合や新しいAI独立点検の代用にはしない。
+
+## 残る受入境界
+
+本番コード・設定・サービス・業務台帳・18日分の保存済み3食は変更していない。置換OFF、費用・期限未設定を維持する。正式契約互換が通っても、共通予算・外部Buffer全ページ照会の受入・停止/再承認の運用受入・移行dry-run・独立レビュー・配置承認は別に必要。18日分の期限を延長したり、19日分の承認を流用したりしない。
+
+## 確定した検証結果
+
+コード56c17adb44923b9851b1d7a28779d655fbda5b66でWindows全457件（137.594秒）、隔離Linux全457件（63.915秒）が成功。新規7件。[CI39125712750](https://github.com/t-katsumata1027/marketing-agent/actions/runs/39125712750)もmina/test両ジョブ成功。[PR #6](https://github.com/t-katsumata1027/marketing-agent/pull/6)へ反映済みで、ドラフトを維持する。
+
+source.tarを別ディレクトリへ展開し、展開物からContractを構築して記号入りURLが通ること、正式/履歴SHAとmanifestが一致することをLinuxで確認した。配布物はactivation_allowed=falseである。
+
+追加の本番GET確認では、検証済み成果物と依存だけをサービス所有者の専用診断領域へ複写し、既存秘密管理のMINAトークンで修正版ReplacementReadClient＋Contractを実行した。最初の通常ユーザー隔離領域のinterpreter起動は失敗したため、元の領域の権限を広げず、専用の非公開診断コピーを使った。稼働先/opt/marketing-agentは切り替えていない。
+
+18日・19日のpreconditionとも修正版の契約・鮮度・pc1/ad1・3食合算の検証に成功し、合計はそれぞれ1,727/1,858kcal。両日ともservice_unavailable、budget_unconfigured、deadline_unverifiedを維持した。P/D/C・台帳書込み・食事再解析・画像再生成は0件。最終の19日9テーブルも初回読取時と全行SHA一致、承認4件と稼働版de3d571を保持した。
+
+Antigravityへ今回の固定差分の独立レビューを一度試みたが、個人利用上限で実行開始前に終了した（status=ERROR、使用token 0）。今回のGoは未取得。既存統合へのGoや提供側の代行Goへ読み替えず、新しい代行レビューも依頼していない。本番反映・有効化は未実施。集計証跡はinvestigations/runtime-schema-compatibility-20261018へ保存する。

@@ -11,6 +11,21 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from src.mina.readiness import release_commit
+from src.mina.replacement_contract import load_contract_resources
+
+
+def verify_archive_contract(archive, evidence):
+    """配布tarにも正式契約と凍結履歴が同じ実バイトで入っていることを確認する。"""
+    for entry in (evidence['runtime_schema'],*evidence['frozen_history'].values()):
+        try:
+            member=archive.getmember(entry['path'])
+            if not member.isfile():
+                raise ValueError('契約資料は通常ファイルである必要があります')
+            raw=archive.extractfile(member).read()
+        except (KeyError,OSError):
+            raise ValueError('配布物に契約資料がありません') from None
+        if hashlib.sha256(raw).hexdigest()!=entry['sha256']:
+            raise ValueError('配布物の契約SHAが一致しません')
 
 
 def git(*args):
@@ -25,6 +40,7 @@ def build(output, commit):
     if git('rev-parse', 'HEAD').decode().strip() != commit:
         raise ValueError('配布commitは現在のHEADに固定してください')
     release_commit(ROOT, commit)
+    contract_evidence,_ = load_contract_resources(ROOT/'src/mina/contracts')
     names = git('ls-tree', '-r', '--name-only', commit).decode().splitlines()
     selected = [name for name in names if (
         name.startswith(('src/mina/', 'deploy/', 'tests/mina/', 'tests/contract_bridge/', 'assets/instagram/'))
@@ -42,6 +58,7 @@ def build(output, commit):
     output.mkdir(parents=True, mode=0o700)
     git('archive', '--format=tar', f'--output={output / "source.tar"}', commit, '--', *selected)
     with tarfile.open(output / 'source.tar') as archive:
+        verify_archive_contract(archive,contract_evidence)
         for name in selected:
             if name.endswith('.sh') and b'\r' in archive.extractfile(name).read():
                 raise ValueError('配布シェルスクリプトのLF改行を確認できません')
@@ -54,6 +71,7 @@ def build(output, commit):
     manifest = {'source_commit': commit, 'contract_version': 'mina-write-v1',
                 'logeats_code_reference': 'b71d4a27ab8a4208487acbceb2f106b3ff128794',
                 'logeats_document_reference': '2bc563843646e594e443f5cec8428caa554b6bbf',
+                'meal_replacement_contract':contract_evidence,
                 'activation_allowed': False, 'files': selected, 'artifacts': artifacts}
     (output / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     return {'source_commit': commit, 'file_count': len(selected), 'activation_allowed': False}

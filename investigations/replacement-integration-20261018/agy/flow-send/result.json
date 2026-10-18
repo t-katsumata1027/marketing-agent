@@ -1,0 +1,19 @@
+{
+  "approval_explanation": "提示されたFlow前半のコード範囲において、事前条件・正本ポリシー束縛、外部課金呼び出しの先行記録と再実行抑止、P/D/Cのジャーナル連携および状態遷移保護に重大な論理・安全上の不具合は認められないため、本パケットの隔離コード範囲についてGOと判定する。なお、後半パートおよび隣接モジュールは別パケットでの独立レビュー対象であり、本判定は本番環境での有効化や外部API実動のGoを意味しない。",
+  "approved_scope": "ReplacementFlow 前半（tracked, __init__, episode, progress, checkpoint, external, call, called_at, begin, next_candidate, send, accept）の隔離コード範囲のみ（後半のreconcile/finish/restore_old/candidate/decide_candidateや隣接モジュール、および本番設定・外部実動は対象外）",
+  "blockers": [],
+  "cause_assessment": [
+    "前回指摘された正本policy束縛について、begin内でbudget_configured、existing_preparation_deadline_verified、policy_version、budget_policy_digest、blocking_reasonsの厳格な一致・空検証が追加されていることを確認した。",
+    "外部呼び出し（menu/image）において、callメソッドで呼び出し開始前に決定論的なcall_keyをstarted状態で永続化し、complete状態のみ再利用・それ以外の途中状態はreplacement_external_lookup_requiredで停止して再実行や勝手な返金を防止する構造になっていることを確認した。",
+    "sendおよびacceptにおいて、P/DのoutcomeとC（meal_replace）のpersistenceが分離評価され、Cがsavedになった後にrebuildingやnew_bundle_pending_approvalからstageを降格させない保護ロジックが実装されていることを確認した。"
+  ],
+  "decision": "GO",
+  "major_findings": [
+    "trackedデコレータにより、未定義の例外文字列や生UUIDが監査表示やエピソード理由に漏洩せず、許可されたReasonまたは'unconfirmed'へ安全に正規化される。",
+    "beginにおいて同一target_dateの既存エピソード存在時（replacement_resume_required）や未完了のmina_requests存在時、および承認期限超過時に新規開始を拒否し、状態の上書きを防止している。",
+    "next_candidateにおいて、ステージ遷移のCAS更新（WHERE target_date=? AND stage=?）、過去試行とのmenu/foods重複検査、入力画像のSHA-256重複検査（初期画像および過去試行画像との比較）、およびPILによるフォーマット・破損検証が網羅されている。",
+    "sendにおいてrequest_uuidとエピソード上の現在アクティブなUUID（prepare_uuid/discard_uuid/commit_uuid）の一致検査が行われ、journal.start記録後に進捗を更新してから送信することで、途中停止時に自動再送されない設計となっている。",
+    "acceptにおいてcandidateのprepare_uuid一致検証、discard時のdiscard_inputと送信時metadataの完全一致検証、およびmeal_replace時のsaved後ステージ降格防止が正しく機能している。"
+  ],
+  "required_plan_changes": []
+}
