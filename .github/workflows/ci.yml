@@ -6,6 +6,23 @@ on:
     branches: [main]
 
 jobs:
+  mina:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12.12"
+          cache: pip
+          cache-dependency-path: requirements-mina.txt
+      - run: python -m pip install -r requirements-mina.txt
+      - run: python -m compileall -q src/mina
+      - run: python -m unittest discover -s tests/mina -v
+      - run: python scripts/build_mina_release.py --commit "$GITHUB_SHA" --output runtime/ci-release
   test:
     runs-on: ubuntu-latest
     permissions:

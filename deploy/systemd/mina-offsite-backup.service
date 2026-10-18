@@ -1,0 +1,19 @@
+[Unit]
+Description=みなの暗号化復旧セットを非共有Driveへ保存
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/opt/marketing-agent
+EnvironmentFile=/etc/marketing-agent/mina.env
+EnvironmentFile=/etc/marketing-agent/doppler.env
+ExecStart=/bin/sh /opt/marketing-agent/deploy/run-mina-backup-doppler.sh backup-run --manifest /etc/marketing-agent/recovery/targets.json
+TimeoutStartSec=900
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/mina-agent
+

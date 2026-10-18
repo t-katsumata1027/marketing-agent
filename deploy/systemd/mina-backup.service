@@ -1,0 +1,16 @@
+[Unit]
+Description=みなの運用台帳を整合バックアップ
+
+[Service]
+Type=oneshot
+User=mina-agent
+Group=mina-agent
+WorkingDirectory=/opt/marketing-agent
+EnvironmentFile=/etc/marketing-agent/mina.env
+ExecStart=/opt/marketing-agent/.venv-mina/bin/python -m src.mina backup
+TimeoutStartSec=120
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/mina-agent
