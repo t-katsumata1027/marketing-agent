@@ -1,5 +1,11 @@
 # みな運用の実装・サブPC配置状況
 
+## 2026年10月18日の正式実行Schema互換補正・19日Instagram承認確認
+
+本人のAPI本番反映報告を受け、未配置PR #6の実行検証を正式Schema a24bd429/SHA 2c2a44ccへ切替えた。凍結Schema/fixtureは原本保持し、readiness SHA・配布manifest・tar実バイト検査と記号入りURLの実関数回帰を追加。コード56c17adはWindows/Linux各457件とCI39125712750両ジョブ成功。展開物から正式Contractの構築とSHAを確認し、修正版clientによる本番18/19日preconditionのGET検証も成功した。OFF・予算/期限未設定を維持し、P/D/Cは0件。新差分のagyレビューは利用上限で未実行、Go未取得。本番配置・有効化・18日置換は未実施。
+
+19日Instagramは4枠とも版1・本人承認済み、ストーリー3枚と日次5枚の全8実画像・本文・現在M1正本との一致を稼働コードで読取確認。Instagram/Gateway/timerはactive、4フラグtrue。前後の19日9テーブルの全行SHA一致で、既存X/Instagram承認を保持。Buffer要求0件、通知や承認の再作成0件。詳細はMINA_RUNTIME_SCHEMA_COMPATIBILITY_RESULT_20261018.md。明日の送信時には通常の公開直前照合を別途行う。
+
 ## 2026年10月18日の保存済み一食置換・Agent統合と隔離検証完了
 
 本人承認後、通常準備の保存済み品質保留からP/D/C専用台帳、最大2回の別メニュー再計画、共通予算・期限、Buffer全件照会、新版X/Instagram再承認、通常巡回のGET復旧と停止理由診断まで接続した。Log-Eats本体・本番設定／台帳・サービス・18日分は変更せず、機能は既定無効。

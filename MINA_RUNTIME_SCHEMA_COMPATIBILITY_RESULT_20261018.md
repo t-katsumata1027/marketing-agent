@@ -28,4 +28,14 @@ Instagram/Gateway/準備timerはactive、準備・通知・承認・公開の4�
 
 本番コード・設定・サービス・業務台帳・18日分の保存済み3食は変更していない。置換OFF、費用・期限未設定を維持する。正式契約互換が通っても、共通予算・外部Buffer全ページ照会の受入・停止/再承認の運用受入・移行dry-run・独立レビュー・配置承認は別に必要。18日分の期限を延長したり、19日分の承認を流用したりしない。
 
-試験結果と独立レビューの成否は完了後に追記する。既存統合へのGoや提供側の代行Goを、今回の差分レビューのGoとして扱わない。
+## 確定した検証結果
+
+コード56c17adb44923b9851b1d7a28779d655fbda5b66でWindows全457件（137.594秒）、隔離Linux全457件（63.915秒）が成功。新規7件。[CI39125712750](https://github.com/t-katsumata1027/marketing-agent/actions/runs/39125712750)もmina/test両ジョブ成功。[PR #6](https://github.com/t-katsumata1027/marketing-agent/pull/6)へ反映済みで、ドラフトを維持する。
+
+source.tarを別ディレクトリへ展開し、展開物からContractを構築して記号入りURLが通ること、正式/履歴SHAとmanifestが一致することをLinuxで確認した。配布物はactivation_allowed=falseである。
+
+追加の本番GET確認では、検証済み成果物と依存だけをサービス所有者の専用診断領域へ複写し、既存秘密管理のMINAトークンで修正版ReplacementReadClient＋Contractを実行した。最初の通常ユーザー隔離領域のinterpreter起動は失敗したため、元の領域の権限を広げず、専用の非公開診断コピーを使った。稼働先/opt/marketing-agentは切り替えていない。
+
+18日・19日のpreconditionとも修正版の契約・鮮度・pc1/ad1・3食合算の検証に成功し、合計はそれぞれ1,727/1,858kcal。両日ともservice_unavailable、budget_unconfigured、deadline_unverifiedを維持した。P/D/C・台帳書込み・食事再解析・画像再生成は0件。最終の19日9テーブルも初回読取時と全行SHA一致、承認4件と稼働版de3d571を保持した。
+
+Antigravityへ今回の固定差分の独立レビューを一度試みたが、個人利用上限で実行開始前に終了した（status=ERROR、使用token 0）。今回のGoは未取得。既存統合へのGoや提供側の代行Goへ読み替えず、新しい代行レビューも依頼していない。本番反映・有効化は未実施。集計証跡はinvestigations/runtime-schema-compatibility-20261018へ保存する。
