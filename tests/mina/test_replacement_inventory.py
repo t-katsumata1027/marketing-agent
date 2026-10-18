@@ -1,11 +1,12 @@
 """Buffer全状態のページ照会と、完成後の通常承認期限を合成データで検証する。"""
 import copy,json,tempfile,unittest
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock,patch
 from src.mina.replacement_inventory import BufferInventoryAdapter,ExternalInventory
 from src.mina.replacement_contract import Contract,DIRECTORY,source_digest
 from src.mina.store import Store
 from src.mina.domain import ACCOUNT
+from src.mina.buffer_trial import BufferTrialClient
 from tests.mina.test_replacement_integration import NOW,TARGET
 class InventoryTests(unittest.TestCase):
  def setUp(self):
@@ -42,4 +43,17 @@ class InventoryTests(unittest.TestCase):
   old=source_digest(p);p['policy']['blocking_reasons']=['deadline_exceeded'];p['policy']['available_replans']=0
   self.assertEqual(source_digest(p),old)
   p['policy']['budget_policy_digest']='f'*64;self.assertNotEqual(source_digest(p),old)
+ def test_actual_client_uses_existing_quota_callback_once_per_query(self):
+  from src.mina.buffer_publisher import production_client
+  query=self.api._request.side_effect
+  with patch.dict('os.environ',{'BUFFER_API_KEY':'synthetic-test-token'}):api=production_client(self.store)
+  api._transport=lambda q,v:{'data':query(q,v)}
+  inventory=ExternalInventory(self.store,BufferInventoryAdapter(api,'org'),lambda:NOW,{'x':'x','instagram':'ig'})
+  self.assertEqual(len(inventory.check(TARGET)['pages']),2)
+  self.assertEqual(api.calls,6)
+  with self.store.transaction() as db:self.assertEqual(db.execute('SELECT count(*) FROM buffer_api_usage').fetchone()[0],6)
+ def test_actual_client_without_quota_callback_is_rejected_before_transport(self):
+  api=BufferTrialClient('synthetic-test-token',transport=Mock())
+  with self.assertRaisesRegex(ValueError,'quota_unverified'):BufferInventoryAdapter(api,'org')
+  self.assertEqual(api.calls,0)
 if __name__=='__main__':unittest.main()

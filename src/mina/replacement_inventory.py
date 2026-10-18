@@ -10,7 +10,7 @@ class BufferInventoryAdapter:
     """Buffer公式の全status列挙を日付で間引かずに読む。日不明の下書きは停止対象。"""
     def __init__(self,api,organization_id):
         if not organization_id:raise ValueError('external_dispatch_unverified')
-        if not callable(getattr(api,'on_request',None)):raise ValueError('external_inventory_quota_unverified')
+        if not callable(getattr(api,'_on_request',None)):raise ValueError('external_inventory_quota_unverified')
         self.api,self.organization=api,organization_id
         self.usage_counted=True
 
