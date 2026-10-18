@@ -1,0 +1,64 @@
+{
+  "observed_at": "2026-10-19T07:48:14.235059+09:00",
+  "production_commit": "9cdae3f3cedb1cc602bfaef1c3da14108604a38f",
+  "services": {
+    "mina-agent": "active",
+    "mina-gateway": "active",
+    "mina-prepare.timer": "active",
+    "mina-notify.timer": "active"
+  },
+  "slots": [
+    {
+      "slot": "breakfast",
+      "state": "published",
+      "revision": 2,
+      "x_id": "2111952447203582414",
+      "scheduled_jst": "2026-10-19T07:47:49.634696+09:00"
+    },
+    {
+      "slot": "lunch",
+      "state": "approved",
+      "revision": 1,
+      "x_id": null,
+      "scheduled_jst": "2026-10-19T12:15:00+09:00"
+    },
+    {
+      "slot": "dinner",
+      "state": "approved",
+      "revision": 1,
+      "x_id": null,
+      "scheduled_jst": "2026-10-19T19:15:00+09:00"
+    },
+    {
+      "slot": "daily",
+      "state": "approved",
+      "revision": 1,
+      "x_id": null,
+      "scheduled_jst": "2026-10-19T21:30:00+09:00"
+    }
+  ],
+  "buffer": {
+    "state": "sent",
+    "native_link": "https://twitter.com/EatsLog88161/status/2111952447203582414",
+    "sent_at": "2026-10-18T22:47:56.417Z"
+  },
+  "submission_started_count": 1,
+  "result_notices": [
+    {
+      "kind": "result",
+      "state": "sent"
+    }
+  ],
+  "clock_samples_ms": [
+    1024.067,
+    -9.421,
+    1197.509,
+    -7.471
+  ],
+  "cycle_health": {
+    "checked": 1792363690.720786,
+    "last_success": 1792363690.720786,
+    "consecutive_failures": 0
+  },
+  "quick_check": "ok"
+}

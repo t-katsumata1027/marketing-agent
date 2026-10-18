@@ -1,0 +1,19 @@
+{
+  "target_date": "2026-10-19",
+  "slot": "breakfast",
+  "observed_at": "2026-10-18T22:47:55.830511+00:00",
+  "authorized": {
+    "target_date": "2026-10-19",
+    "slot": "breakfast",
+    "revision": 2,
+    "state": "approved",
+    "deadline": "2026-10-18T23:02:49.634696+00:00"
+  },
+  "state": "published",
+  "x_id": "2111952447203582414",
+  "route_state": "sent",
+  "other_business_rows_unchanged": true,
+  "buffer_inventory_queries": 3,
+  "published_by_this_process": 1,
+  "source_clock_wait_seconds": 5
+}
