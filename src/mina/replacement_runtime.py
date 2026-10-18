@@ -44,7 +44,7 @@ def build_coordinator(store,directory,draft,saved,evidence,commit,host,ai,drive,
     if os.getenv('MINA_MEAL_REPLACEMENT_ENABLED','false').lower()!='true':return None
     import json
     from pathlib import Path
-    from .replacement_contract import Contract,HASHES
+    from .replacement_contract import Contract,RUNTIME_SCHEMA_SHA256
     from .replacement_policy import ReplacementPolicy
     from .replacement_client import ReplacementClient
     from .replacement_inventory import BufferInventoryAdapter,ExternalInventory
@@ -59,7 +59,7 @@ def build_coordinator(store,directory,draft,saved,evidence,commit,host,ai,drive,
     readiness=settings['readiness']
     if any(readiness.get(k) is not True for k in ('contract_verified','provider_qa_verified','external_inventory_adapter_verified','budget_allocation_verified')):
         raise ValueError('replacement_integration_not_enabled')
-    if (readiness.get('contract_schema_sha256')!=HASHES['CONTRACT.schema.json'] or not readiness.get('provider_deployment_verified')
+    if (readiness.get('contract_schema_sha256')!=RUNTIME_SCHEMA_SHA256 or not readiness.get('provider_deployment_verified')
             or not readiness.get('qa_evidence_digest') or not readiness.get('deployment_commit')):raise ValueError('replacement_provider_not_verified')
     # readinessは受入結果の参照であり、未検証の外部事実をtrueへ補完しない。
     contract=Contract(clock);policy=ReplacementPolicy(store,settings['policy'],clock)

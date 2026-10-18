@@ -3,7 +3,7 @@ import copy,json,tempfile,unittest
 from pathlib import Path
 from unittest.mock import Mock,patch
 from src.mina.replacement_inventory import BufferInventoryAdapter,ExternalInventory
-from src.mina.replacement_contract import Contract,DIRECTORY,source_digest
+from src.mina.replacement_contract import Contract,FROZEN_DIRECTORY,source_digest
 from src.mina.store import Store
 from src.mina.domain import ACCOUNT
 from src.mina.buffer_trial import BufferTrialClient
@@ -39,7 +39,7 @@ class InventoryTests(unittest.TestCase):
   self.next=True
   with self.assertRaisesRegex(ValueError,'incomplete'):self.inventory.check(TARGET)
  def test_expired_replanning_window_does_not_change_completed_source_identity(self):
-  f=json.loads((DIRECTORY/'FIXTURES.json').read_text(encoding='utf-8'));p=copy.deepcopy(next(s['value'] for s in f['samples'] if s['case_id']=='precondition_success'))
+  f=json.loads((FROZEN_DIRECTORY/'FIXTURES.json').read_text(encoding='utf-8'));p=copy.deepcopy(next(s['value'] for s in f['samples'] if s['case_id']=='precondition_success'))
   old=source_digest(p);p['policy']['blocking_reasons']=['deadline_exceeded'];p['policy']['available_replans']=0
   self.assertEqual(source_digest(p),old)
   p['policy']['budget_policy_digest']='f'*64;self.assertNotEqual(source_digest(p),old)

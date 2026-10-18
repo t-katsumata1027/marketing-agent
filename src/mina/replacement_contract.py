@@ -1,4 +1,4 @@
-"""凍結v2.1の型・正規化・候補の意味を検証する。旧M1のhashは変更しない。"""
+"""本番実行契約の型・正規化・候補の意味を検証し、凍結資料を履歴として保持する。"""
 import hashlib
 import json
 import math
@@ -9,10 +9,38 @@ from jsonschema import Draft202012Validator, FormatChecker
 from .replacement_client import timestamp, ReplacementReadFailure
 
 SLOTS = ('breakfast','lunch','dinner')
-DIRECTORY = Path(__file__).parent/'contracts/replacement_v21'
-HASHES = {'CONTRACT.schema.json':'8b5fc6ecce9a9b406e7197f60c6ae49cb8f94edd9702c3b2db33babe78396090',
+CONTRACT_ROOT = Path(__file__).parent/'contracts'
+FROZEN_DIRECTORY = CONTRACT_ROOT/'replacement_v21'
+RUNTIME_SCHEMA = 'replacement_runtime/mina-replace-v1.schema.json'
+RUNTIME_SCHEMA_SHA256 = '2c2a44cc3830ef07bd0666182915b0e5e4bbab11239bb6aec6745f0d9d37a4f6'
+PROVIDER_COMMIT = 'a24bd429504c70d9b4d799bd593308316f676c86'
+PROVIDER_SCHEMA_PATH = 'docs/marketing/contracts/mina-replace-v1.schema.json'
+FROZEN_HASHES = {'CONTRACT.schema.json':'8b5fc6ecce9a9b406e7197f60c6ae49cb8f94edd9702c3b2db33babe78396090',
           'FIXTURES.json':'6561ad1dbdeb755e9a6fca55f2981355dee1b879f404f069489e8c927ecf52c7'}
 FORMATS=FormatChecker()
+
+def load_contract_resources(base=None):
+    """通信せず同梱実バイトの固定SHAを検証する。履歴やネット取得へ退避しない。"""
+    base=Path(base) if base is not None else CONTRACT_ROOT
+    hashes={RUNTIME_SCHEMA:RUNTIME_SCHEMA_SHA256,
+            **{'replacement_v21/'+name:sha for name,sha in FROZEN_HASHES.items()}}
+    loaded={}
+    for relative,sha in hashes.items():
+        path=base/relative
+        try:
+            if any(p.is_symlink() for p in (path,path.parent,base)):
+                raise ValueError('replacement_contract_resource_link')
+            raw=path.read_bytes()
+        except OSError:
+            raise ValueError('replacement_contract_resource_missing') from None
+        if hashlib.sha256(raw).hexdigest()!=sha:
+            raise ValueError('replacement_contract_hash_changed')
+        loaded[relative]=raw
+    prefix='src/mina/contracts/'
+    evidence={'contract_version':'mina-replace-v1','provider_commit':PROVIDER_COMMIT,'provider_path':PROVIDER_SCHEMA_PATH,
+        'runtime_schema':{'path':prefix+RUNTIME_SCHEMA,'sha256':RUNTIME_SCHEMA_SHA256},
+        'frozen_history':{name:{'path':prefix+'replacement_v21/'+name,'sha256':sha} for name,sha in FROZEN_HASHES.items()}}
+    return evidence,loaded[RUNTIME_SCHEMA]
 
 @FORMATS.checks('date-time',raises=(ValueError,TypeError))
 def valid_time(value):
@@ -37,10 +65,8 @@ def stamp(value):
 class Contract:
     def __init__(self, clock):
         self.clock=clock
-        for name, sha in HASHES.items():
-            if hashlib.sha256((DIRECTORY/name).read_bytes()).hexdigest()!=sha:
-                raise ValueError('replacement_contract_hash_changed')
-        self.schema=json.loads((DIRECTORY/'CONTRACT.schema.json').read_text(encoding='utf-8'))
+        self.resources,raw=load_contract_resources()
+        self.schema=json.loads(raw)
         Draft202012Validator.check_schema(self.schema)
 
     def validate(self, name, value):

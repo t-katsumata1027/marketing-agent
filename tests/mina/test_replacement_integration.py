@@ -4,7 +4,7 @@ from datetime import UTC,datetime,timedelta
 from io import BytesIO
 from pathlib import Path
 from unittest.mock import Mock,patch
-from src.mina.replacement_contract import Contract,DIRECTORY,canonical,digest,stamp
+from src.mina.replacement_contract import Contract,FROZEN_DIRECTORY,FORMATS,canonical,digest,stamp
 from src.mina.replacement_client import ReplacementClient
 from src.mina.replacement_flow import ReplacementFlow
 from src.mina.replacement_policy import ReplacementPolicy
@@ -13,7 +13,7 @@ from src.mina.store import Store
 from src.mina.instagram_store import InstagramStore
 from src.mina.domain import ACCOUNT
 
-FIXTURE=json.loads((DIRECTORY/'FIXTURES.json').read_text(encoding='utf-8'))
+FIXTURE=json.loads((FROZEN_DIRECTORY/'FIXTURES.json').read_text(encoding='utf-8'))
 SAMPLES={s['case_id']:s['value'] for s in FIXTURE['samples']}
 TARGET='2030-01-01';NOW=datetime(2029,12,31,10,tzinfo=UTC)
 FLAGS={'MINA_MEAL_REPLACEMENT_ENABLED':'true','MINA_LIVE_WRITES':'true'}
@@ -103,10 +103,13 @@ class IntegrationTests(unittest.TestCase):
   from src.mina.preparation_status import QualityHold
   return QualityHold('合成保留','meal_review:dinner',('image_analysis_mismatch',))
  def test_frozen_51_schema_cases_and_three_hash_vectors(self):
+  from jsonschema import Draft202012Validator
+  schema=json.loads((FROZEN_DIRECTORY/'CONTRACT.schema.json').read_text(encoding='utf-8'))
   for sample in FIXTURE['samples']:
-   if sample['expected_valid']:self.contract.validate(sample['schema'],sample['value'])
+   def validate():Draft202012Validator({**schema,'$ref':'#/$defs/'+sample['schema']},format_checker=FORMATS).validate(sample['value'])
+   if sample['expected_valid']:validate()
    else:
-    with self.assertRaises(Exception):self.contract.validate(sample['schema'],sample['value'])
+    with self.assertRaises(Exception):validate()
   for name,v in FIXTURE['hash_vectors'].items():
    self.assertEqual(digest(v['payload'],{'precondition':'pc1_','analysis':'ad1_','candidate':'cv1_'}[name]),v['expected'])
  def test_two_failed_review_to_discard_next_menu_and_commit(self):
