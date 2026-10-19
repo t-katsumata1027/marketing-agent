@@ -1,0 +1,190 @@
+{
+  "conclusion": "success",
+  "headSha": "eeffb565742e5052528d75b2b31b4e0e5fbb4abc",
+  "jobs": [
+    {
+      "completedAt": "2026-10-18T00:46:29Z",
+      "conclusion": "success",
+      "databaseId": 117546482238,
+      "name": "test",
+      "startedAt": "2026-10-18T00:45:36Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-18T00:45:38Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-18T00:45:37Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-18T00:45:39Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 2,
+          "startedAt": "2026-10-18T00:45:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-18T00:45:50Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-python@v5",
+          "number": 3,
+          "startedAt": "2026-10-18T00:45:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-18T00:45:51Z",
+          "conclusion": "success",
+          "name": "Run python -m pip install --upgrade pip",
+          "number": 4,
+          "startedAt": "2026-10-18T00:45:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-18T00:46:22Z",
+          "conclusion": "success",
+          "name": "Run python -m pip install -r requirements.txt",
+          "number": 5,
+          "startedAt": "2026-10-18T00:45:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-18T00:46:22Z",
+          "conclusion": "success",
+          "name": "Run python -m compileall -q src scripts",
+          "number": 6,
+          "startedAt": "2026-10-18T00:46:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-18T00:46:26Z",
+          "conclusion": "success",
+          "name": "Run python -m unittest discover -s tests -v",
+          "number": 7,
+          "startedAt": "2026-10-18T00:46:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-18T00:46:26Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@v5",
+          "number": 13,
+          "startedAt": "2026-10-18T00:46:26Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-18T00:46:26Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 14,
+          "startedAt": "2026-10-18T00:46:26Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-18T00:46:26Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 15,
+          "startedAt": "2026-10-18T00:46:26Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/t-katsumata1027/marketing-agent/actions/runs/39083950068/job/117546482238"
+    },
+    {
+      "completedAt": "2026-10-18T00:46:19Z",
+      "conclusion": "success",
+      "databaseId": 117546482403,
+      "name": "mina",
+      "startedAt": "2026-10-18T00:45:36Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-18T00:45:38Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-18T00:45:37Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-18T00:45:39Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 2,
+          "startedAt": "2026-10-18T00:45:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-18T00:45:48Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-python@v5",
+          "number": 3,
+          "startedAt": "2026-10-18T00:45:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-18T00:45:51Z",
+          "conclusion": "success",
+          "name": "Run python -m pip install -r requirements-mina.txt",
+          "number": 4,
+          "startedAt": "2026-10-18T00:45:48Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-18T00:45:51Z",
+          "conclusion": "success",
+          "name": "Run python -m compileall -q src/mina",
+          "number": 5,
+          "startedAt": "2026-10-18T00:45:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-18T00:46:16Z",
+          "conclusion": "success",
+          "name": "Run python -m unittest discover -s tests/mina -v",
+          "number": 6,
+          "startedAt": "2026-10-18T00:45:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-18T00:46:17Z",
+          "conclusion": "success",
+          "name": "Run python scripts/build_mina_release.py --commit \"$GITHUB_SHA\" --output runtime/ci-release",
+          "number": 7,
+          "startedAt": "2026-10-18T00:46:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-18T00:46:17Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@v5",
+          "number": 13,
+          "startedAt": "2026-10-18T00:46:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-18T00:46:17Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 14,
+          "startedAt": "2026-10-18T00:46:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-18T00:46:17Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 15,
+          "startedAt": "2026-10-18T00:46:17Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/t-katsumata1027/marketing-agent/actions/runs/39083950068/job/117546482403"
+    }
+  ],
+  "status": "completed",
+  "url": "https://github.com/t-katsumata1027/marketing-agent/actions/runs/39083950068"
+}

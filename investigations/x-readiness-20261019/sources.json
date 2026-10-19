@@ -1,0 +1,77 @@
+{
+  "target_date": "2026-10-19",
+  "started_at": "2026-10-18T11:14:19.018885+00:00",
+  "read_only": true,
+  "publication_calls": 0,
+  "slots": [
+    {
+      "slot": "breakfast",
+      "approved": true,
+      "revision": 1,
+      "clock_ms": [
+        -43.307,
+        82.206
+      ],
+      "digest_matches": true,
+      "candidate_valid": true,
+      "ogp_actual_bytes_read": true,
+      "preflight_passed": true,
+      "elapsed_seconds": 4.874,
+      "ogp_expires_after_schedule": true,
+      "calories": 467,
+      "original_local_sha_matches": true
+    },
+    {
+      "slot": "lunch",
+      "approved": true,
+      "revision": 1,
+      "clock_ms": [
+        102.117,
+        275.515
+      ],
+      "digest_matches": true,
+      "candidate_valid": true,
+      "ogp_actual_bytes_read": true,
+      "preflight_passed": true,
+      "elapsed_seconds": 4.635,
+      "ogp_expires_after_schedule": true,
+      "calories": 727,
+      "original_local_sha_matches": true
+    },
+    {
+      "slot": "dinner",
+      "approved": true,
+      "revision": 1,
+      "clock_ms": [
+        326.061,
+        618.513
+      ],
+      "digest_matches": true,
+      "candidate_valid": true,
+      "ogp_actual_bytes_read": true,
+      "preflight_passed": true,
+      "elapsed_seconds": 4.688,
+      "ogp_expires_after_schedule": true,
+      "calories": 664,
+      "original_local_sha_matches": true
+    },
+    {
+      "slot": "daily",
+      "approved": true,
+      "revision": 1,
+      "clock_ms": [
+        657.527,
+        802.234
+      ],
+      "digest_matches": true,
+      "candidate_valid": true,
+      "ogp_actual_bytes_read": true,
+      "preflight_passed": true,
+      "elapsed_seconds": 4.348,
+      "ogp_expires_after_schedule": true,
+      "calories": 1858
+    }
+  ],
+  "all_four_passed": true,
+  "finished_at": "2026-10-18T11:14:37.570633+00:00"
+}

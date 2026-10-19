@@ -1,0 +1,10 @@
+[Unit]
+Description=みなの台帳を毎日バックアップ
+
+[Timer]
+OnCalendar=*-*-* 18:45:00 Asia/Tokyo
+Persistent=true
+Unit=mina-backup.service
+
+[Install]
+WantedBy=timers.target

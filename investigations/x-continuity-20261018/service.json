@@ -1,0 +1,69 @@
+{
+  "sampled_at": 1792283669.1906018,
+  "commit": "de3d571556159adfa9a1dc0530adb4b93c907c49",
+  "services": [
+    {
+      "Result": "success",
+      "Id": "mina-agent.service",
+      "ActiveState": "active",
+      "SubState": "running"
+    },
+    {
+      "Result": "success",
+      "Id": "mina-gateway.service",
+      "ActiveState": "active",
+      "SubState": "running"
+    },
+    {
+      "NextElapseUSecRealtime": "Sun 2026-10-18 19:00:00 JST",
+      "Result": "success",
+      "Id": "mina-prepare.timer",
+      "ActiveState": "active",
+      "SubState": "waiting"
+    },
+    {
+      "NextElapseUSecRealtime": "Sun 2026-10-18 20:00:00 JST",
+      "Result": "success",
+      "Id": "mina-notify.timer",
+      "ActiveState": "active",
+      "SubState": "waiting"
+    },
+    {
+      "NextElapseUSecRealtime": "Sun 2026-10-18 23:10:00 JST",
+      "Result": "success",
+      "Id": "mina-offsite-backup.timer",
+      "ActiveState": "active",
+      "SubState": "waiting"
+    },
+    {
+      "Result": "success",
+      "Id": "actions.runner.t-katsumata1027-LogEats.logeats-ops-01.service",
+      "ActiveState": "active",
+      "SubState": "running"
+    },
+    {
+      "Result": "success",
+      "Id": "actions.runner.t-katsumata1027-LogEats.logeats-secure-01.service",
+      "ActiveState": "active",
+      "SubState": "running"
+    }
+  ],
+  "heartbeats": {
+    "mina": {
+      "age": 15,
+      "fresh": true
+    },
+    "gateway": {
+      "age": 14,
+      "fresh": true
+    }
+  },
+  "preparation": [
+    {
+      "target_date": "2026-10-18",
+      "state": "held:context_review",
+      "started": 1792231201.566089
+    }
+  ],
+  "candidates_today": []
+}

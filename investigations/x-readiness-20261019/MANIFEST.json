@@ -1,0 +1,28 @@
+{
+  "target_date": "2026-10-19",
+  "production_code": "de3d571556159adfa9a1dc0530adb4b93c907c49",
+  "production_deployment": false,
+  "business_mutations": 0,
+  "publication_calls": 0,
+  "buffer_read_requests_accounted": 3,
+  "new_api_write_requests": 0,
+  "agy_review": "unavailable_quota",
+  "files": {
+    "after.json": "d42f9e5faaa8eca06c82cd2319671507f398822993ef290d52675e615ec254a5",
+    "agy.json": "b9eb366e4970394aac46211b60dabf7357bd1fb77f6c2feaabc945bff40dbfbf",
+    "before.json": "6a60321f8dde20d4fa5b92e207331b3d7a57d3115998ffcd35eba303493f1c8e",
+    "buffer.json": "a647792b65eb93820e2c9d5761264468c565a71e551775a5af639ce3dd488bc7",
+    "compatibility.json": "11d2e25d1d8a45d4ea16c505d6d24a246307f5c6c514f5e67896bc591c308618",
+    "preconditions.json": "e0803353d21fcbdee92fe1ba499d612f17d9cef623ee597fd311f556df885ab5",
+    "read_buffer_x.py": "12215fadcd855697ea98893566071b8e22a730ec2749b2a2065f6132e57f20b8",
+    "read_ledger.py": "0133992f536575a6c7d707a62c0e746c8e3fe29267f4116cdf374ef87983976a",
+    "read_preconditions.py": "57820138f5e5d1961735952ad5caeb506205c84ef40b2bab8007ecff08b2401d",
+    "release.json": "37d1d01bc3936c924aa4d3de24f69ab169d3f524a01ed152a1904a0e89f7ee41",
+    "route.json": "312cf9ce7858388f1aa3e73bb68c1ec1fb127e442b248d49c767e68dfaf2963f",
+    "route_dry_run.py": "679a991fee517d35d74b0fda0be6bcb3143c16f0192b82ba2eb0214bd1b55e32",
+    "sources.json": "0b5fc55f3adf32fadc37e9f40811711b729ad12af7f0e52c3fe6ba81e65c1bc5",
+    "unchanged.json": "43e6a6669b5f78ec925c75518bec1f1dbb474fd5b0f6f8e2b1775e5220dd0b54",
+    "validate_preconditions.py": "83bb214330503e712f20c01c92944af5babf0648e0c32a64cececac2ff0b86d8",
+    "verify_sources.py": "a67b4eab8cbfcd36beeacd72b159fe391d650856bc7f8e67e07b35c52ce43ab4"
+  }
+}

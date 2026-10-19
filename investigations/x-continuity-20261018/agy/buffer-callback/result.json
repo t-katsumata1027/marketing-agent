@@ -1,0 +1,18 @@
+{
+  "approval_explanation": "提示されたPR6修正差分（`BufferInventoryAdapter`における`api._on_request`属性参照への修正、および実`production_client`＋合成transport＋実SQLite共通利用枠を用いた6クエリ6回計数・callback欠落時の通信前拒否テスト）および応急・安定化計画の範囲は、すべての制約（本番配置/有効化/18日置換の禁止、本体コード不変更、品質基準・日次1800..2000・未来拒否・120秒鮮度・本人承認の維持、IG下書き残存による共通外部不存在不成立の扱い、朝昼個別救済未実装の前提）を厳格に満たしており、重大な問題は認められないためGOと判定します。",
+  "approved_scope": "提示された隔離コード（BufferInventoryAdapterの`_on_request`属性検査修正および単体テスト追加）と、10/18遅延Xの応急計画・日々のX安定化計画見直し・API待ち不要の隔離作業開始の計画範囲のみ（未提示コード、本番配置・有効化、18日置換実行、未実装の朝昼個別救済CLI実行は承認範囲外）。",
+  "blockers": [],
+  "cause_assessment": [
+    "10/17日次の停止原因は最終GET時の+1079.563msが公開側1秒上限を超過したことによる`source_final`での送信前安全停止であり、Bufferの投稿失敗ではない（初回GET +700.983msは待機成功）。",
+    "10/18分については朝484文字・昼633文字の独立点検が完了し夕610文字が識別保留（日合計1727文字で日次1800..2000基準未満のため日次なし、18日候補0）。",
+    "外部実在庫はXが過去sent 7件（対象日/日時不明0件）である一方、Instagramにsent 1件と日時不明draft 4件が残存しているため、共通外部不存在は成立しない（削除・取消も不可）。",
+    "PR6の旧実装では`api.on_request`を参照していたが、実クライアント（`BufferTrialClient` / `production_client`）の属性名は`_on_request`であったため属性名の整合修正が必要だった。"
+  ],
+  "decision": "GO",
+  "major_findings": [
+    "`BufferInventoryAdapter.__init__`が`callable(getattr(api, '_on_request', None))`を検証するよう修正され、コールバックを持たない`BufferTrialClient`が通信前に`external_inventory_quota_unverified`で確実に拒否されることを確認。",
+    "`production_client(self.store)`と合成`_transport`を組み合わせたテストにより、XとInstagramの2チャネル照会（各チャネルでorganizations, channels, postsの計6クエリ）で`api.calls == 6`およびSQLiteの`buffer_api_usage`テーブルへの6回計数が二重計数なく正確に行われることを確認。",
+    "GraphQLクエリおよび判定仕様（status/日付フィルタなしでの全件取得、日時不明draftの`external_dispatch_present`停止、未知statusや別チャネルの拒否、重複カーソル検出、120秒鮮度判定）が変更なく維持されていることを確認。"
+  ],
+  "required_plan_changes": []
+}

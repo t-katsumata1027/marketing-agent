@@ -1,0 +1,11 @@
+[Unit]
+Description=毎晩20時10分に翌日のInstagram画像と承認依頼を準備
+
+[Timer]
+OnCalendar=*-*-* 20:10:00 Asia/Tokyo
+Persistent=false
+AccuracySec=15s
+Unit=mina-instagram-prepare.service
+
+[Install]
+WantedBy=timers.target
