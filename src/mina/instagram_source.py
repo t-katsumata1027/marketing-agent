@@ -1,6 +1,7 @@
 """既存X用の確認済み成果物を読取だけで再利用する。食事登録・解析は行わない。"""
 
 from dataclasses import asdict
+from copy import deepcopy
 from datetime import UTC, datetime
 import hashlib
 import json
@@ -131,8 +132,23 @@ def load_bundle(database, directory, target, state, now=None):
     return bundle
 
 
+def content_binding(bundle):
+    """食事と画像の全証跡を維持し、Xだけの臨時公開期限を比較から除く。"""
+    value = deepcopy(bundle)
+    recorded = value.pop('bundle_sha256')
+    if digest(value) != recorded:
+        raise ValueError('保存済み食事正本のハッシュが一致しません')
+    for slot, payload in value['x_candidates'].items():
+        if digest(payload) != value['x_digests'][slot]:
+            raise ValueError('X候補の内容と保存版が一致しません')
+        # 承認対象の献立・本文・栄養・原本・API結果・OGP・品質・日版は一切除外しない。
+        payload['approval_source'].pop('publish_after_approval_until', None)
+        value['x_digests'][slot] = digest(payload)
+    return digest(value)
+
+
 def verify_bundle(bundle, database, directory, state, now):
     current = load_bundle(database, directory, bundle['target_date'], state, now)
-    if current['bundle_sha256'] != bundle['bundle_sha256']:
+    if content_binding(current) != content_binding(bundle):
         raise ValueError('Instagram承認後にX用の正本が変わっています')
     return current

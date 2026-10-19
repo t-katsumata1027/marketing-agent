@@ -155,17 +155,22 @@ class InstagramRuntime:
                 self.store.queue_approval(row)
         return self.send_notices()
 
-    def recover(self, target, slot, until):
-        """未送信保留の一枠を再点検し、承認後公開の新カードを作る。"""
+    def recover(self, target, slot, until, instruction=None, recorded_at=None):
+        """未送信保留の一枠を再点検し、新カードまたは本人の明示依頼で復旧する。"""
         from .clients import require_live
-        from .instagram_recovery import prepare_recovery
+        from .instagram_recovery import prepare_recovery, approve_recovery_instruction, check_instruction
         from .instagram_media import verify_public
         require_live()
         if os.getenv('MINA_INSTAGRAM_APPROVAL_ENABLED', 'false').lower() != 'true':
             raise ValueError('Instagram承認受付が無効です')
+        if instruction is not None or recorded_at is not None:
+            check_instruction(instruction, recorded_at, datetime.now(UTC), until)
         row = next(r for r in self.store.rows(target) if r['slot'] == slot)
         recovered = prepare_recovery(self.store, row, datetime.now(UTC), until, HOSTS, self.verify, verify_public)
-        self.store.queue_approval(recovered)
+        if instruction is None:
+            self.store.queue_approval(recovered)
+        else:
+            approve_recovery_instruction(self.store, recovered, datetime.now(UTC), instruction, recorded_at)
         return {'target_date': target, 'slot': slot, 'revision': recovered['revision'], 'published': False}
 
     def send_notices(self):

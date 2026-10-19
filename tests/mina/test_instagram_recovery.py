@@ -10,7 +10,7 @@ from src.mina.clients import ClockSkewError
 from src.mina.instagram_domain import InstagramCandidate
 from src.mina.instagram_media import HOSTS
 from src.mina.instagram_publisher import publish_once, request_for
-from src.mina.instagram_recovery import prepare_recovery, publication_window
+from src.mina.instagram_recovery import CHAT_ACTOR, approve_recovery_instruction, prepare_recovery, publication_window
 import test_instagram as legacy
 from test_instagram import API, NOW, candidate
 
@@ -165,6 +165,52 @@ class RecoveryTests(unittest.TestCase):
             with self.assertRaises(ClockSkewError):
                 publish_once(self.store, row, fail, HOSTS, API(c), clock=lambda: c.scheduled_at, verify_media=lambda _: None)
         self.assertEqual(json.loads(self.store.rows()[0]['reason'])['reason'], 'clock_ahead')
+
+    def instruction_ready(self):
+        c, row, now = self.held()
+        row = prepare_recovery(self.store, row, now, now + timedelta(minutes=10), HOSTS, lambda _: None, lambda _: None)
+        return c, row, now
+
+    def test_explicit_human_recovery_instruction_is_separate_from_discord_approval(self):
+        c, row, now = self.instruction_ready()
+        with patch.dict('os.environ', {'MINA_LIVE_WRITES': 'true', 'MINA_INSTAGRAM_APPROVAL_ENABLED': 'true'}):
+            ready = approve_recovery_instruction(self.store, row, now, '投稿されませんでした。復旧して下さい', now)
+            with self.assertRaises(ValueError):
+                approve_recovery_instruction(self.store, row, now, '投稿されませんでした。復旧して下さい', now)
+        self.assertEqual(ready['actor'], CHAT_ACTOR)
+        self.assertEqual(ready['scheduled'], now.timestamp())
+        self.assertIsNone(ready['nonce_hash'])
+        rc = InstagramCandidate(**json.loads(ready['payload']))
+        publication_window(self.store, ready, rc)
+        self.assertIsNotNone(self.store.claim_due(now))
+        with self.store.transaction() as db:
+            db.execute("UPDATE instagram_recovery_instructions SET instruction='別の内容'")
+        with self.assertRaises(ValueError):
+            publication_window(self.store, ready, rc)
+
+    def test_instruction_expiry_and_missing_prior_content_approval_block_recovery(self):
+        c, row, now = self.instruction_ready()
+        with patch.dict('os.environ', {'MINA_LIVE_WRITES': 'true', 'MINA_INSTAGRAM_APPROVAL_ENABLED': 'true'}):
+            with self.assertRaises(ValueError):
+                approve_recovery_instruction(self.store, row, now, '復旧して下さい', now - timedelta(minutes=6))
+            with self.assertRaises(ValueError):
+                approve_recovery_instruction(self.store, row, now, '', now)
+            with self.store.transaction() as db:
+                old = json.loads(db.execute('SELECT original_row FROM instagram_recoveries').fetchone()[0])
+                old['actor'] = None
+                db.execute('UPDATE instagram_recoveries SET original_row=?', (json.dumps(old),))
+            with self.assertRaises(ValueError):
+                approve_recovery_instruction(self.store, row, now, '復旧して下さい', now)
+        self.assertEqual(self.store.rows()[0]['state'], 'approval_pending')
+
+    def test_missing_instruction_proof_blocks_chat_approved_publish(self):
+        c, row, now = self.instruction_ready()
+        with patch.dict('os.environ', {'MINA_LIVE_WRITES': 'true', 'MINA_INSTAGRAM_APPROVAL_ENABLED': 'true'}):
+            ready = approve_recovery_instruction(self.store, row, now, '復旧して下さい', now)
+        with self.store.transaction() as db:
+            db.execute('DELETE FROM instagram_recovery_instructions')
+        with self.assertRaises(ValueError):
+            publication_window(self.store, ready, InstagramCandidate(**json.loads(ready['payload'])))
 
 
 if __name__ == '__main__':

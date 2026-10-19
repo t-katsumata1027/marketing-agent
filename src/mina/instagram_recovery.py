@@ -2,10 +2,23 @@
 
 from dataclasses import asdict, replace
 from datetime import datetime, timedelta
+import hashlib
 import json
 
 from .domain import JST, SLOTS, instant, slot_time
 from .instagram_domain import InstagramCandidate, sha
+
+CHAT_ACTOR = 'chat:explicit_instagram_recovery'
+
+
+def check_instruction(instruction, recorded_at, now, until):
+    """本人の依頼本文を保持し、同じ依頼で承認期限を延長しない。"""
+    if not isinstance(instruction, str) or not instruction.strip() or len(instruction.encode()) > 4096:
+        raise ValueError('本人の明示的な復旧依頼本文が必要です')
+    recorded_at, now, until = instant(recorded_at), instant(now), instant(until)
+    if not recorded_at <= now < until <= recorded_at + timedelta(minutes=15):
+        raise ValueError('復旧依頼の記録から15分以内に限って公開します')
+    return hashlib.sha256(instruction.encode()).hexdigest()
 
 
 def base_source(candidate):
@@ -42,6 +55,12 @@ def publication_window(store, row, candidate):
     with store.transaction() as db:
         proof = db.execute('SELECT * FROM instagram_recoveries WHERE target_date=? AND slot=? AND revision=? AND digest=?',
                            (candidate.target_date, candidate.slot, row['revision'], candidate.digest)).fetchone()
+        instruction = None
+        if row['actor'] == CHAT_ACTOR:
+            if not db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='instagram_recovery_instructions'").fetchone():
+                raise ValueError('本人の復旧指示記録がありません')
+            instruction = db.execute('SELECT * FROM instagram_recovery_instructions WHERE target_date=? AND slot=? AND revision=? AND digest=?',
+                                     (candidate.target_date, candidate.slot, row['revision'], candidate.digest)).fetchone()
     if not proof or proof['until'] != until.timestamp():
         raise ValueError('復旧元の保存証跡がありません')
     old = json.loads(proof['original_row'])
@@ -56,7 +75,50 @@ def publication_window(store, row, candidate):
     elif (not row['actor'] or row['scheduled'] != row['approved'] or
           not original.scheduled_at.timestamp() <= row['approved'] < until.timestamp()):
         raise ValueError('復旧投稿の新しい時刻承認がありません')
+    if row['actor'] == CHAT_ACTOR:
+        if (not instruction or instruction['approved'] != row['approved'] or
+                check_instruction(instruction['instruction'], datetime.fromtimestamp(instruction['recorded'], JST),
+                                  datetime.fromtimestamp(row['approved'], JST), until) != instruction['instruction_sha256'] or
+                not old['actor'] or old['approved'] is None):
+            raise ValueError('元の内容承認と今回の復旧依頼が一致しません')
     return datetime.fromtimestamp(row['scheduled'], JST), until
+
+
+def approve_recovery_instruction(store, row, now, instruction, recorded_at):
+    """信頼された入口が受領した本人指示を、Discord操作と区別して承認記録へ残す。"""
+    import os
+    from .clients import require_live
+    require_live()
+    if os.getenv('MINA_INSTAGRAM_APPROVAL_ENABLED', 'false').lower() != 'true':
+        raise ValueError('Instagram承認受付が無効です')
+    c = InstagramCandidate(**json.loads(row['payload']))
+    _, until = publication_window(store, row, c)
+    if until is None or row['state'] != 'approval_pending':
+        raise ValueError('未承認の復旧一枠だけを扱います')
+    instruction_sha = check_instruction(instruction, recorded_at, now, until)
+    with store.transaction() as db:
+        actual = db.execute('SELECT * FROM instagram_candidates WHERE target_date=? AND slot=?',
+                            (c.target_date, c.slot)).fetchone()
+        proof = db.execute('SELECT original_row FROM instagram_recoveries WHERE target_date=? AND slot=? AND revision=?',
+                           (c.target_date, c.slot, row['revision'])).fetchone()
+        old = json.loads(proof['original_row']) if proof else {}
+        if (not actual or dict(actual) != row or not old.get('actor') or old.get('approved') is None or
+                db.execute('SELECT 1 FROM instagram_attempts WHERE target_date=? AND slot=?',
+                           (c.target_date, c.slot)).fetchone()):
+            raise ValueError('内容未承認・送信済み・変更済みの候補は依頼承認できません')
+        db.execute('''CREATE TABLE IF NOT EXISTS instagram_recovery_instructions (
+            target_date TEXT NOT NULL,slot TEXT NOT NULL,revision INTEGER NOT NULL,digest TEXT NOT NULL,
+            instruction TEXT NOT NULL,instruction_sha256 TEXT NOT NULL,recorded REAL NOT NULL,approved REAL NOT NULL,
+            PRIMARY KEY(target_date,slot,revision))''')
+        approved = instant(now).timestamp()
+        db.execute('INSERT INTO instagram_recovery_instructions VALUES(?,?,?,?,?,?,?,?)',
+                   (c.target_date, c.slot, row['revision'], c.digest, instruction, instruction_sha,
+                    instant(recorded_at).timestamp(), approved))
+        db.execute("UPDATE instagram_candidates SET state='approved',actor=?,approved=?,scheduled=?,nonce_hash=NULL WHERE target_date=? AND slot=?",
+                   (CHAT_ACTOR, approved, approved, c.target_date, c.slot))
+        db.execute("UPDATE instagram_notices SET state='obsolete' WHERE target_date=? AND slot=? AND state='pending' AND kind='approval'",
+                   (c.target_date, c.slot))
+    return next(r for r in store.rows(c.target_date) if r['slot'] == c.slot)
 
 
 def prepare_recovery(store, row, now, until, hosts, verify_source, verify_media):

@@ -121,6 +121,61 @@ class InstagramSourceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.load()
 
+    def test_x_breakfast_recovery_and_lunch_publish_keep_original_instagram_binding(self):
+        approved = self.load()
+        c = self.candidates['breakfast']
+        recovered = replace(c, approval_source={**c.approval_source,
+                            'publish_after_approval_until': '2026-10-17T08:00:00+09:00'})
+        with closing(sqlite3.connect(self.database)) as db:
+            db.execute("UPDATE candidates SET payload=?,digest=?,revision=2,state='published' WHERE slot='breakfast'",
+                       (json.dumps(asdict(recovered)), recovered.digest))
+            db.execute("UPDATE candidates SET state='published' WHERE slot='lunch'")
+            db.commit()
+        current = verify_bundle(approved, self.database, self.base, self.state, NOW)
+        self.assertNotEqual(current['bundle_sha256'], approved['bundle_sha256'])
+        self.assertEqual(current['total'], approved['total'])
+        self.assertEqual(current['meals'], approved['meals'])
+        # その他の任意の証跡まで除外しない。
+        changed = replace(recovered, approval_source={**recovered.approval_source, 'review_round': 'other'})
+        with closing(sqlite3.connect(self.database)) as db:
+            db.execute("UPDATE candidates SET payload=?,digest=? WHERE slot='breakfast'", (json.dumps(asdict(changed)), changed.digest))
+            db.commit()
+        with self.assertRaises(ValueError):
+            verify_bundle(approved, self.database, self.base, self.state, NOW)
+
+    def test_timing_exception_never_masks_food_comment_or_goal_changes(self):
+        approved = self.load()
+        c = self.candidates['breakfast']
+        timed = replace(c, approval_source={**c.approval_source, 'publish_after_approval_until': '2026-10-17T08:00:00+09:00'})
+        for changed in (replace(timed, menu='別の献立'), replace(timed, comment='別の一言'),
+                        replace(timed, secondary_review='hold'), replace(timed, ogp_sha256='f' * 64),
+                        replace(timed, nutrition={**timed.nutrition, 'protein': 29})):
+            with closing(sqlite3.connect(self.database)) as db:
+                db.execute("UPDATE candidates SET payload=?,digest=? WHERE slot='breakfast'", (json.dumps(asdict(changed)), changed.digest))
+                db.commit()
+            with self.assertRaises(ValueError):
+                verify_bundle(approved, self.database, self.base, self.state, NOW)
+        with closing(sqlite3.connect(self.database)) as db:
+            db.execute("UPDATE candidates SET payload=?,digest=? WHERE slot='breakfast'", (json.dumps(asdict(timed)), timed.digest))
+            db.commit()
+        self.state['nutrition_targets']['calories'] = 1900
+        with self.assertRaises(ValueError):
+            verify_bundle(approved, self.database, self.base, self.state, NOW)
+
+    def test_stored_bundle_hash_and_x_payload_binding_remain_mandatory(self):
+        approved = json.loads(json.dumps(self.load()))
+        approved['targets']['calories'] = 1999
+        with self.assertRaises(ValueError):
+            verify_bundle(approved, self.database, self.base, self.state, NOW)
+        approved['bundle_sha256'] = digest({k: v for k, v in approved.items() if k != 'bundle_sha256'})
+        with self.assertRaises(ValueError):
+            verify_bundle(approved, self.database, self.base, self.state, NOW)
+        approved = json.loads(json.dumps(self.load()))
+        approved['x_digests']['breakfast'] = 'f' * 64
+        approved['bundle_sha256'] = digest({k: v for k, v in approved.items() if k != 'bundle_sha256'})
+        with self.assertRaises(ValueError):
+            verify_bundle(approved, self.database, self.base, self.state, NOW)
+
     def test_registered_targets_are_not_historical_or_hardcoded(self):
         first = self.load()
         self.state['nutrition_targets'] = {'calories': 2000, 'protein': 60, 'fat': 56, 'carbs': 314}
