@@ -1,5 +1,9 @@
 # サブPCでの開発
 
+## 2026年10月19日19:24・InstagramとXの同時実行停止を修正
+
+稼働ade7556を保持したf35a7edを配置し、X送信中の状態をInstagramの食事不適合と扱う競合を解消した。Windows/Linux各409件・CI・実データ4枠と画像8枚・私用台帳コピーによる3状態×4枠の照合に成功。切替時の24台帳を保持し、本人の明示依頼による夕食だけの復旧を通常公開処理で実施。19:24:59 JSTのBuffer sentと実公開URL、完了通知sentを確認した。X候補・X経路・他のInstagram行と日次承認は不変。3サービス・3タイマーともactive。保護バックアップは`/var/lib/mina-agent/deployment-instagram-dinner-f35a7ed4ae`。詳細は`MINA_INSTAGRAM_DINNER_RECOVERY_20261019.md`。
+
 ## 接続と配置
 
 ChatGPTアプリのSSH接続は`katsu-server1-wsl`を使用する。Windowsへの管理用SSH別名`katsu-server1`は、この接続の経由先なのでSSH設定から削除しない。
