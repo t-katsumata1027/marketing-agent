@@ -1,0 +1,3 @@
+# 初回受入後、既存Gatewayのdrop-inとして配置する。別Gatewayは起動しない。
+[Service]
+EnvironmentFile=/etc/marketing-agent/instagram.env
