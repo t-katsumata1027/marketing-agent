@@ -1,5 +1,9 @@
 # サブPCでの開発
 
+## 2026年10月19日12:23・Instagram昼食の食事照合修正
+
+Xの時計差対策を含む稼働9cdae3fを保持したade7556を配置した。Windows/Linux各406件、CI、本番4枠と画像8枚の照合に成功。切替時の23台帳を保持し、本人依頼による昼食だけの復旧を通常公開処理で実行。12:23:01 JSTのBuffer sentと実公開URLを確認。朝食・夕食・日次のInstagram行とX候補／経路は不変。3サービス・3タイマーともactive。保護バックアップは`/var/lib/mina-agent/deployment-instagram-lunch-ade7556bfd`。詳細は`MINA_INSTAGRAM_LUNCH_RECOVERY_20261019.md`。
+
 ## 接続と配置
 
 ChatGPTアプリのSSH接続は`katsu-server1-wsl`を使用する。Windowsへの管理用SSH別名`katsu-server1`は、この接続の経由先なのでSSH設定から削除しない。
