@@ -256,6 +256,94 @@ class InstagramSourceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.load()
 
+    def test_x_publication_lifecycle_keeps_instagram_food_binding(self):
+        approved = self.load()
+        for status in ('approval_pending', 'approved', 'dispatching', 'published', 'outcome_unknown', 'expired'):
+            with self.subTest(status=status):
+                with closing(sqlite3.connect(self.database)) as db:
+                    db.execute("UPDATE candidates SET state=? WHERE slot='dinner'", (status,))
+                    db.commit()
+                self.assertEqual(verify_bundle(approved, self.database, self.base, self.state, NOW), approved)
+
+    def test_x_execution_states_never_bypass_quality_or_changed_api_or_human_hold(self):
+        approved = self.load()
+        c = self.candidates['dinner']
+        for status in ('dispatching', 'outcome_unknown', 'expired'):
+            with self.subTest(status=status):
+                changed = replace(c, secondary_review='hold')
+                with closing(sqlite3.connect(self.database)) as db:
+                    db.execute("UPDATE candidates SET state=?,payload=?,digest=? WHERE slot='dinner'",
+                               (status, json.dumps(asdict(changed)), changed.digest))
+                    db.commit()
+                with self.assertRaises(ValueError):
+                    verify_bundle(approved, self.database, self.base, self.state, NOW)
+                with closing(sqlite3.connect(self.database)) as db:
+                    db.execute("UPDATE candidates SET payload=?,digest=? WHERE slot='dinner'", (json.dumps(asdict(c)), c.digest))
+                    db.commit()
+                self.state['meals'][2]['result_version'] = 'rv1_' + 'f' * 64
+                with self.assertRaises(ValueError):
+                    verify_bundle(approved, self.database, self.base, self.state, NOW)
+                self.state['meals'][2]['result_version'] = 'rv1_' + 'b' * 64
+        for status in ('cancelled', 'changes_requested'):
+            with closing(sqlite3.connect(self.database)) as db:
+                db.execute("UPDATE candidates SET state=?,reason=NULL WHERE slot='dinner'", (status,))
+                db.commit()
+            with self.assertRaises(ValueError):
+                verify_bundle(approved, self.database, self.base, self.state, NOW)
+
+    def test_runtime_publisher_survives_overlapping_x_dispatch_for_story_and_carousel(self):
+        import test_instagram as legacy
+        from src.mina.instagram_runtime import InstagramRuntime, caption
+        from src.mina.instagram_domain import LAYOUT_VERSION
+        from src.mina.instagram_media import HOSTS
+        from src.mina.instagram_publisher import draft_once, publish_once
+        bundle = self.load()
+        runtime = InstagramRuntime(self.database, self.base, self.base / 'instagram')
+        destination = runtime.directory / TARGET / LAYOUT_VERSION / bundle['bundle_sha256']
+        destination.mkdir(parents=True)
+        (destination / 'bundle.json').write_text(json.dumps(bundle), encoding='utf-8')
+        manifest = {'bundle_sha256': bundle['bundle_sha256'], 'assets': {}}
+        # 朝食のX復旧期限追加も、夕食・日次の同時送信も同じ保存束で通す。
+        breakfast = self.candidates['breakfast']
+        recovered = replace(breakfast, approval_source={**breakfast.approval_source,
+                                                       'publish_after_approval_until': '2026-10-17T08:00:00+09:00'})
+        with closing(sqlite3.connect(self.database)) as db:
+            db.execute("UPDATE candidates SET state='published',revision=2,payload=?,digest=? WHERE slot='breakfast'",
+                       (json.dumps(asdict(recovered)), recovered.digest))
+            db.commit()
+        fixture = self
+        for slot in ('dinner', 'daily'):
+            c = replace(legacy.candidate(slot), caption=caption(bundle, slot),
+                        source={k: bundle[k] for k in ('bundle_sha256', 'state_version', 'x_digests')})
+            manifest['assets'][slot] = c.assets
+            (destination / 'rendered.json').write_text(json.dumps(manifest), encoding='utf-8')
+            runtime.store.save(c, NOW, HOSTS)
+            row = next(r for r in runtime.store.rows() if r['slot'] == slot)
+            runtime.store.queue_approval(row)
+            with runtime.store.transaction() as db:
+                notice = json.loads(db.execute("SELECT payload FROM instagram_notices WHERE slot=? AND kind='approval'", (slot,)).fetchone()[0])
+            runtime.store.decide(notice['components'][0]['components'][0]['custom_id'], 'user', NOW)
+            class Meal:
+                def day_state(self, target):
+                    with closing(sqlite3.connect(fixture.database)) as db:
+                        db.execute("UPDATE candidates SET state='dispatching' WHERE slot=?", (slot,))
+                        db.commit()
+                    return {**fixture.state, 'checked_at': datetime.now(UTC).isoformat()}
+            runtime.meal = Meal()
+            api = legacy.API(c)
+            with patch.dict('os.environ', {'MINA_LIVE_WRITES': 'true', 'MINA_INSTAGRAM_PUBLISH_ENABLED': 'true'}):
+                draft_once(runtime.store, c, api)
+                due = runtime.store.claim_due(c.scheduled_at)
+                publish_once(runtime.store, due, runtime.verify, HOSTS, api, clock=lambda: c.scheduled_at,
+                             verify_media=lambda _: None)
+            self.assertEqual(sum(not req['saveToDraft'] for req in api.mutations), 1)
+            self.assertEqual(next(r for r in runtime.store.rows() if r['slot'] == slot)['state'], 'published')
+            with closing(sqlite3.connect(self.database)) as db:
+                self.assertEqual(db.execute('SELECT state FROM candidates WHERE slot=?', (slot,)).fetchone()[0], 'dispatching')
+                db.execute("UPDATE candidates SET state='published' WHERE slot=?", (slot,))
+                db.commit()
+            runtime.verify(c)
+
 
 if __name__ == '__main__':
     unittest.main()

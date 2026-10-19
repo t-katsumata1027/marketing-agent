@@ -54,8 +54,9 @@ def load_meal_bundle(database, directory, target, state, now=None):
     bundle = {'target_date': target, 'state_version': version, 'meals': {}, 'x_candidates': {}, 'x_digests': {}}
     for row in rows:
         c = Candidate(**json.loads(row['payload']))
-        # 同じ版のXが時計差だけで未送信停止した証跡を要求する。品質停止・本人差戻しは含めない。
-        source_eligible = (row['state'] in ('approval_pending', 'approved', 'published') or
+        # Xの送信進行・結果不明・期限切れは食事内容の変更ではない。Xを再送したり状態を変更したりしない。
+        # 品質・現在正本・実画像はこの後も全て照合し、本人差戻し・見送りは引き続き拒否する。
+        source_eligible = (row['state'] in ('approval_pending', 'approved', 'dispatching', 'published', 'outcome_unknown', 'expired') or
                            (row['state'] == 'changes_requested' and row['reason'] == 'preflight_failed' and
                             stops.get((row['slot'], row['revision'])) is True))
         if (c.digest != row['digest'] or not source_eligible
