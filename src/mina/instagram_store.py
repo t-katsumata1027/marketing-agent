@@ -200,11 +200,20 @@ class InstagramStore:
                        (state, post.get('id') if post else None, json.dumps(post, ensure_ascii=False) if post else None,
                         external_url, row['target_date'], row['slot'], row['digest']))
             if state == 'published':
-                payload = {'content': 'Instagramへ公開しました。\n' + external_url, 'allowed_mentions': {'parse': []}}
+                message = ('Instagramの公開を確認できました。先ほどの確認待ち・成否不明を解消しました。' if current['state'] == 'outcome_unknown'
+                           else 'Instagramへ公開しました。')
+                payload = {'content': message + '\n' + external_url, 'allowed_mentions': {'parse': []}}
+                db.execute("UPDATE instagram_notices SET state='obsolete' WHERE target_date=? AND slot=? AND revision=? AND state='pending' AND kind IN ('outcome_unknown','reconciliation_exhausted')",
+                           (row['target_date'], row['slot'], row['revision']))
                 db.execute("INSERT OR IGNORE INTO instagram_notices(target_date,slot,revision,kind,payload) VALUES(?,?,?,'published',?)", (row['target_date'], row['slot'], row['revision'], json.dumps(payload, ensure_ascii=False)))
             elif state in ('held', 'outcome_unknown'):
                 message = ('公開前の検査で保留しました。' if state == 'held' else
                            '送信の成否を確認できないため停止しました。自動再送せず照合が必要です。')
+                if state == 'outcome_unknown':
+                    attempt = db.execute('SELECT post_id FROM instagram_attempts WHERE target_date=? AND slot=?',
+                                         (row['target_date'], row['slot'])).fetchone()
+                    if attempt and attempt['post_id']:
+                        message = '公開完了は確認待ちです。再投稿せず、保存済み受付IDでしばらく自動照会を続けます。'
                 payload = {'content': f"Instagram {row['target_date']} {row['slot']}：{message}",
                            'allowed_mentions': {'parse': []}}
                 if failure:

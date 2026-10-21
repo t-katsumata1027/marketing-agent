@@ -179,8 +179,10 @@ class InstagramRuntime:
         return self.store.send_notices(DiscordClient(os.getenv('DISCORD_BOT_TOKEN', ''), os.getenv('DISCORD_ALLOWED_CHANNEL_ID', '')))
 
     def tick(self):
+        from .instagram_publisher import reconcile_known
+        reconciled = reconcile_known(self.store, scheduled=True, client_factory=self.buffer)
         if os.getenv('MINA_INSTAGRAM_PUBLISH_ENABLED', 'false').lower() != 'true':
-            return {'publishing_enabled': False, 'notices_sent': self.send_notices()}
+            return {'publishing_enabled': False, 'reconciled': reconciled, 'notices_sent': self.send_notices()}
         row = self.store.claim_due(datetime.now(UTC))
         if row:
             try:
@@ -188,7 +190,7 @@ class InstagramRuntime:
             except Exception:
                 # 機密を含み得るAPI応答・例外原文を常駐ログへ出さない。
                 pass
-        return {'processed': bool(row), 'notices_sent': self.send_notices()}
+        return {'processed': bool(row), 'reconciled': reconciled, 'notices_sent': self.send_notices()}
 
     def daemon(self):
         self.store.hold_interrupted()

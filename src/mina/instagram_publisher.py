@@ -166,7 +166,8 @@ def publish_once(store, row, verify_source, hosts, client=None, clock=lambda: da
             post = client._request(GET, {'input': {'id': post_id}})['post']
             if post.get('id') != post_id:
                 raise ProbeError('instagram_post_id_changed')
-        raise ProbeError('instagram_delivery_unknown')
+        from .audit import OperationalFailure
+        raise OperationalFailure('outcome_unknown', 'delivery')
     except Exception as error:
         from .audit import safe_failure
         reason, details = safe_failure(error)
@@ -174,20 +175,7 @@ def publish_once(store, row, verify_source, hosts, client=None, clock=lambda: da
         raise
 
 
-def reconcile_known(store, client):
+def reconcile_known(store, client=None, **options):
     """受付IDが保存された不明枠だけを読取照合する。createPostは使わない。"""
-    with store.transaction() as db:
-        rows = db.execute('''SELECT c.*,a.post_id FROM instagram_candidates c
-            JOIN instagram_attempts a USING(target_date,slot)
-            WHERE c.state='outcome_unknown' AND a.state='outcome_unknown' AND a.post_id IS NOT NULL''').fetchall()
-    confirmed = 0
-    for row in rows:
-        candidate = InstagramCandidate(**json.loads(row['payload']))
-        result = client._request(GET, {'input': {'id': row['post_id']}})['post']
-        if result.get('id') != row['post_id']:
-            raise ProbeError('instagram_post_id_changed')
-        url = validate_post(candidate, result)
-        if url:
-            store.mark(dict(row), 'published', result, url)
-            confirmed += 1
-    return confirmed
+    from .instagram_reconcile import reconcile_known as reconcile
+    return reconcile(store, client, **options)
