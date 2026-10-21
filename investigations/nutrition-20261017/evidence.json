@@ -1,0 +1,725 @@
+{
+  "observed_at_jst": "2026-10-17T08:16:19.652036+09:00",
+  "scope": "Agent所有の保存資料のみ。外部HTTP・本体コード・本体DBの参照なし。",
+  "requests": [
+    {
+      "order": 1,
+      "operation": "meal_register",
+      "request_key_sha256": "c7fad83826695c9fb6284977c63d5298eb29b6b8ab9b98ca3cd1572d9e5478d4",
+      "payload_keys": [
+        "comment",
+        "contract_version",
+        "expected_state_version",
+        "filename",
+        "logged_at",
+        "meal_type"
+      ],
+      "input_digest_valid": true,
+      "phase": "held",
+      "updated_at_jst": "2026-10-16T19:35:36.032625+09:00",
+      "observation": {
+        "status": "failed",
+        "persistence": "not_saved",
+        "stage": "quality",
+        "reason": "quality_review_required"
+      },
+      "contract_version": "mina-write-v1",
+      "meal_type": "dinner",
+      "logged_at": "2026-10-17T10:15:00+00:00",
+      "filename": "2026-10-17-dinner.jpg",
+      "comment_sha256": "a70d0ecc2ea42d3910b624c211d1c595a81e9a8e16bb6af3d05eacaa04795943",
+      "comment_matches_original": true,
+      "comment_mentions_ponzu": false,
+      "comment_contains_15ml": false,
+      "expected_state_version_sha256": "bcde92a44b81670a274ba87d8d3f25cb1b31896ea4d3796e330024bdab00e5ec",
+      "image": {
+        "bytes": 305495,
+        "sha256": "64428dcae8614ab3ef0f0ac70334967960cd6ad90766a5a9777dfe825f95ae53",
+        "ledger_sha256_valid": true,
+        "format": "JPEG",
+        "size": [
+          1254,
+          1254
+        ],
+        "mode": "RGB",
+        "exif_orientation": null,
+        "matching_original_file_count": 1
+      },
+      "offline_multipart": {
+        "fields": [
+          "comment",
+          "contract_version",
+          "expected_state_version",
+          "image",
+          "logged_at",
+          "meal_type"
+        ],
+        "method": "POST",
+        "image_part_matches_ledger": true,
+        "text_fields_match_payload": true,
+        "filename_matches_payload": true,
+        "image_content_type": "image/jpeg"
+      }
+    },
+    {
+      "order": 2,
+      "operation": "meal_register",
+      "request_key_sha256": "f4992e45967bf3eb747a74ed23b68075a7e40677d0bf860c24c3447ae3b80f4f",
+      "payload_keys": [
+        "comment",
+        "contract_version",
+        "expected_state_version",
+        "filename",
+        "logged_at",
+        "meal_type"
+      ],
+      "input_digest_valid": true,
+      "phase": "held",
+      "updated_at_jst": "2026-10-16T19:37:29.071381+09:00",
+      "observation": {
+        "status": "failed",
+        "persistence": "not_saved",
+        "stage": "quality",
+        "reason": "quality_review_required"
+      },
+      "contract_version": "mina-write-v1",
+      "meal_type": "dinner",
+      "logged_at": "2026-10-17T10:15:00+00:00",
+      "filename": "2026-10-17-dinner.jpg",
+      "comment_sha256": "a70d0ecc2ea42d3910b624c211d1c595a81e9a8e16bb6af3d05eacaa04795943",
+      "comment_matches_original": true,
+      "comment_mentions_ponzu": false,
+      "comment_contains_15ml": false,
+      "expected_state_version_sha256": "bcde92a44b81670a274ba87d8d3f25cb1b31896ea4d3796e330024bdab00e5ec",
+      "image": {
+        "bytes": 305495,
+        "sha256": "64428dcae8614ab3ef0f0ac70334967960cd6ad90766a5a9777dfe825f95ae53",
+        "ledger_sha256_valid": true,
+        "format": "JPEG",
+        "size": [
+          1254,
+          1254
+        ],
+        "mode": "RGB",
+        "exif_orientation": null,
+        "matching_original_file_count": 1
+      },
+      "offline_multipart": {
+        "fields": [
+          "comment",
+          "contract_version",
+          "expected_state_version",
+          "image",
+          "logged_at",
+          "meal_type"
+        ],
+        "method": "POST",
+        "image_part_matches_ledger": true,
+        "text_fields_match_payload": true,
+        "filename_matches_payload": true,
+        "image_content_type": "image/jpeg"
+      }
+    },
+    {
+      "order": 3,
+      "operation": "meal_register",
+      "request_key_sha256": "fffd21788f88070b25900c3bdc6150a69e83217ebef30d47b4ad8ca2e2eb221b",
+      "payload_keys": [
+        "comment",
+        "contract_version",
+        "expected_state_version",
+        "filename",
+        "logged_at",
+        "meal_type"
+      ],
+      "input_digest_valid": true,
+      "phase": "complete",
+      "updated_at_jst": "2026-10-16T19:44:21.250574+09:00",
+      "observation": {
+        "status": null,
+        "persistence": "saved",
+        "stage": "completed",
+        "reason": null
+      },
+      "contract_version": "mina-write-v1",
+      "meal_type": "dinner",
+      "logged_at": "2026-10-17T10:15:00+00:00",
+      "filename": "2026-10-17-dinner.jpg",
+      "comment_sha256": "a70d0ecc2ea42d3910b624c211d1c595a81e9a8e16bb6af3d05eacaa04795943",
+      "comment_matches_original": true,
+      "comment_mentions_ponzu": false,
+      "comment_contains_15ml": false,
+      "expected_state_version_sha256": "bcde92a44b81670a274ba87d8d3f25cb1b31896ea4d3796e330024bdab00e5ec",
+      "image": {
+        "bytes": 335991,
+        "sha256": "7c4bf1385fb2633c0b82e2fe8656f0a18180b2adfc9c33ece14ed822bdb0bef0",
+        "ledger_sha256_valid": true,
+        "format": "JPEG",
+        "size": [
+          1254,
+          1254
+        ],
+        "mode": "RGB",
+        "exif_orientation": null,
+        "matching_original_file_count": 1
+      },
+      "offline_multipart": {
+        "fields": [
+          "comment",
+          "contract_version",
+          "expected_state_version",
+          "image",
+          "logged_at",
+          "meal_type"
+        ],
+        "method": "POST",
+        "image_part_matches_ledger": true,
+        "text_fields_match_payload": true,
+        "filename_matches_payload": true,
+        "image_content_type": "image/jpeg"
+      }
+    },
+    {
+      "order": 4,
+      "operation": "meal_correction",
+      "request_key_sha256": "8a93ce929fa0903b4bbf0c1ddb73f5adc90b8f4fef14557e7bf27ec2e71ea876",
+      "payload_keys": [
+        "comment",
+        "contract_version",
+        "expected_state_version",
+        "foods",
+        "reason",
+        "share_url"
+      ],
+      "input_digest_valid": true,
+      "phase": "complete",
+      "updated_at_jst": "2026-10-16T19:44:48.052040+09:00",
+      "observation": {
+        "status": null,
+        "persistence": "saved",
+        "stage": "completed",
+        "reason": null
+      },
+      "contract_version": "mina-write-v1",
+      "meal_type": null,
+      "logged_at": null,
+      "filename": null,
+      "comment_sha256": "a70d0ecc2ea42d3910b624c211d1c595a81e9a8e16bb6af3d05eacaa04795943",
+      "comment_matches_original": true,
+      "comment_mentions_ponzu": false,
+      "comment_contains_15ml": false,
+      "expected_state_version_sha256": "5b56bc4768f59d5ef32cf592f26377e260b47b0744f1d88d80dc3eae3cface05"
+    }
+  ],
+  "serializer": {
+    "git_ref": "39cb8c3:src/mina/clients.py",
+    "method_source_sha256": "7be954d215bcb6bc1222716af05b735161622f53052ae39bed7cc16906bddc8a",
+    "scope": "実multipart組立ての再構成。HTTPなし。相対importとlive/版検証のみスタブ化。"
+  },
+  "draft_comparison": {
+    "foods": [
+      {
+        "name": "豚肩ロース薄切り肉",
+        "amount": "120g"
+      },
+      {
+        "name": "白菜",
+        "amount": "200g"
+      },
+      {
+        "name": "ぶなしめじ",
+        "amount": "50g"
+      },
+      {
+        "name": "酒",
+        "amount": "15ml"
+      },
+      {
+        "name": "水",
+        "amount": "50ml"
+      },
+      {
+        "name": "ポン酢しょうゆ",
+        "amount": "15ml"
+      },
+      {
+        "name": "ごはん",
+        "amount": "180g"
+      },
+      {
+        "name": "さつまいも",
+        "amount": "80g"
+      },
+      {
+        "name": "砂糖",
+        "amount": "5g"
+      },
+      {
+        "name": "しょうゆ",
+        "amount": "3ml"
+      },
+      {
+        "name": "水（甘煮用）",
+        "amount": "100ml"
+      },
+      {
+        "name": "きゅうり",
+        "amount": "70g"
+      },
+      {
+        "name": "梅干し",
+        "amount": "種を除いて8g"
+      },
+      {
+        "name": "かつお節",
+        "amount": "1g"
+      }
+    ],
+    "foods_unchanged": true,
+    "comment_unchanged": true,
+    "old_image_description": "豚肩ロース120gと白菜200gを重ね、しめじ50gと蒸した一人分の主菜。ごはん180g、輪切りのさつまいもの甘煮80g、きゅうりの梅あえを添え、ポン酢を別添えにする。",
+    "new_image_description": "豚肩ロース120gと白菜200gを交互に重ね、層が分かる主菜にしめじ50gを添えて蒸す。計画のポン酢しょうゆ15mlは蒸し汁に混ぜて主菜全体へかけ、主菜と一緒に盛り付ける。ごはん180g、輪切りのさつまいもの甘煮80g、きゅうりの梅あえを添える。",
+    "old_sha256": "64768f37bac54b422797bca4d5e1bd9d9e8a62aea788c455cc533b9c6f8f121b",
+    "new_sha256": "32196e5df54ef4e36d5f4a0489596022df1758cdd48f308823ab6e9ea03290ec"
+  },
+  "retained_error": {
+    "file_sha256": "5a09bbba25d0910b16f49d55747a5eca4409eda4fce8d5db64a16200d7063079",
+    "keys": [
+      "analysis",
+      "contract_version",
+      "error",
+      "operation",
+      "persistence",
+      "quality",
+      "reason"
+    ],
+    "state": {
+      "status": null,
+      "persistence": "not_saved",
+      "stage": null,
+      "reason": "quality_review_required"
+    },
+    "analysis_keys": [
+      "foods",
+      "is_ambiguous",
+      "summary"
+    ],
+    "foods": [
+      {
+        "name": "豚肉と白菜のミルフィーユ蒸し",
+        "amount": "1人前",
+        "calories": 369,
+        "protein": 14.2,
+        "fat": 34.6,
+        "carbs": 0.1
+      },
+      {
+        "name": "白米",
+        "amount": "茶碗1杯",
+        "calories": 242,
+        "protein": 3.8,
+        "fat": 0.5,
+        "carbs": 55.7
+      },
+      {
+        "name": "さつまいもの煮物",
+        "amount": "小鉢1杯",
+        "calories": 165,
+        "protein": 1.4,
+        "fat": 0.4,
+        "carbs": 39
+      },
+      {
+        "name": "きゅうりの和え物",
+        "amount": "小鉢1杯",
+        "calories": 36,
+        "protein": 1,
+        "fat": 1.2,
+        "carbs": 5.4
+      },
+      {
+        "name": "ポン酢",
+        "amount": "小皿1杯",
+        "calories": 3144,
+        "protein": 100.8,
+        "fat": 105.2,
+        "carbs": 448.4
+      }
+    ],
+    "summary": {
+      "totalCalories": 3956,
+      "totalProtein": 121.19999999999999,
+      "totalFat": 141.9,
+      "totalCarbs": 548.6
+    },
+    "quality": {
+      "status": "review_required",
+      "atwater_calories": 3956,
+      "calorie_difference": 0,
+      "calorie_difference_ratio": 0,
+      "warnings": [
+        {
+          "code": "meal_calories_out_of_range",
+          "message": "食事区分に対して合計カロリーが極端です。食品や分量を確認してください。"
+        },
+        {
+          "code": "macro_out_of_range",
+          "message": "PFCのいずれかが通常の1食として極端です。分量を確認してください。"
+        },
+        {
+          "code": "food_calories_out_of_range",
+          "message": "単一食品のカロリーが極端です。食品名や分量を確認してください。"
+        }
+      ]
+    },
+    "arithmetic": {
+      "food_calorie_sum": 3956,
+      "outlier_atwater_4_9_4": 3143.6,
+      "outlier_fraction_of_total": 0.7947421638018201
+    },
+    "corresponds_to_request_order": 2
+  },
+  "registration_payloads_all_identical": true,
+  "steps": [
+    {
+      "stage": "meal_register",
+      "state": "outcome_unknown",
+      "started_at_jst": "2026-10-16T19:35:29.547649+09:00",
+      "result_keys": [],
+      "nested_result_keys": [],
+      "response_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "review": {}
+    },
+    {
+      "stage": "meal_register",
+      "state": "complete",
+      "started_at_jst": "2026-10-16T19:44:04.909731+09:00",
+      "result_keys": [
+        "analysis",
+        "contract_version",
+        "meal",
+        "quality",
+        "request",
+        "result",
+        "share",
+        "x"
+      ],
+      "nested_result_keys": [
+        "analysis",
+        "image_sha256",
+        "meal",
+        "normalized_comment",
+        "ogp",
+        "quality",
+        "result_version",
+        "share",
+        "stored_image_sha256",
+        "x"
+      ],
+      "response_sha256": "715e099a546e9a71f08d866ee1e9c320f9ae4ce0b2e17a3f62d9eae65b0eeffc",
+      "review": {},
+      "analysis_keys": [
+        "foods",
+        "is_ambiguous",
+        "summary"
+      ],
+      "meal_keys": [
+        "logged_at",
+        "meal_type"
+      ],
+      "foods": [
+        {
+          "name": "白米",
+          "amount": "茶碗1杯(約150g)",
+          "calories": 242,
+          "protein": 3.8,
+          "fat": 0.5,
+          "carbs": 55.7
+        },
+        {
+          "name": "豚肉と白菜のミルフィーユ煮",
+          "amount": "1皿",
+          "calories": 369,
+          "protein": 14.2,
+          "fat": 34.6,
+          "carbs": 0.1
+        },
+        {
+          "name": "さつまいもの煮物",
+          "amount": "小鉢1杯",
+          "calories": 135,
+          "protein": 1.4,
+          "fat": 0.2,
+          "carbs": 31.8
+        },
+        {
+          "name": "きゅうりと梅の和え物（おかか添え）",
+          "amount": "小鉢1杯",
+          "calories": 41,
+          "protein": 2.8,
+          "fat": 0.3,
+          "carbs": 6.8
+        }
+      ],
+      "summary": {
+        "totalCalories": 787,
+        "totalProtein": 22.2,
+        "totalFat": 35.6,
+        "totalCarbs": 94.4
+      },
+      "meal_numeric": {},
+      "image_sha256": "7c4bf1385fb2633c0b82e2fe8656f0a18180b2adfc9c33ece14ed822bdb0bef0",
+      "duplicate_analysis_same": true
+    },
+    {
+      "stage": "meal_review",
+      "state": "complete",
+      "started_at_jst": "2026-10-16T19:44:24.327435+09:00",
+      "result_keys": [
+        "reason_codes",
+        "status"
+      ],
+      "nested_result_keys": [],
+      "response_sha256": "64e051636d5e382e3cfef389f20cdf3300b2c86343e372878bd5c2ca57ee6d07",
+      "review": {
+        "status": "hold",
+        "reason_codes": [
+          "nutrition_semantic_mismatch"
+        ]
+      }
+    },
+    {
+      "stage": "meal_correction",
+      "state": "complete",
+      "started_at_jst": "2026-10-16T19:44:43.558389+09:00",
+      "result_keys": [
+        "analysis",
+        "contract_version",
+        "quality",
+        "request",
+        "result",
+        "share",
+        "x"
+      ],
+      "nested_result_keys": [
+        "analysis",
+        "image_sha256",
+        "meal",
+        "normalized_comment",
+        "ogp",
+        "quality",
+        "result_version",
+        "share",
+        "stored_image_sha256",
+        "x"
+      ],
+      "response_sha256": "6ef022928d2212002ade2f113f449dcafe4b66dd5aed096840188496d567a8d6",
+      "review": {},
+      "analysis_keys": [
+        "foods",
+        "is_ambiguous",
+        "summary"
+      ],
+      "meal_keys": [
+        "logged_at",
+        "meal_type"
+      ],
+      "foods": [
+        {
+          "name": "豚肩ロース薄切り肉",
+          "amount": "120g",
+          "calories": 284.4,
+          "protein": 20.5,
+          "fat": 23,
+          "carbs": 0.1
+        },
+        {
+          "name": "白菜",
+          "amount": "200g",
+          "calories": 26,
+          "protein": 1.6,
+          "fat": 0.2,
+          "carbs": 6.4
+        },
+        {
+          "name": "ぶなしめじ",
+          "amount": "50g",
+          "calories": 13,
+          "protein": 1.4,
+          "fat": 0.3,
+          "carbs": 2.4
+        },
+        {
+          "name": "酒",
+          "amount": "15ml",
+          "calories": 15,
+          "protein": 0.1,
+          "fat": 0,
+          "carbs": 0.8
+        },
+        {
+          "name": "水",
+          "amount": "50ml",
+          "calories": 0,
+          "protein": 0,
+          "fat": 0,
+          "carbs": 0
+        },
+        {
+          "name": "ポン酢しょうゆ",
+          "amount": "15ml",
+          "calories": 10,
+          "protein": 0.6,
+          "fat": 0,
+          "carbs": 1.8
+        },
+        {
+          "name": "ごはん",
+          "amount": "180g",
+          "calories": 280.8,
+          "protein": 4.5,
+          "fat": 0.5,
+          "carbs": 66.8
+        },
+        {
+          "name": "さつまいも",
+          "amount": "80g",
+          "calories": 100.8,
+          "protein": 1,
+          "fat": 0.2,
+          "carbs": 25.5
+        },
+        {
+          "name": "砂糖",
+          "amount": "5g",
+          "calories": 19.6,
+          "protein": 0,
+          "fat": 0,
+          "carbs": 5
+        },
+        {
+          "name": "しょうゆ",
+          "amount": "3ml",
+          "calories": 2.6,
+          "protein": 0.3,
+          "fat": 0,
+          "carbs": 0.3
+        },
+        {
+          "name": "水（甘煮用）",
+          "amount": "100ml",
+          "calories": 0,
+          "protein": 0,
+          "fat": 0,
+          "carbs": 0
+        },
+        {
+          "name": "きゅうり",
+          "amount": "70g",
+          "calories": 9.1,
+          "protein": 0.7,
+          "fat": 0.1,
+          "carbs": 2.1
+        },
+        {
+          "name": "梅干し",
+          "amount": "種を除いて8g",
+          "calories": 2.3,
+          "protein": 0.1,
+          "fat": 0,
+          "carbs": 0.7
+        },
+        {
+          "name": "かつお節",
+          "amount": "1g",
+          "calories": 3.3,
+          "protein": 0.8,
+          "fat": 0,
+          "carbs": 0
+        }
+      ],
+      "summary": {
+        "totalCalories": 766.9,
+        "totalProtein": 31.6,
+        "totalFat": 24.3,
+        "totalCarbs": 111.9
+      },
+      "meal_numeric": {},
+      "image_sha256": "7c4bf1385fb2633c0b82e2fe8656f0a18180b2adfc9c33ece14ed822bdb0bef0",
+      "duplicate_analysis_same": true
+    },
+    {
+      "stage": "meal_review",
+      "state": "complete",
+      "started_at_jst": "2026-10-16T19:44:51.894287+09:00",
+      "result_keys": [
+        "reason_codes",
+        "status"
+      ],
+      "nested_result_keys": [],
+      "response_sha256": "3998f3cd19566ffa744eb8e72de0a15deadbd26cbdff173d8f847aa4e48f261c",
+      "review": {
+        "status": "publishable",
+        "reason_codes": []
+      }
+    }
+  ],
+  "code_comparison": [
+    {
+      "commit": "0aee42b1f16bde4f5d0ba8d2b2c1c7ee8167a421",
+      "register_ast_sha256": "ad0c5640c532afe09b8e3eec8e2f96d14c10485064809b97ce59f2c981ece0dd",
+      "creation_files_unchanged_from_pre_buffer": {
+        "src/mina/clients.py": true,
+        "src/mina/registration.py": true,
+        "src/mina/generation.py": true,
+        "src/mina/daily_pipeline.py": true,
+        "src/mina/request_ledger.py": true,
+        "src/mina/correction.py": true
+      }
+    },
+    {
+      "commit": "9866713538ac5d4b0f692e927df04cfa98e110dc",
+      "register_ast_sha256": "ad0c5640c532afe09b8e3eec8e2f96d14c10485064809b97ce59f2c981ece0dd",
+      "creation_files_unchanged_from_pre_buffer": {
+        "src/mina/clients.py": true,
+        "src/mina/registration.py": true,
+        "src/mina/generation.py": true,
+        "src/mina/daily_pipeline.py": true,
+        "src/mina/request_ledger.py": true,
+        "src/mina/correction.py": true
+      }
+    },
+    {
+      "commit": "39cb8c37b520d0a46562fc132b5b66a2a7c20967",
+      "register_ast_sha256": "ad0c5640c532afe09b8e3eec8e2f96d14c10485064809b97ce59f2c981ece0dd",
+      "creation_files_unchanged_from_pre_buffer": {
+        "src/mina/clients.py": false,
+        "src/mina/registration.py": true,
+        "src/mina/generation.py": true,
+        "src/mina/daily_pipeline.py": true,
+        "src/mina/request_ledger.py": true,
+        "src/mina/correction.py": true
+      }
+    },
+    {
+      "commit": "2caa404cfa2cd1f3d5eee8b3eda71b9c994cba4f",
+      "register_ast_sha256": "ad0c5640c532afe09b8e3eec8e2f96d14c10485064809b97ce59f2c981ece0dd",
+      "creation_files_unchanged_from_pre_buffer": {
+        "src/mina/clients.py": false,
+        "src/mina/registration.py": false,
+        "src/mina/generation.py": false,
+        "src/mina/daily_pipeline.py": false,
+        "src/mina/request_ledger.py": false,
+        "src/mina/correction.py": true
+      }
+    }
+  ],
+  "validation": {
+    "all_assertions_passed": true,
+    "register_count": 3,
+    "correction_count": 1,
+    "external_http_requests": 0,
+    "meal_writes": 0,
+    "production_code_or_settings_changed": false
+  }
+}

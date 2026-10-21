@@ -1,0 +1,38 @@
+{
+  "draft_integration_uses_historical_schema": true,
+  "live_contract_definitions_changed": [
+    "ShareURL"
+  ],
+  "live_readiness": [
+    {
+      "date": "2026-10-18",
+      "old_schema_valid": false,
+      "error_paths": [
+        [
+          "meals",
+          0,
+          "expected",
+          "target_share_url"
+        ]
+      ],
+      "validators": [
+        "pattern"
+      ]
+    },
+    {
+      "date": "2026-10-19",
+      "old_schema_valid": false,
+      "error_paths": [
+        [
+          "meals",
+          1,
+          "expected",
+          "target_share_url"
+        ]
+      ],
+      "validators": [
+        "pattern"
+      ]
+    }
+  ]
+}

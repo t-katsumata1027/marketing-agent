@@ -1,0 +1,134 @@
+[
+  {
+    "target_date": "2026-10-18",
+    "observed_at": "2026-10-18T00:40:17.024617+00:00",
+    "planning_only": true,
+    "external_inventory": "unverified",
+    "current_source": "unverified",
+    "database_available": true,
+    "approval_deadline": "2026-10-17T11:00:00+00:00",
+    "slots": [
+      {
+        "slot": "breakfast",
+        "scheduled_at": "2026-10-17T22:30:00+00:00",
+        "time_window": "elapsed",
+        "latest_local_review": "publishable",
+        "local_candidate_state": "absent",
+        "recovery": "individual_source_recheck_candidate",
+        "external_dispatch_recorded": false,
+        "saved_result_recorded": true
+      },
+      {
+        "slot": "lunch",
+        "scheduled_at": "2026-10-18T03:15:00+00:00",
+        "time_window": "future",
+        "latest_local_review": "publishable",
+        "local_candidate_state": "absent",
+        "recovery": "individual_source_recheck_candidate",
+        "external_dispatch_recorded": false,
+        "saved_result_recorded": true
+      },
+      {
+        "slot": "dinner",
+        "scheduled_at": "2026-10-18T10:15:00+00:00",
+        "time_window": "future",
+        "latest_local_review": "hold",
+        "local_candidate_state": "absent",
+        "recovery": "saved_meal_quality_hold",
+        "external_dispatch_recorded": false,
+        "saved_result_recorded": true
+      },
+      {
+        "slot": "daily",
+        "scheduled_at": "2026-10-18T12:30:00+00:00",
+        "time_window": "future",
+        "latest_local_review": "unknown",
+        "local_candidate_state": "absent",
+        "recovery": "daily_energy_out_of_range",
+        "external_dispatch_recorded": false
+      }
+    ],
+    "ledger_complete": true,
+    "creation_status": "held",
+    "preparation_deadline_missed": true,
+    "local_request_count": 6,
+    "unresolved_request_count": 0,
+    "day_hold_active": false,
+    "recorded_total_calories": 1727,
+    "daily_energy_in_range": false,
+    "publication_failures": [],
+    "required_before_any_publication": [
+      "current_source_and_real_ogp",
+      "independent_review",
+      "history_and_external_inventory",
+      "explicit_slot_policy",
+      "new_human_approval"
+    ]
+  },
+  {
+    "target_date": "2026-10-19",
+    "observed_at": "2026-10-18T00:40:17.026606+00:00",
+    "planning_only": true,
+    "external_inventory": "unverified",
+    "current_source": "unverified",
+    "database_available": true,
+    "approval_deadline": "2026-10-18T11:00:00+00:00",
+    "slots": [
+      {
+        "slot": "breakfast",
+        "scheduled_at": "2026-10-18T22:30:00+00:00",
+        "time_window": "future",
+        "latest_local_review": "unknown",
+        "local_candidate_state": "absent",
+        "recovery": "needs_source_recheck",
+        "external_dispatch_recorded": false,
+        "saved_result_recorded": false
+      },
+      {
+        "slot": "lunch",
+        "scheduled_at": "2026-10-19T03:15:00+00:00",
+        "time_window": "future",
+        "latest_local_review": "unknown",
+        "local_candidate_state": "absent",
+        "recovery": "needs_source_recheck",
+        "external_dispatch_recorded": false,
+        "saved_result_recorded": false
+      },
+      {
+        "slot": "dinner",
+        "scheduled_at": "2026-10-19T10:15:00+00:00",
+        "time_window": "future",
+        "latest_local_review": "unknown",
+        "local_candidate_state": "absent",
+        "recovery": "needs_source_recheck",
+        "external_dispatch_recorded": false,
+        "saved_result_recorded": false
+      },
+      {
+        "slot": "daily",
+        "scheduled_at": "2026-10-19T12:30:00+00:00",
+        "time_window": "future",
+        "latest_local_review": "unknown",
+        "local_candidate_state": "absent",
+        "recovery": "needs_source_recheck",
+        "external_dispatch_recorded": false
+      }
+    ],
+    "ledger_complete": true,
+    "creation_status": "not_started",
+    "preparation_deadline_missed": false,
+    "local_request_count": 0,
+    "unresolved_request_count": 0,
+    "day_hold_active": false,
+    "recorded_total_calories": null,
+    "daily_energy_in_range": null,
+    "publication_failures": [],
+    "required_before_any_publication": [
+      "current_source_and_real_ogp",
+      "independent_review",
+      "history_and_external_inventory",
+      "explicit_slot_policy",
+      "new_human_approval"
+    ]
+  }
+]

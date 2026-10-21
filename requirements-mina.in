@@ -1,0 +1,6 @@
+# みな検証モードの直接依存。全依存はrequirements-mina.txtで固定する。
+cryptography==50.0.0
+discord.py==2.7.1
+Pillow==12.3.0
+tweepy==4.17.0
+tzdata==2026.3

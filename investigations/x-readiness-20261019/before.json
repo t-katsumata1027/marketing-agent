@@ -1,0 +1,318 @@
+{
+  "observed_at": "2026-10-18T11:13:51.135721+00:00",
+  "target_date": "2026-10-19",
+  "read_only": true,
+  "production_commit": "de3d571556159adfa9a1dc0530adb4b93c907c49",
+  "services": {
+    "mina-agent.service": "active",
+    "mina-gateway.service": "active",
+    "mina-prepare.timer": "active",
+    "mina-notify.timer": "active"
+  },
+  "preparation": [
+    {
+      "target_date": "2026-10-19",
+      "state": "complete",
+      "started": 1792317602.165748
+    }
+  ],
+  "progress": [
+    {
+      "step": "candidates",
+      "status": "complete",
+      "reasons": "[]",
+      "updated": 1792318223.397522
+    }
+  ],
+  "candidates": [
+    {
+      "slot": "breakfast",
+      "revision": 1,
+      "state": "approved",
+      "reason": null,
+      "scheduled": 1792362600.0,
+      "approved": 1792321563.954734,
+      "has_actor": 1,
+      "dispatch_started": null,
+      "has_publication_id": 0
+    },
+    {
+      "slot": "lunch",
+      "revision": 1,
+      "state": "approved",
+      "reason": null,
+      "scheduled": 1792379700.0,
+      "approved": 1792321577.223387,
+      "has_actor": 1,
+      "dispatch_started": null,
+      "has_publication_id": 0
+    },
+    {
+      "slot": "dinner",
+      "revision": 1,
+      "state": "approved",
+      "reason": null,
+      "scheduled": 1792404900.0,
+      "approved": 1792321591.686927,
+      "has_actor": 1,
+      "dispatch_started": null,
+      "has_publication_id": 0
+    },
+    {
+      "slot": "daily",
+      "revision": 1,
+      "state": "approved",
+      "reason": null,
+      "scheduled": 1792413000.0,
+      "approved": 1792321596.164585,
+      "has_actor": 1,
+      "dispatch_started": null,
+      "has_publication_id": 0
+    }
+  ],
+  "buffer_routes": [],
+  "route_bindings_match": true,
+  "buffer_policy": [
+    {
+      "date_from": "2026-10-16",
+      "review_until": "2026-10-18",
+      "state": "enabled"
+    }
+  ],
+  "notices": [
+    {
+      "slot": "breakfast",
+      "revision": 1,
+      "kind": "approval",
+      "state": "sent"
+    },
+    {
+      "slot": "lunch",
+      "revision": 1,
+      "kind": "approval",
+      "state": "sent"
+    },
+    {
+      "slot": "dinner",
+      "revision": 1,
+      "kind": "approval",
+      "state": "sent"
+    },
+    {
+      "slot": "daily",
+      "revision": 1,
+      "kind": "approval",
+      "state": "sent"
+    }
+  ],
+  "outstanding_requests": [],
+  "cycle_health": [
+    {
+      "singleton": 1,
+      "checked": 1792322028.427133,
+      "last_success": 1792322028.427133,
+      "consecutive_failures": 0,
+      "mode": "live"
+    }
+  ],
+  "active_day_holds": [],
+  "step_results": [
+    {
+      "step": "daily_draft",
+      "state": "complete"
+    },
+    {
+      "step": "menu_nutrition",
+      "state": "complete"
+    },
+    {
+      "step": "image:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "image_review:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "image:lunch",
+      "state": "complete"
+    },
+    {
+      "step": "image_review:lunch",
+      "state": "complete"
+    },
+    {
+      "step": "automatic_image_repair:lunch",
+      "state": "complete"
+    },
+    {
+      "step": "image:lunch",
+      "state": "complete"
+    },
+    {
+      "step": "image_review:lunch",
+      "state": "complete"
+    },
+    {
+      "step": "image:dinner",
+      "state": "complete"
+    },
+    {
+      "step": "image_review:dinner",
+      "state": "complete"
+    },
+    {
+      "step": "drive_upload:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "drive_upload:lunch",
+      "state": "complete"
+    },
+    {
+      "step": "drive_upload:dinner",
+      "state": "complete"
+    },
+    {
+      "step": "meal_request_key:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "meal_register:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_capture:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "meal_review:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "correction_plan:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "correction_key:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "meal_correction:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_capture:breakfast-corrected",
+      "state": "complete"
+    },
+    {
+      "step": "meal_review:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_review:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "meal_request_key:lunch",
+      "state": "complete"
+    },
+    {
+      "step": "meal_register:lunch",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_capture:lunch",
+      "state": "complete"
+    },
+    {
+      "step": "meal_review:lunch",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_review:lunch",
+      "state": "complete"
+    },
+    {
+      "step": "meal_request_key:dinner",
+      "state": "complete"
+    },
+    {
+      "step": "meal_register:dinner",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_capture:dinner",
+      "state": "complete"
+    },
+    {
+      "step": "meal_review:dinner",
+      "state": "complete"
+    },
+    {
+      "step": "correction_plan:dinner",
+      "state": "complete"
+    },
+    {
+      "step": "correction_key:dinner",
+      "state": "complete"
+    },
+    {
+      "step": "meal_correction:dinner",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_capture:dinner-corrected",
+      "state": "complete"
+    },
+    {
+      "step": "meal_review:dinner",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_review:dinner",
+      "state": "complete"
+    },
+    {
+      "step": "daily_request_key",
+      "state": "complete"
+    },
+    {
+      "step": "daily_share",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_capture:daily",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_review:daily",
+      "state": "complete"
+    }
+  ],
+  "target_hashes": {
+    "2026-10-18": {
+      "candidates": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "mina_requests": "7d492256b98d00a8b573449a80e8fad59b795459247a35980ca4b4046e732058",
+      "preparation": "dec72dbd1190375fed056de1f6b20c6d8fe708555a70874131a8464ab0b84810",
+      "preparation_steps": "bd44139721897c3bc6d7b39e351060c029d1ce72e528b04e4d7ea7367c01ce87",
+      "buffer_publication": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "notices": "5a4811b6b75bfc20c3c0c76f48831c7e9c19bf2873899a4e1a7cea5d32f0900d"
+    },
+    "2026-10-19": {
+      "candidates": "f693312134c7fc5446a0d19ce2ec23d30be71c90b68759fcea528dc7ccc1248b",
+      "mina_requests": "584db39cf329e65c9424eb5f58926ba34496df61c9fdb6f271a19646b3c0b3f0",
+      "preparation": "afff189e08029e18acb151f34037ec9dba718dc1cc456e733cde202cf10c1d79",
+      "preparation_steps": "d7d6411a5782a6e0be491e3641b300b5a700b9383c4b36e7675c958abdc1bf7a",
+      "buffer_publication": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "notices": "f00fe0aa15b769f9dcf678805d2a68e8894cfab33e4f5a8b3678420ffba29fb2"
+    }
+  },
+  "runtime_flags": {
+    "MINA_LIVE_WRITES": "true",
+    "MINA_PUBLISH_ENABLED": "true",
+    "MINA_APPROVAL_ENABLED": "true",
+    "MINA_PREPARE_ENABLED": "true",
+    "MINA_MEAL_REPLACEMENT_ENABLED": "unset_or_other"
+  }
+}
