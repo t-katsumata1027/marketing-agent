@@ -58,3 +58,20 @@ class DailyTextRecoveryTests(unittest.TestCase):
   self.assertEqual(self.client.json_write.call_count,1)
   self.now=datetime(2026,10,7,11,tzinfo=UTC)
   with self.assertRaises(ValueError):self.repair()
+ def test_competing_round_is_rejected_before_first_request_marker_exists(self):
+  original=self.client.request_state.side_effect
+  entered=[]
+  def interleave(key,op):
+   if not entered:
+    entered.append(True)
+    with self.store.transaction() as db:
+     self.assertIsNone(db.execute("SELECT 1 FROM preparation_steps WHERE step LIKE 'daily_text_request:%'").fetchone())
+    other=str(uuid.uuid4())
+    with self.assertRaisesRegex(ValueError,'実行ID'):
+     repair_daily_text(self.store,self.reviewed,self.saved,self.client,self.ai,'www.log-eats.com',lambda:self.now,self.capture,other,'a'*40)
+    changed=copy.deepcopy(self.reviewed);changed['posts']['daily']['comment']+='変更'
+    with self.assertRaisesRegex(ValueError,'元入力'):
+     repair_daily_text(self.store,changed,self.saved,self.client,self.ai,'www.log-eats.com',lambda:self.now,self.capture,self.key,'a'*40)
+   return original(key,op)
+  self.client.request_state.side_effect=interleave
+  self.repair();self.assertTrue(entered);self.assertEqual(self.client.json_write.call_count,2)

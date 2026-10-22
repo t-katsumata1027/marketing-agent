@@ -31,6 +31,12 @@ def repair_daily_text(store,reviewed,saved,client,ai,host,clock,capture,round_ke
     marker='daily_text_request:'+round_key
     with store.transaction() as db:
         if db.execute('SELECT 1 FROM candidates WHERE target_date=?',(target,)).fetchone():raise ValueError('候補取込後の修復は行いません')
+        # AI待機や正本取得の前に日単位で占有し、別実行が新UUIDを作る競合を防ぐ。
+        db.execute('CREATE TABLE IF NOT EXISTS daily_text_recovery_claims(target_date TEXT PRIMARY KEY,round_key TEXT NOT NULL,input_digest TEXT NOT NULL)')
+        digest=fingerprint(reviewed)
+        db.execute('INSERT OR IGNORE INTO daily_text_recovery_claims VALUES(?,?,?)',(target,round_key,digest))
+        claim=db.execute('SELECT round_key,input_digest FROM daily_text_recovery_claims WHERE target_date=?',(target,)).fetchone()
+        if claim['round_key']!=round_key or claim['input_digest']!=digest:raise ValueError('日次修復の実行IDまたは元入力が異なります')
         if db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND step LIKE 'daily_text_request:%' AND step<>?",(target,marker)).fetchone():raise ValueError('別UUIDで日次更新を重ねません')
         existing=db.execute('SELECT result FROM preparation_steps WHERE target_date=? AND step=?',(target,marker)).fetchone()
         if not existing and db.execute("SELECT 1 FROM mina_requests WHERE target_date=? AND phase<>'complete'",(target,)).fetchone():raise ValueError('旧要求の成否照合が必要です')
