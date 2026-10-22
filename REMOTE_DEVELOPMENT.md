@@ -1,5 +1,9 @@
 # サブPCでの開発
 
+## 2026年10月22日・Instagram公開結果の自動照会を接続
+
+稼働f35a7edを保持した1539fd5を配置。公開確認の初回待機を超えても、保存済み受付IDをバックオフ付きで読取照会し、公開済みと解消通知へ進める。新規投稿・IDなし再送・未知結果の未保存扱いはしない。Windows/Linux各417件・CI・実受付を使う私用台帳コピーの確認成功。切替時24台帳を保持し、配置後は稼働記録以外の台帳不変、未解決0件・平常時API計数増加0。3サービス・3タイマーactive。保護バックアップは`/var/lib/mina-agent/deployment-instagram-delivery-1539fd59f7`。詳細は`MINA_INSTAGRAM_DELIVERY_RECONCILIATION_20261022.md`。
+
 ## 接続と配置
 
 ChatGPTアプリのSSH接続は`katsu-server1-wsl`を使用する。Windowsへの管理用SSH別名`katsu-server1`は、この接続の経由先なのでSSH設定から削除しない。
