@@ -145,9 +145,10 @@ class Candidate:
         if not urlsplit(self.share_url).path.startswith("/s/"):
             raise ValueError("共有URLの形式が不正です")
         # Xの標準文字数はURLを23文字、ASCII外を保守的に2文字で見積もる。
-        normalized = re.sub(r"https?://[^\s]+", "x" * 23, self.content)
-        if sum(1 if ord(c) < 0x1100 else 2 for c in normalized) > 280:
-            raise ValueError("標準X投稿の文字数上限を超えています")
+        from .x_text import weighted_length,PostLengthError
+        length=weighted_length(self.content)
+        if length>280:
+            raise PostLengthError(self.slot,length)
         if self.api_quality != "pass" or self.secondary_review != "publishable":
             raise ValueError("API品質または二次レビューが不合格です")
         if any(value is not True for value in (self.ogp_verified, self.history_verified, self.legacy_schedule_clear)):

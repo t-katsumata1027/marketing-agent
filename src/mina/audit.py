@@ -29,7 +29,7 @@ STAGES = frozenset(('draft','images','drive','registration','candidates','daily_
  'route','connection','candidate','source','source_state','source_request','source_image','source_final',
  'freshness','submission','delivery','notification','preparation','request','reconciliation','launch','cycle',
  'review_diagnosis','recovery','meal_replan','menu_nutrition','other'))
-REASONS = frozenset(('none','unclassified','validation_failed','io_failed','timeout','http_error','response_invalid',
+REASONS = frozenset(('none','unclassified','validation_failed','post_text_too_long','io_failed','timeout','http_error','response_invalid',
  'contract_invalid','quality_hold','quality_rejected_not_saved','deadline_exceeded','outcome_unknown',
  'lookup_unavailable','clock_ahead','state_changed','source_changed','image_changed','ogp_expired',
  'connection_network','connection_timeout','connection_http_transient','retry_pending','retry_exhausted','usage_limit','configuration','sandbox','execution',
@@ -66,6 +66,9 @@ def safe_failure(error):
         if match and re.fullmatch(r'[a-zA-Z_][a-zA-Z_0-9]{0,63}',frame.name):
             frames.append(f'{match[1]}:{frame.name}:{frame.lineno}')
     details = {'frames': frames[-5:]}
+    from .x_text import PostLengthError
+    if isinstance(error,PostLengthError):
+        details.update(expected=280,observed=error.post_length)
     status = getattr(error,'http_status',None)
     if type(status) is int and 100 <= status <= 599:
         details['http_status'] = status
