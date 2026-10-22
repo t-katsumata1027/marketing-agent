@@ -51,7 +51,8 @@ class XCommentContinuityTests(unittest.TestCase):
    self.assertEqual(draft['daily_comment'],original['daily_comment'])
    self.assertLessEqual(weighted_length(draft['meals']['lunch']['comment']),110)
    self.assertEqual(len(meal.calls),4);self.assertEqual(len(store.list_day(nightly.TARGET)),4)
-   notify_day(store,nightly.TARGET,nightly.NOW.replace(hour=20));self.assertEqual(send_notifications(store,Mock()),4) def test_terminal_unsaved_replan_keeps_saved_food_and_fits_before_replacement_image(self):
+   notify_day(store,nightly.TARGET,nightly.NOW.replace(hour=20));self.assertEqual(send_notifications(store,Mock()),4)
+ def test_terminal_unsaved_replan_keeps_saved_food_and_fits_before_replacement_image(self):
   import test_automatic_repair as repair_fixtures
   with tempfile.TemporaryDirectory() as tmp:
    root=Path(tmp);fixture=nightly.NightlyFlowTests();flow=fixture.setup_flow(root,'plain')
