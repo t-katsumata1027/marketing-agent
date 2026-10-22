@@ -45,3 +45,22 @@ Buffer固定Xの全状態をGETで照会し、対象日・日時不明の投稿�
 PR: https://github.com/t-katsumata1027/marketing-agent/pull/12
 
 CI: https://github.com/t-katsumata1027/marketing-agent/actions/runs/39763873686
+## 19:50の追加恒久修正（後続の本人指示）
+
+再調査では、初回生成の短文化は本番で有効だった一方、MealReplannerの別メニュー提案が同じ短文化を通っていなかった。長いコメントを返す通常CLI試験で修正前の `daily_preparation_held:candidates` を再現し、再計画だけでも同じ停止が起こり得ることを確認した。
+
+再計画した一食にも画像生成・Drive保存・API登録前の短文化を適用した。他の食事・日次コメントには触れず、再計画上限2回、未保存確認、UUID・Journal・品質・期限の保護を維持する。
+
+本番反映版は **910419a0c633f33f30f1c53fa544f559c53de0ae**。コード版b9fa0bcからの差は既存運用報告を保持した文書3件だけで、実装・依存・試験は同一。Codex独立レビューで両固定版へのGoを得た。Windows/Linux全体は各431件、最終headのCI39765733999は両ジョブ成功。PRの文書競合を解消してからCIを実行しており、旧headの結果を流用していない。
+
+19:50の配置後、**本番配置そのもののコード**で外部書込みを無効化した通常CLI通し試験3件も成功した。
+
+1. 初回4コメントすべて長文でも、保存前短縮から4候補・4通知まで完了。再実行の登録・画像・アップロード増加0。
+2. 画像保留後の別メニュー再計画コメントも、新しい画像を生成する前に短縮し4候補・4通知まで完了。
+3. 終端未保存後の再計画でも対象枠だけ短縮し、保存済み朝食の再登録0、重複UUID0、4候補完成。
+
+切替前後の業務8テーブルは不変。配置後も明日4候補の内容・版1・approval_pending、全Mina要求、Instagram専用台帳の不変を読取照合した。準備complete、SQLite quick_check ok、全サービスと通知・準備timerはactive。MINA_SOURCE_COMMITと実配置も一致した。食事・候補の復旧operatorは再実行せず、今回はコード配置と隔離試験だけを行った。
+
+本日20:00のDiscord実着信と、翌23日19:00の自然な準備実行は19:50時点で未観測。保護された配置退避先は `/var/lib/mina-agent/deployment-preparation-910419a0c6`、実行・照合結果は同ディレクトリのpostdeploy-receipt.jsonに記録した。
+
+追加CI: https://github.com/t-katsumata1027/marketing-agent/actions/runs/39765733999
