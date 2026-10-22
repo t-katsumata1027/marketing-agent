@@ -397,6 +397,8 @@ class Store:
         prefix=previous.split(':')[0]
         step=previous if prefix==stage or parents.get(prefix)==stage else stage
         reason,details=safe_failure(error)
+        from .x_text import PostLengthError
+        if isinstance(error,PostLengthError):step='candidates:'+error.slot
         if isinstance(error,QualityHold):
             step,status,reasons=error.step,'quality_hold',error.reason_codes
         elif isinstance(error,PreparationDeadline):
