@@ -1,0 +1,15 @@
+{
+  "approval_explanation": "提示された最終差分（診断集計モジュール、既存診断への読取り専用組み込み、固定停止理由のホワイトリスト拡張、および合成ローカルテスト）を精査した結果、すべての制約条件（既存 mode=ro 内での読取り専用性、maximum_units による最大予約表示、last_confirmed と next_operation の分離、機密情報・UUID・本文・生例外の非露出、合成ローカルテストのみでの検証）を満たしており重大な不具合は認められないため、隔離コード差分に対してGOと判定します。",
+  "approved_scope": "隔離されたコード差分のみ（追加の診断表示 src/mina/replacement_diagnostics.py および src/mina/diagnostics.py の diagnose 連携、固定停止理由追加 src/mina/replacement_flow.py の tracked、合成ローカルテスト追加 tests/mina/test_replacement_runtime.py および tests/mina/test_replacement_integration.py の該当テスト）。未提示コード全体・本体・本番環境・18日操作は承認範囲外。",
+  "blockers": [],
+  "cause_assessment": [
+    "診断表示（summarize）は diagnose 内の既存 mode=ro かつ PRAGMA query_only=ON のDB接続のみを読み取っており、新規DB作成や書込みを一切行わない構造になっている。",
+    "実費未確定分を含むコスト予約は replacement_cost_reservations から状態別に集計され、maximum_units（最大予約）として明確に表示されている。",
+    "リクエスト状態の診断では category: 'creation' のもとで last_confirmed（persistence または outcome の正規化コード）と next_operation（prepared なら verify_unsent、それ以外は lookup）に分離されており、作成段階の照会状態と投稿失敗（publication_holds 等）が混同されていない。",
+    "code() 関数による [a-z_]+(?::[a-z_]+)? の厳格なホワイトリスト検証および tracked デコレータの固定停止理由セットにより、本文・UUID・画像・token・request body・生例外文字列が診断出力や停止履歴に漏洩しない設計が担保されている。",
+    "追加されたテスト（RuntimeTests、MigrationTests、および統合テストの診断検証）はすべて tempfile とモック・合成データ（synthetic）を用いたローカル隔離検証のみで完結しており、外部通信や実課金を含まない。"
+  ],
+  "decision": "GO",
+  "major_findings": [],
+  "required_plan_changes": []
+}

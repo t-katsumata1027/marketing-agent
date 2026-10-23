@@ -11,6 +11,8 @@ import sqlite3
 
 from .domain import JST, instant
 from .instagram_domain import InstagramCandidate
+from .publication_hold import held, require_clear
+from .replacement_bundle import notice_allowed
 
 
 class InstagramStore:
@@ -58,6 +60,7 @@ class InstagramStore:
             raise ValueError('復旧候補は未送信の旧版照合が必要です')
         candidate.validate(now, hosts)
         with self.transaction() as db:
+            require_clear(db, candidate.target_date)
             previous = db.execute('SELECT * FROM instagram_candidates WHERE target_date=? AND slot=?',
                                   (candidate.target_date, candidate.slot)).fetchone()
             if previous and previous['digest'] == candidate.digest:
@@ -118,9 +121,10 @@ class InstagramStore:
         with self.transaction() as db:
             actual = db.execute('SELECT * FROM instagram_candidates WHERE target_date=? AND slot=?',
                                 (c.target_date, c.slot)).fetchone()
-            if (not actual or actual['digest'] != c.digest or actual['revision'] != row['revision'] or
-                    actual['state'] != 'approval_pending'):
+            from .replacement_bundle import approval_allowed
+            if not actual or actual['digest'] != c.digest or actual['state'] != 'approval_pending' or actual['revision']!=row['revision']:
                 raise ValueError('承認候補が変わっています')
+            approval_allowed(db,c.target_date,'instagram',c.slot,actual['revision'],c.digest)
             if db.execute("SELECT 1 FROM instagram_notices WHERE target_date=? AND slot=? AND revision=? AND kind='approval'",
                           (c.target_date, c.slot, row['revision'])).fetchone():
                 return
@@ -146,6 +150,8 @@ class InstagramStore:
             if (not row or not checked or dict(row) != dict(checked) or
                     row['state'] != 'approval_pending' or row['scheduled'] <= instant(now).timestamp()):
                 raise ValueError('古い版・使用済み・期限切れです')
+            from .replacement_bundle import approval_allowed
+            approval_allowed(db,row['target_date'],'instagram',row['slot'],row['revision'],row['digest'])
             if db.execute('SELECT 1 FROM instagram_attempts WHERE target_date=? AND slot=?',
                           (row['target_date'], row['slot'])).fetchone():
                 raise ValueError('送信開始済みです')
@@ -153,6 +159,8 @@ class InstagramStore:
             scheduled = instant(now).timestamp() if recovery and decision == 'approved' else row['scheduled']
             db.execute('UPDATE instagram_candidates SET state=?,actor=?,approved=?,scheduled=?,nonce_hash=NULL WHERE target_date=? AND slot=?',
                        (decision, actor, instant(now).timestamp(), scheduled, row['target_date'], row['slot']))
+            from .replacement_bundle import maybe_release
+            maybe_release(db,row['target_date'],instant(now))
         return decision
 
     def claim_due(self, now):
@@ -163,7 +171,8 @@ class InstagramStore:
             if db.execute("SELECT 1 FROM instagram_candidates WHERE state IN ('dispatching','accepted','outcome_unknown')").fetchone():
                 return None
             db.execute("UPDATE instagram_candidates SET state='expired',nonce_hash=NULL WHERE state IN ('approved','approval_pending') AND scheduled<?", (ts - 120,))
-            row = db.execute("SELECT * FROM instagram_candidates WHERE state='approved' AND scheduled<=? AND scheduled>=? ORDER BY scheduled LIMIT 1", (ts, ts - 120)).fetchone()
+            rows = db.execute("SELECT * FROM instagram_candidates WHERE state='approved' AND scheduled<=? AND scheduled>=? ORDER BY scheduled", (ts, ts - 120)).fetchall()
+            row = next((r for r in rows if not held(db, r['target_date'])), None)
             if not row:
                 return None
             c = InstagramCandidate(**json.loads(row['payload']))
@@ -174,6 +183,7 @@ class InstagramStore:
 
     def begin(self, row, request, now):
         with self.transaction() as db:
+            require_clear(db, row['target_date'])
             current = db.execute('SELECT * FROM instagram_candidates WHERE target_date=? AND slot=?',
                                  (row['target_date'], row['slot'])).fetchone()
             if (not current or current['state'] != 'dispatching' or current['digest'] != row['digest'] or
@@ -225,10 +235,12 @@ class InstagramStore:
                            (row['target_date'], row['slot'], row['revision'], state, json.dumps(payload, ensure_ascii=False)))
 
     def send_notices(self, client):
+        from .replacement_bundle import notice_allowed
         sent = 0
         while True:
             with self.transaction() as db:
-                row = db.execute("SELECT * FROM instagram_notices WHERE state='pending' ORDER BY id LIMIT 1").fetchone()
+                rows = db.execute("SELECT * FROM instagram_notices WHERE state='pending' ORDER BY id").fetchall()
+                row = next((r for r in rows if r['kind'] != 'approval' or notice_allowed(db,r,'instagram')), None)
                 if not row:
                     break
                 db.execute("UPDATE instagram_notices SET state='sending' WHERE id=?", (row['id'],))

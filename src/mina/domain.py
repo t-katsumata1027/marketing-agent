@@ -65,12 +65,23 @@ class Candidate:
         return slot_time(date.fromisoformat(self.target_date), self.slot)
 
     @property
-    def content(self) -> str:
+    def source_content(self) -> str:
         """M1は完成本文をそのまま返す。旧候補の結合は公開保証の対象外。"""
         base = f"{self.comment}\n\n{self.api_text}"
         if self.publish_text is not None:
             return self.publish_text
         return base if self.share_url in self.api_text else f"{base}\n{self.share_url}"
+
+    @property
+    def content(self) -> str:
+        """承認版へ固定した計測設定だけを公開本文へ反映する。"""
+        from .tracking import render
+        return render(self)
+
+    @property
+    def published_share_url(self) -> str:
+        from .tracking import published_url
+        return published_url(self)
 
     @property
     def digest(self) -> str:
@@ -96,7 +107,10 @@ class Candidate:
             expected = f'{self.comment}\n\n{self.api_text}\n{self.share_url}'
             if self.publish_text != expected:
                 raise ValueError('サーバー完成本文と承認対象の固定文が一致しません')
-        if self.approval_source is not None:
+        if isinstance(self.approval_source,dict) and self.approval_source.get('contract_version')=='mina-replace-v1':
+            from .replacement_source import validate_binding
+            validate_binding(self)
+        elif self.approval_source is not None:
             from .m1_contract import version
             from .clients import MealClient
             if not isinstance(self.approval_source, dict) or self.publish_text is None:
@@ -136,7 +150,7 @@ class Candidate:
             if marker not in self.api_text:
                 raise ValueError("API固定文に必須の表記がありません")
         urls = re.findall(r"https?://[^\s]+", self.content)
-        if self.share_url not in urls:
+        if self.published_share_url not in urls:
             raise ValueError("共有URLが本文にありません")
         for value in urls:
             parsed = urlsplit(value)

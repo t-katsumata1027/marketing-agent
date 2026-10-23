@@ -169,6 +169,9 @@ def request_report(response, request_key, operation):
 def verify_source(candidate, client, host, capture, now=None, clock=None, timer=time.monotonic):
     """公開直前に日全体・UUID正本・OGP実体を再照合する。照会だけを行う。"""
     binding = candidate.approval_source
+    if isinstance(binding,dict) and binding.get('contract_version')=='mina-replace-v1':
+        from .replacement_source import verify_source as verify_replacement_source
+        return verify_replacement_source(candidate,client,host,capture,now=now,clock=clock,timer=timer)
     if not isinstance(binding, dict):
         raise ValueError('M1の承認元証跡がありません')
     # nowは固定時刻の試験用。実運用はGET完了後に時計を読み直す。
@@ -193,7 +196,7 @@ def verify_source(candidate, client, host, capture, now=None, clock=None, timer=
     completed_request(response, binding['request_key'], operation, result)
     if not isinstance(result, dict) or fingerprint(result) != binding['result_sha256']:
         raise ValueError('承認後に対象の正本結果が変更されています')
-    if result['normalized_comment'] != candidate.comment or result['x']['fixed_text'] != candidate.api_text or result['x']['publish_text'] != candidate.content:
+    if result['normalized_comment'] != candidate.comment or result['x']['fixed_text'] != candidate.api_text or result['x']['publish_text'] != candidate.source_content:
         raise ValueError('承認した完成本文が一致しません')
     if 'result_version' in binding:
         if binding['result_version'] != result['result_version'] or binding.get('operation') != operation:
@@ -211,6 +214,8 @@ def verify_source(candidate, client, host, capture, now=None, clock=None, timer=
         raise ValueError('承認したOGPと現在の実画像が一致しません')
     from .ogp import verify_image_reference
     verify_image_reference(snapshot, ogp, candidate.share_url, host)
+    from .tracking import verify_tracked_ogp
+    verify_tracked_ogp(candidate, host, capture, snapshot)
     # 実画像取得中の正本変更を、最後の対象日照会で検出する。
     final_state = client.day_state(candidate.target_date)
     if (validate_state(final_state, candidate.target_date, clock()) != current or

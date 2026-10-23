@@ -1,0 +1,25 @@
+{
+  "説明": "正式実行SchemaのShareURLだけに対する合成回帰データ。凍結fixtureは変更しない。",
+  "valid": [
+    "https://www.log-eats.com/s/abc123",
+    "https://www.log-eats.com/s/a_b",
+    "https://www.log-eats.com/s/a-b",
+    "https://www.log-eats.com/s/a_b-c9",
+    "https://www.log-eats.com/s/_",
+    "https://www.log-eats.com/s/-",
+    "https://www.log-eats.com/share/Abc-123",
+    "https://www.log-eats.com/share/daily/Abc-123"
+  ],
+  "invalid": [
+    "http://www.log-eats.com/s/a_b",
+    "https://log-eats.com/s/a_b",
+    "https://www.log-eats.com.evil.test/s/a_b",
+    "https://www.log-eats.com/s/A_b",
+    "https://www.log-eats.com/s/",
+    "https://www.log-eats.com/s/a_b/extra",
+    "https://www.log-eats.com/s/a%5Fb",
+    "https://www.log-eats.com/s/a_b?q=1",
+    "https://www.log-eats.com/s/a_b#x",
+    "https://www.log-eats.com/share/daily/a_b"
+  ]
+}

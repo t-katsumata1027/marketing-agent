@@ -1,0 +1,13 @@
+{
+  "approval_explanation": "添付された4つのモジュール（domain.py, m1_contract.py, request_ledger.py, instagram_source.py）の対象メソッドについて、独立コードレビューを実施しました。新契約（mina-replace-v1）への分岐と旧M1契約の互換維持、UUID衝突防止、publication_holdによる排他・書込み制限、およびInstagram用バンドル読込時のパス安全性（シンボリックリンク・ディレクトリトラバーサル防止）とハッシュ整合性検証がすべて適切に実装されており、重大な論理・安全上の不具合は認められません。したがって、提示された隔離コード範囲についてGOと判定します（未提示部分および本番有効化は対象外）。",
+  "approved_scope": "添付された隔離コード範囲のみ（domain.py: Candidate.validate、m1_contract.py: verify_source、request_ledger.py: prepare / execute_once、instagram_source.py: load_meal_bundle / load_bundle）。隣接パケットおよび本番環境での有効化・実運用操作は含まない。",
+  "blockers": [],
+  "cause_assessment": [
+    "domain.pyおよびm1_contract.pyにおいて、contract_version == 'mina-replace-v1' の場合に新モジュール（replacement_source）の検証関数へ適切に委譲され、それ以外は既存のM1検証ロジックを無変更で維持している。",
+    "request_ledger.pyのprepareにおいて、meal_replacement_requestsテーブルとのUUID衝突検査（replacement_uuid_m1_collision）がトランザクション内で実施され、execute_onceではpublication_hold.require_m1_writeによる書き込みガードと、meal_register時の確定的な品質却下（KnownQualityRejected）および不明時のOutcomeUnknown維持が正しく分離されている。",
+    "instagram_source.pyにおいて、artifact_directory指定時のシンボリックリンク拒否とbase配下の相対パス検証（replacement_artifact_escape）、またはreplacement_artifacts.resolveによる安全な解決が行われ、正規Candidate.digestを用いた一致確認と画像・レビュー証跡の厳密な照合が実装されている。"
+  ],
+  "decision": "GO",
+  "major_findings": [],
+  "required_plan_changes": []
+}

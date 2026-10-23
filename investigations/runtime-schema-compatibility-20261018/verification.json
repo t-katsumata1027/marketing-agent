@@ -1,0 +1,122 @@
+{
+  "observed_at": "2026-10-18T12:07:28.002917+00:00",
+  "agent_code": "56c17adb44923b9851b1d7a28779d655fbda5b66",
+  "provider_schema_sha256": "2c2a44cc3830ef07bd0666182915b0e5e4bbab11239bb6aec6745f0d9d37a4f6",
+  "provider_commit": "a24bd429504c70d9b4d799bd593308316f676c86",
+  "windows_tests": 457,
+  "linux_tests": 457,
+  "ci": "https://github.com/t-katsumata1027/marketing-agent/actions/runs/39125712750",
+  "preconditions": [
+    {
+      "date": "2026-10-18",
+      "contract_verified": true,
+      "meals": 3,
+      "total_calories": 1727,
+      "blocking_reasons": [
+        "service_unavailable",
+        "budget_unconfigured",
+        "deadline_unverified"
+      ]
+    },
+    {
+      "date": "2026-10-19",
+      "contract_verified": true,
+      "meals": 3,
+      "total_calories": 1858,
+      "blocking_reasons": [
+        "service_unavailable",
+        "budget_unconfigured",
+        "deadline_unverified"
+      ]
+    }
+  ],
+  "instagram": {
+    "ok": true,
+    "date": "2026-10-19",
+    "slots": [
+      {
+        "slot": "breakfast",
+        "revision": 1,
+        "source_verified": true,
+        "image_bytes_verified": 1
+      },
+      {
+        "slot": "lunch",
+        "revision": 1,
+        "source_verified": true,
+        "image_bytes_verified": 1
+      },
+      {
+        "slot": "dinner",
+        "revision": 1,
+        "source_verified": true,
+        "image_bytes_verified": 1
+      },
+      {
+        "slot": "daily",
+        "revision": 1,
+        "source_verified": true,
+        "image_bytes_verified": 5
+      }
+    ],
+    "writes": 0,
+    "buffer_calls": 0
+  },
+  "instagram_approved": [
+    {
+      "slot": "breakfast",
+      "revision": 1,
+      "state": "approved",
+      "approved_by_human": true,
+      "format": "story",
+      "image_count": 1
+    },
+    {
+      "slot": "lunch",
+      "revision": 1,
+      "state": "approved",
+      "approved_by_human": true,
+      "format": "story",
+      "image_count": 1
+    },
+    {
+      "slot": "dinner",
+      "revision": 1,
+      "state": "approved",
+      "approved_by_human": true,
+      "format": "story",
+      "image_count": 1
+    },
+    {
+      "slot": "daily",
+      "revision": 1,
+      "state": "approved",
+      "approved_by_human": true,
+      "format": "post",
+      "image_count": 5
+    }
+  ],
+  "business_tables_unchanged": 9,
+  "runtime_commit_unchanged": true,
+  "services": {
+    "mina-instagram": "active",
+    "mina-gateway": "active",
+    "mina-instagram-prepare.timer": "active"
+  },
+  "flags": {
+    "MINA_INSTAGRAM_PREPARE_ENABLED": true,
+    "MINA_INSTAGRAM_NOTIFY_ENABLED": true,
+    "MINA_INSTAGRAM_APPROVAL_ENABLED": true,
+    "MINA_INSTAGRAM_PUBLISH_ENABLED": true
+  },
+  "independent_review": {
+    "reviewer": "Antigravity",
+    "status": "unavailable",
+    "reason": "individual_quota_reached",
+    "tokens": 0
+  },
+  "production_deployed": false,
+  "replacement_enabled": false,
+  "P_D_C_sent": 0,
+  "budget_added": false
+}

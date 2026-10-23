@@ -36,6 +36,7 @@ def diagnose(database: str | Path, heartbeat: str | Path, now: datetime, env=Non
     report = {
         "target_date": target,
         "switches": {key: env.get(key, "false").lower() == "true" for key in STOP_FLAGS},
+        "meal_replacement_enabled": env.get('MINA_MEAL_REPLACEMENT_ENABLED','false').lower()=='true',
         "connections": {name: {"configured": all(env.get(key, "").strip() for key in keys),
                                "missing": [key for key in keys if not env.get(key, "").strip()]}
                         for name, keys in groups.items()},
@@ -68,6 +69,8 @@ def diagnose(database: str | Path, heartbeat: str | Path, now: datetime, env=Non
                                   "tomorrow_missing_slots": [slot for slot in SLOTS if slot not in present],
                                   "candidate_states": candidates, "notice_states": notices}
             tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            from .replacement_diagnostics import summarize
+            report['meal_replacement']=summarize(db,now)
             today=now.astimezone(JST).date().isoformat()
             current_creation=db.execute("SELECT count(*) FROM preparation WHERE target_date>=? AND state LIKE 'held:%'",(today,)).fetchone()[0] if 'preparation' in tables else 0
             current_publication=db.execute("SELECT count(*) FROM candidates WHERE target_date=? AND (state IN ('outcome_unknown','expired') OR (state='changes_requested' AND reason='preflight_failed'))",(today,)).fetchone()[0]

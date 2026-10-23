@@ -10,7 +10,7 @@ from .preparation import PreparationJournal, prepare_images, save_images_to_driv
 from .readiness import build_candidates, check_evidence, read_json, release_commit
 from .registration import register_day
 from .runtime import import_manifest
-from .preparation_status import PreparationDeadline
+from .preparation_status import PreparationDeadline,QualityHold
 
 
 class DeadlineClient:
@@ -41,7 +41,7 @@ def write_artifact(path, value):
 
 
 def prepare_day(store, directory, history, evidence_path, commit, root, host, ai, drive, meal,
-                clock=lambda: datetime.now(UTC), same_day=False):
+                clock=lambda: datetime.now(UTC), same_day=False, replacement_coordinator=None):
     """翌日だけを時間窓内で処理。再起動・競合実行では外部工程を重ねない。"""
     now = instant(clock())
     target = (now.astimezone(JST).date() + timedelta(days=0 if same_day else 1)).isoformat()
@@ -122,6 +122,19 @@ def prepare_day(store, directory, history, evidence_path, commit, root, host, ai
                 stage='registration'
                 # 他枠の保存済みPOST/PATCHと点検結果は、通常の台帳照合で再使用する。
                 store.record_preparation_progress(target,stage,'running',now=clock())
+            except QualityHold as error:
+                if same_day:raise
+                if replacement_coordinator is None:
+                    from .replacement_runtime import build_coordinator
+                    replacement_coordinator=build_coordinator(store,directory,draft,saved,evidence,commit,host,ai,drive,meal,clock)
+                if replacement_coordinator is None:raise
+                # 保存前の画像保留や未知の通信失敗を、この保存済み専用経路へ送らない。
+                outcome=replacement_coordinator.handle_saved(target,error)
+                with store.transaction() as db:
+                    h=db.execute('SELECT state FROM publication_holds WHERE target_date=?',(target,)).fetchone()
+                    state='complete' if outcome.get('state')=='approval_pending' else 'held:replacement_saved' if h and h['state']=='saved_pending_review' else 'held:replacement'
+                    db.execute('UPDATE preparation SET state=? WHERE target_date=?',(state,target))
+                return outcome
         write_artifact(directory / 'posts-reviewed.json', reviewed)
         within_deadline()
         stage = 'candidates'

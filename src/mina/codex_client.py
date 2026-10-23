@@ -92,7 +92,7 @@ class CodexClient(OpenAIClient):
                        "--cd", str(root), "--output-schema", str(schema_path), "--output-last-message", str(result_path),
                        "--color", "never"]
             for index, raw in enumerate(images):
-                suffix = ".png" if raw.startswith(b"\x89PNG\r\n\x1a\n") else ".jpg"
+                suffix = '.webp' if raw.startswith(b'RIFF') and raw[8:12]==b'WEBP' else ".png" if raw.startswith(b"\x89PNG\r\n\x1a\n") else ".jpg"
                 image_path = root / f"input-{index}{suffix}"
                 image_path.write_bytes(raw)
                 command.extend(["--image", str(image_path)])

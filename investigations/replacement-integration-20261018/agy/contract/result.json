@@ -1,0 +1,18 @@
+{
+  "approval_explanation": "提示された replacement_contract.py および replacement_source.py の2ファイルについて、再レビューv2での修正事項（正本policy束縛、旧キュー空判定の分離、旧IG存在時の未検証復帰拒否、鮮度検査）がすべて論理的・安全上の欠陥なく実装されていることを確認した。隔離コードレビュー範囲として GO と判定する。なお、本承認は提示された2ファイルのコード範囲に限定され、未提示の隣接パケットおよび本番稼働の Go を意味しない。",
+  "approved_scope": "提示された隔離コード範囲のみ（replacement_contract.py, replacement_source.py）。未提示の隣接モジュールおよび本番環境への配置・有効化・実API/実課金接続は承認範囲外。",
+  "blockers": [],
+  "cause_assessment": [
+    "前回指摘された source_digest における policy 版束縛（policy_version, budget_policy_digest）が追加され、準備期限経過表示（deadline等）を除外しつつポリシー変更を検知できるよう修正されている。",
+    "verify_old_queue において、旧キュー0件の場合に verdict='empty_queue' を返し、品質 pass を偽装せず公開候補も推測生成しない構造に分離されている。",
+    "旧 Instagram 候補（instagram_candidates テーブル）が存在する場合に未検証のまま復帰・hold解除しないよう、明示的に replacement_original_instagram_review_required で拒否する安全弁が追加されている。",
+    "verify_source および verify_old_queue の双方で開始時刻から完了までの経過時間（0〜120秒、verify_source では wall clock と monotonic の両方）を検証し、鮮度保証が徹底されている。"
+  ],
+  "decision": "GO",
+  "major_findings": [
+    "replacement_contract.py: 固定契約 v2.1 の SHA-256 ハッシュ検証、Draft202012Validator + FormatChecker によるスキーマ検証、rfc8785 正規化、鮮度判定（120秒上限）、栄養計算（math.fsum と許容誤差判定、1800〜2000kcal 制約）、および Candidate の stored_mime=='image/webp'・認証パス検証が一貫して実装されている。",
+    "replacement_source.py: validate_binding と verify_source により、C (meal_replace) の saved/succeeded/unchanged 状態、state_version、input_hash、result_version、fingerprint、OGP スナップショット、および day_state の再照合が行われ、旧 M1 応答への偽装なしに厳格な検証が成立している。",
+    "replacement_source.py: verify_old_queue において、復帰対象の全4スロット（breakfast, lunch, dinner, daily）の完全性確認、承認系状態（approval_pending, approved, cancelled, changes_requested）の限定、各候補の verify_any_source 再検証、および最終 state_version の一致確認が漏れなく行われている。"
+  ],
+  "required_plan_changes": []
+}
