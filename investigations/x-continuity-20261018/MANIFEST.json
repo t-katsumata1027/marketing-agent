@@ -1,0 +1,61 @@
+{
+  "baseline_commit": "de3d571556159adfa9a1dc0530adb4b93c907c49",
+  "code_commit": "6d65b7958000cfc2ab99648651ef4cefe4b8471a",
+  "callback_commit": "eeffb565742e5052528d75b2b31b4e0e5fbb4abc",
+  "scope": "X限定。実行前の計画・隔離実装のみ。Instagram作業は別会話",
+  "chosen_policy": "API報告まで未公開保持・全枠復旧を優先",
+  "target_business_rows_unchanged": true,
+  "production_deployment": false,
+  "external_mutations": 0,
+  "buffer_read_requests_accounted": 4,
+  "ci_commits": [
+    "6d65b7958000cfc2ab99648651ef4cefe4b8471a",
+    "eeffb565742e5052528d75b2b31b4e0e5fbb4abc"
+  ],
+  "source_sha256": {
+    "src/mina/clients.py": "1ca34c1077f91f2d81ee3e25e9e3151fa9f7a392898eec5aca094523237c96ba",
+    "src/mina/__main__.py": "2d85aa2e7415574a863ad457c36f1cf26aa21161f325eccb1d10f39aa3d0b26f",
+    "src/mina/continuity.py": "3255c411285b6b4a8ea2cd24937949f4476b3189a08c3f57a9a0a41461cc0ec2",
+    "tests/mina/test_x_continuity.py": "0f7521ad46236f9d839191bd8c883bf161eed17b1409ee1ccb2f41d6acefbd1e"
+  },
+  "reviews": [
+    {
+      "part": "plan",
+      "decision": "GO",
+      "required_before_execution": [],
+      "prompt_sha256": "c6c08c6dd36d50e41b67be31a2bf650867f3c5e98f4aa1f60960743f3cdae769",
+      "raw_response_sha256": "36e967d482c6820ce6109ea803440bd3f600ee1558df10627288bdf4234fca44"
+    },
+    {
+      "part": "code",
+      "decision": "GO",
+      "required_before_execution": [
+        "計画GO後の本人説明および本番/応急実行承認プロセスにおいて、IGの日時不明draft 4件・sent 1件の扱い（削除・取消を行わない前提での整合確認）と、10/18夕食（610kcal保留）および朝昼個別救済をどう扱うかの明示的スロット方針（explicit_slot_policy）を提示して承認を得ること。",
+        "朝昼個別救済を実施する場合は、現行CLIには経路が未実装であるため、別途救済経路の設計・隔離実装・レビューを経てから実行へ進むこと。"
+      ],
+      "prompt_sha256": "2575f685ea03c3ebc913248f045e76bfc3afc47c77ca503dac7fa628f9446102",
+      "raw_response_sha256": "e4e634d2ca57f85b0fcaee326a830734449f90a0816629760a16c85ba5b2b57a"
+    },
+    {
+      "part": "buffer-callback",
+      "decision": "GO",
+      "required_before_execution": [],
+      "prompt_sha256": "13cb2c37bfd8688096b5634a672fe7746debd79d71d7a55a7f8d01a889449117",
+      "raw_response_sha256": "2165495439a88ebbb3c57fe5a8cf25fcf8f9f9d20bf84b11185e3110675348aa"
+    },
+    {
+      "part": "x-only-plan",
+      "decision": "GO",
+      "required_before_execution": [],
+      "prompt_sha256": "7e4984004066c0be5f9bc158965365c21a06259286c63666c70ab6f71855dc1a",
+      "raw_response_sha256": "4628ecaa201faa2c972c4ca030eaa19ac23d583a17121ead03192e7f96e984ac"
+    },
+    {
+      "part": "x-final-plan",
+      "decision": "GO",
+      "required_before_execution": [],
+      "prompt_sha256": "fb23db39da7ea8901628d49621cdd7558dfc0499ff5365ee0fd1ce31d4e42cd3",
+      "raw_response_sha256": "aa0288984bf512529cadcca5532c70e7a74c3798e4a07e7db1915f550aec03cc"
+    }
+  ]
+}

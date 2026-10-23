@@ -1,0 +1,39 @@
+{
+  "target_date": "2026-10-18",
+  "read_only": true,
+  "started_at": "2026-10-18T00:36:03.554954+00:00",
+  "meals": [
+    {
+      "slot": "breakfast",
+      "current_request_unchanged": true,
+      "local_result_matches": true,
+      "ogp_bytes_match": true,
+      "calories": 484
+    },
+    {
+      "slot": "lunch",
+      "current_request_unchanged": true,
+      "local_result_matches": true,
+      "ogp_bytes_match": true,
+      "calories": 633
+    },
+    {
+      "slot": "dinner",
+      "current_request_unchanged": true,
+      "local_result_matches": true,
+      "ogp_bytes_match": true,
+      "calories": 610
+    }
+  ],
+  "clock_observations_ms": [
+    111.863,
+    385.917
+  ],
+  "state_valid": true,
+  "state_version_digest": "3c7429bf92afb86e22d74cd295647328a56866f949aa2edd989a12f5fc1d81e1",
+  "meal_count": 3,
+  "daily_share_present": false,
+  "same_final_state": true,
+  "total_calories": 1727,
+  "finished_at": "2026-10-18T00:36:16.940516+00:00"
+}

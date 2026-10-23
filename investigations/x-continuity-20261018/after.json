@@ -1,0 +1,12 @@
+{
+  "target_date": "2026-10-18",
+  "observed_at": "2026-10-18T00:48:03.195364+00:00",
+  "target_row_hashes": {
+    "candidates": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "mina_requests": "7d492256b98d00a8b573449a80e8fad59b795459247a35980ca4b4046e732058",
+    "preparation": "dec72dbd1190375fed056de1f6b20c6d8fe708555a70874131a8464ab0b84810",
+    "preparation_steps": "bd44139721897c3bc6d7b39e351060c029d1ce72e528b04e4d7ea7367c01ce87",
+    "buffer_publication": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "notices": "5a4811b6b75bfc20c3c0c76f48831c7e9c19bf2873899a4e1a7cea5d32f0900d"
+  }
+}

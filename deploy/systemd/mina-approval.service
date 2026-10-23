@@ -1,0 +1,23 @@
+[Unit]
+Description=AI広報みなの署名付き承認受付
+After=network-online.target
+
+[Service]
+Type=simple
+User=mina-agent
+Group=mina-agent
+WorkingDirectory=/opt/marketing-agent
+EnvironmentFile=/etc/marketing-agent/mina.env
+ExecStart=/opt/marketing-agent/.venv-mina/bin/python -m src.mina serve --host 127.0.0.1 --port 8765
+Restart=on-failure
+RestartSec=15
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/mina-agent
+MemoryMax=256M
+
+[Install]
+WantedBy=multi-user.target

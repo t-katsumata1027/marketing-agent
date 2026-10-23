@@ -1,0 +1,10 @@
+[Unit]
+Description=みなの暗号化復旧セットを毎日保存
+
+[Timer]
+OnCalendar=*-*-* 23:10:00 Asia/Tokyo
+Persistent=true
+Unit=mina-offsite-backup.service
+
+[Install]
+WantedBy=timers.target

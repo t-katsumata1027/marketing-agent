@@ -1,0 +1,6 @@
+# /etc/systemd/system/mina-agent.service.d/doppler.confへ配置する切替例。
+# Dopplerの設定とサービス用トークンを用意して診断してから適用する。
+[Service]
+EnvironmentFile=/etc/marketing-agent/doppler.env
+ExecStart=
+ExecStart=/bin/sh /opt/marketing-agent/deploy/run-mina-doppler.sh daemon

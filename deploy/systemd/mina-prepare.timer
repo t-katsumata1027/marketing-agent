@@ -1,0 +1,11 @@
+[Unit]
+Description=毎日19時JSTに翌日の投稿準備を開始
+
+[Timer]
+OnCalendar=*-*-* 19:00:00 Asia/Tokyo
+AccuracySec=1s
+Persistent=false
+Unit=mina-prepare.service
+
+[Install]
+WantedBy=timers.target

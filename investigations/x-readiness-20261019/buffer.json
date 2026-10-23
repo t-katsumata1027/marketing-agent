@@ -1,0 +1,25 @@
+{
+  "target_date": "2026-10-19",
+  "observed_at": "2026-10-18T11:15:48.243461+00:00",
+  "external_mutations": 0,
+  "business_writes": 0,
+  "usage_accounting_only": true,
+  "channels": [
+    {
+      "channel": "x",
+      "connected": true,
+      "complete": true,
+      "pages": 1,
+      "target_or_undated_posts": 0,
+      "undated_posts": 0,
+      "unknown_status_posts": 0,
+      "counts": {
+        "sent": 7
+      }
+    }
+  ],
+  "inventory_complete": true,
+  "no_target_or_unknown_posts": true,
+  "requests": 3,
+  "finished_at": "2026-10-18T11:15:49.122813+00:00"
+}

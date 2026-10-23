@@ -1,0 +1,429 @@
+{
+  "target_date": "2026-10-18",
+  "observed_at": "2026-10-18T09:34:12.246189+09:00",
+  "read_only": true,
+  "preparation": [
+    {
+      "target_date": "2026-10-18",
+      "state": "held:context_review",
+      "started": 1792231201.566089
+    }
+  ],
+  "progress": [
+    {
+      "target_date": "2026-10-18",
+      "step": "meal_review:dinner",
+      "status": "quality_hold",
+      "reasons": "[\"image_analysis_mismatch\"]",
+      "updated": 1792233249.225266
+    }
+  ],
+  "candidates": [],
+  "requests": [
+    {
+      "slot": "breakfast",
+      "operation": "meal_correction",
+      "phase": "complete",
+      "persistence": "saved",
+      "stage": "completed"
+    },
+    {
+      "slot": "breakfast",
+      "operation": "meal_register",
+      "phase": "complete",
+      "persistence": "saved",
+      "stage": "completed"
+    },
+    {
+      "slot": "dinner",
+      "operation": "meal_correction",
+      "phase": "complete",
+      "persistence": "saved",
+      "stage": "completed"
+    },
+    {
+      "slot": "dinner",
+      "operation": "meal_register",
+      "phase": "complete",
+      "persistence": "saved",
+      "stage": "completed"
+    },
+    {
+      "slot": "lunch",
+      "operation": "meal_correction",
+      "phase": "complete",
+      "persistence": "saved",
+      "stage": "completed"
+    },
+    {
+      "slot": "lunch",
+      "operation": "meal_register",
+      "phase": "complete",
+      "persistence": "saved",
+      "stage": "completed"
+    }
+  ],
+  "meals": [
+    {
+      "slot": "breakfast",
+      "saved_correction_present": true,
+      "calories": 484,
+      "api_quality": "pass",
+      "reviews": [
+        {
+          "step_kind": [
+            "meal_review",
+            "breakfast"
+          ],
+          "state": "complete",
+          "status": "hold",
+          "reason_codes": [
+            "nutrition_semantic_mismatch"
+          ]
+        },
+        {
+          "step_kind": [
+            "meal_review",
+            "breakfast"
+          ],
+          "state": "complete",
+          "status": "hold",
+          "reason_codes": [
+            "nutrition_semantic_mismatch"
+          ]
+        },
+        {
+          "step_kind": [
+            "meal_review",
+            "breakfast"
+          ],
+          "state": "complete",
+          "status": "publishable",
+          "reason_codes": []
+        }
+      ],
+      "local_drive_input_sha_match": true
+    },
+    {
+      "slot": "lunch",
+      "saved_correction_present": true,
+      "calories": 633,
+      "api_quality": "pass",
+      "reviews": [
+        {
+          "step_kind": [
+            "meal_review",
+            "lunch"
+          ],
+          "state": "complete",
+          "status": "hold",
+          "reason_codes": [
+            "nutrition_semantic_mismatch"
+          ]
+        },
+        {
+          "step_kind": [
+            "meal_review",
+            "lunch"
+          ],
+          "state": "complete",
+          "status": "publishable",
+          "reason_codes": []
+        }
+      ],
+      "local_drive_input_sha_match": true
+    },
+    {
+      "slot": "dinner",
+      "saved_correction_present": true,
+      "calories": 610,
+      "api_quality": "pass",
+      "reviews": [
+        {
+          "step_kind": [
+            "meal_review",
+            "dinner"
+          ],
+          "state": "complete",
+          "status": "hold",
+          "reason_codes": [
+            "nutrition_semantic_mismatch"
+          ]
+        },
+        {
+          "step_kind": [
+            "meal_review",
+            "dinner"
+          ],
+          "state": "complete",
+          "status": "hold",
+          "reason_codes": [
+            "image_analysis_mismatch"
+          ]
+        }
+      ],
+      "local_drive_input_sha_match": true
+    }
+  ],
+  "daily_step": [
+    {
+      "step": "daily_draft",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_capture:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_capture:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_capture:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_capture:dinner",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_capture:dinner",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_capture:lunch",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_capture:lunch",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_review:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_review:lunch",
+      "state": "complete"
+    }
+  ],
+  "replan_counts": {
+    "breakfast": 0,
+    "lunch": 0,
+    "dinner": 0
+  },
+  "events": [
+    {
+      "target_date": "2026-10-17",
+      "slot": "daily",
+      "category": "publication",
+      "stage": "source",
+      "event": "stopped",
+      "reason": "clock_ahead",
+      "occurred": 1792240215.196441,
+      "details": {
+        "frames": [
+          "src/mina/source_audit.py:verify_audited:38",
+          "src/mina/m1_contract.py:verify_source:215",
+          "src/mina/source_audit.py:day_state:16",
+          "src/mina/clients.py:day_state:219",
+          "src/mina/clients.py:await_checked_at:55"
+        ],
+        "before": "dispatching",
+        "after": "changes_requested",
+        "write_started": false
+      }
+    },
+    {
+      "target_date": "2026-10-17",
+      "slot": "daily",
+      "category": "publication",
+      "stage": "source",
+      "event": "failed",
+      "reason": "clock_ahead",
+      "occurred": 1792240215.140759,
+      "details": {
+        "frames": [
+          "src/mina/source_audit.py:verify_audited:38",
+          "src/mina/m1_contract.py:verify_source:215",
+          "src/mina/source_audit.py:day_state:16",
+          "src/mina/clients.py:day_state:219",
+          "src/mina/clients.py:await_checked_at:55"
+        ]
+      }
+    },
+    {
+      "target_date": "2026-10-17",
+      "slot": "daily",
+      "category": "publication",
+      "stage": "source_final",
+      "event": "failed",
+      "reason": "clock_ahead",
+      "occurred": 1792240215.071868,
+      "details": {
+        "frames": [
+          "src/mina/audit.py:operation:150",
+          "src/mina/source_audit.py:day_state:16",
+          "src/mina/clients.py:day_state:219",
+          "src/mina/clients.py:await_checked_at:55"
+        ]
+      }
+    },
+    {
+      "target_date": "2026-10-17",
+      "slot": "daily",
+      "category": "publication",
+      "stage": "source_final",
+      "event": "observed",
+      "reason": "none",
+      "occurred": 1792240215.015485,
+      "details": {}
+    },
+    {
+      "target_date": "2026-10-17",
+      "slot": "daily",
+      "category": "publication",
+      "stage": "source_final",
+      "event": "started",
+      "reason": "none",
+      "occurred": 1792240214.572397,
+      "details": {}
+    },
+    {
+      "target_date": "2026-10-17",
+      "slot": "daily",
+      "category": "publication",
+      "stage": "source_image",
+      "event": "completed",
+      "reason": "none",
+      "occurred": 1792240214.515394,
+      "details": {}
+    },
+    {
+      "target_date": "2026-10-17",
+      "slot": "daily",
+      "category": "publication",
+      "stage": "source_image",
+      "event": "started",
+      "reason": "none",
+      "occurred": 1792240212.480147,
+      "details": {}
+    },
+    {
+      "target_date": "2026-10-17",
+      "slot": "daily",
+      "category": "publication",
+      "stage": "source_request",
+      "event": "completed",
+      "reason": "none",
+      "occurred": 1792240212.475322,
+      "details": {}
+    },
+    {
+      "target_date": "2026-10-17",
+      "slot": "daily",
+      "category": "publication",
+      "stage": "source_request",
+      "event": "started",
+      "reason": "none",
+      "occurred": 1792240212.099213,
+      "details": {}
+    },
+    {
+      "target_date": "2026-10-17",
+      "slot": "daily",
+      "category": "publication",
+      "stage": "source_state",
+      "event": "completed",
+      "reason": "none",
+      "occurred": 1792240212.094548,
+      "details": {}
+    },
+    {
+      "target_date": "2026-10-17",
+      "slot": "daily",
+      "category": "publication",
+      "stage": "source_state",
+      "event": "observed",
+      "reason": "none",
+      "occurred": 1792240211.994691,
+      "details": {}
+    },
+    {
+      "target_date": "2026-10-17",
+      "slot": "daily",
+      "category": "publication",
+      "stage": "source_state",
+      "event": "observed",
+      "reason": "none",
+      "occurred": 1792240211.252074,
+      "details": {}
+    },
+    {
+      "target_date": "2026-10-17",
+      "slot": "daily",
+      "category": "publication",
+      "stage": "source_state",
+      "event": "started",
+      "reason": "none",
+      "occurred": 1792240210.71161,
+      "details": {}
+    },
+    {
+      "target_date": "2026-10-17",
+      "slot": "daily",
+      "category": "publication",
+      "stage": "source",
+      "event": "started",
+      "reason": "none",
+      "occurred": 1792240210.708097,
+      "details": {}
+    },
+    {
+      "target_date": "2026-10-17",
+      "slot": "daily",
+      "category": "publication",
+      "stage": "candidate",
+      "event": "completed",
+      "reason": "none",
+      "occurred": 1792240210.703176,
+      "details": {}
+    },
+    {
+      "target_date": "2026-10-17",
+      "slot": "daily",
+      "category": "publication",
+      "stage": "candidate",
+      "event": "started",
+      "reason": "none",
+      "occurred": 1792240210.003709,
+      "details": {}
+    }
+  ],
+  "previous_daily": [
+    {
+      "state": "changes_requested",
+      "reason": "preflight_failed",
+      "dispatch_started": 1792240206.802821,
+      "has_publication_id": 0
+    }
+  ],
+  "local_external_dispatch": {
+    "buffer_publication": [],
+    "instagram_candidates": [],
+    "instagram_attempts": []
+  },
+  "buffer_usage": {
+    "900": 0,
+    "86400": 18,
+    "2592000": 48
+  },
+  "target_row_hashes": {
+    "candidates": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "mina_requests": "7d492256b98d00a8b573449a80e8fad59b795459247a35980ca4b4046e732058",
+    "preparation": "dec72dbd1190375fed056de1f6b20c6d8fe708555a70874131a8464ab0b84810",
+    "preparation_steps": "bd44139721897c3bc6d7b39e351060c029d1ce72e528b04e4d7ea7367c01ce87",
+    "buffer_publication": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "notices": "5a4811b6b75bfc20c3c0c76f48831c7e9c19bf2873899a4e1a7cea5d32f0900d"
+  }
+}

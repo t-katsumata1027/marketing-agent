@@ -1,0 +1,66 @@
+{
+  "previous_daily_clock_events": [
+    {
+      "stage": "source_state",
+      "event": "started",
+      "reason": "none",
+      "clock_ahead_ms": null
+    },
+    {
+      "stage": "source_state",
+      "event": "observed",
+      "reason": "none",
+      "clock_ahead_ms": 700.983
+    },
+    {
+      "stage": "source_state",
+      "event": "observed",
+      "reason": "none",
+      "clock_ahead_ms": -41.488
+    },
+    {
+      "stage": "source_state",
+      "event": "completed",
+      "reason": "none",
+      "clock_ahead_ms": null
+    },
+    {
+      "stage": "source_final",
+      "event": "started",
+      "reason": "none",
+      "clock_ahead_ms": null
+    },
+    {
+      "stage": "source_final",
+      "event": "observed",
+      "reason": "none",
+      "clock_ahead_ms": 1079.563
+    },
+    {
+      "stage": "source_final",
+      "event": "failed",
+      "reason": "clock_ahead",
+      "clock_ahead_ms": 1079.563
+    },
+    {
+      "stage": "source",
+      "event": "failed",
+      "reason": "clock_ahead",
+      "clock_ahead_ms": 1079.563
+    },
+    {
+      "stage": "source",
+      "event": "stopped",
+      "reason": "clock_ahead",
+      "clock_ahead_ms": 1079.563
+    }
+  ],
+  "policy_columns": [
+    "singleton",
+    "date_from",
+    "review_until",
+    "channel_id",
+    "service_id",
+    "state"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "memory_copy_only": true,
+  "production_route_writes": 0,
+  "http_requests": 0,
+  "slots": [
+    {
+      "slot": "breakfast",
+      "uses_buffer": true,
+      "route_revision_matches": true,
+      "route_digest_matches": true,
+      "route_state": "armed"
+    },
+    {
+      "slot": "lunch",
+      "uses_buffer": true,
+      "route_revision_matches": true,
+      "route_digest_matches": true,
+      "route_state": "armed"
+    },
+    {
+      "slot": "dinner",
+      "uses_buffer": true,
+      "route_revision_matches": true,
+      "route_digest_matches": true,
+      "route_state": "armed"
+    },
+    {
+      "slot": "daily",
+      "uses_buffer": true,
+      "route_revision_matches": true,
+      "route_digest_matches": true,
+      "route_state": "armed"
+    }
+  ],
+  "all_four_ready": true
+}

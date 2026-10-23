@@ -1,0 +1,9 @@
+{
+  "commit": "6d65b7958000cfc2ab99648651ef4cefe4b8471a",
+  "activation_allowed": false,
+  "contract_hashes_verified": null,
+  "compile": "passed",
+  "tests": "passed",
+  "isolation_directory": "/home/logeats-runner-win/projects/isolated/x-continuity-6d65b79-20261018",
+  "production_operations": false
+}
