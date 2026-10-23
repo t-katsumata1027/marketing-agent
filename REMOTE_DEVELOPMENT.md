@@ -1,5 +1,9 @@
 # サブPCでの開発
 
+## 2026年10月23日・Gemini一食置換コード配置、機能OFF
+
+本人が100円/日を撤回し金額上限なしへ変更。提供側66be008の新Schema SHA 4f8d2be8を照合し、waived/cooldown/明示resume・元UUID/制御UUID照会・saved保持へ対応。手動履歴対応be109b3を保持する8ac2fdcを、Windows/Linux各541件・CI39944266392両job成功後に配置した。切替時26台帳不変、起動後は既存行不変・起動監査2件追記のみ、3サービス/3タイマーactive・巡回失敗0。UTM ON・置換OFF。提供側policy未設定、Instagramのdraft4件（既存台帳照合2件・未照合2件）が開始を阻害する。24日の部分日422や期限は変更しない。詳細はMINA_REPLACEMENT_GEMINI_ACCEPTANCE_20261023.md、提供側への依頼はLOGEATS_REPLACEMENT_POLICY_HANDOFF_20261023.md。
+
 ## 2026年10月23日・Xの新規候補へUTM付与を有効化
 
 本番固定版afd369c87fde43f71205d50e0c7dd3de8c08d512、保護設定MINA_X_UTM_ENABLED=true。旧候補・承認・台帳は保持し、新規候補の承認元へ計測policyを固定する。Linux440件・CI・本番4枠読取照合成功。3サービス・3タイマーactive。保護バックアップは/var/lib/mina-agent/deployment-utm-afd369c87f。一食置換統合は未配置・無効、提供側設定の確認待ち。詳細はMINA_X_UTM_RELEASE_20261023.mdとMINA_REPLACEMENT_PRODUCTION_READINESS_20261023.md。

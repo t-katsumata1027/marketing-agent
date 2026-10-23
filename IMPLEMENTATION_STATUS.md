@@ -1,5 +1,9 @@
 # みな運用の実装・サブPC配置状況
 
+## 2026年10月23日・Gemini一食置換コード配置、機能OFF
+
+本人が100円/日を撤回し金額上限なしへ変更。提供側66be008の新Schema SHA 4f8d2be8を照合し、waived/cooldown/明示resume・元UUID/制御UUID照会・saved保持へ対応。手動履歴対応be109b3を保持する8ac2fdcを、Windows/Linux各541件・CI39944266392両job成功後に配置した。切替時26台帳不変、起動後は既存行不変・起動監査2件追記のみ、3サービス/3タイマーactive・巡回失敗0。UTM ON・置換OFF。提供側policy未設定、Instagramのdraft4件（既存台帳照合2件・未照合2件）が開始を阻害する。24日の部分日422や期限は変更しない。詳細はMINA_REPLACEMENT_GEMINI_ACCEPTANCE_20261023.md、提供側への依頼はLOGEATS_REPLACEMENT_POLICY_HANDOFF_20261023.md。
+
 ## 2026年10月23日・翌24日の履歴保留を復旧、別の朝食品質保留は未解決
 
 本人の手動告知2投稿をkind=otherへ確認登録し、X全31件の一致を確認。19:21に通常準備を再開したが、保存・訂正済み朝食の卵50gに対するimage_analysis_mismatchで停止した。同一画像・解析・基準の単回独立再点検も保留。元判定を保持し、朝食再POST/PATCH・別round反復・昼夕登録は行っていない。19:42時点で朝食1件・2要求complete、候補0。置換は提供側4条件未設定、24日preconditionは未完成日422、統合は未配置・無効。全体復旧は未完了。本体・コード・本日分承認/公開は保持。詳細はX_HISTORY_RECOVERY_20261023.md、提供側確認依頼はLOGEATS_PARTIAL_DAY_REPLACEMENT_REQUEST_20261023.md。
