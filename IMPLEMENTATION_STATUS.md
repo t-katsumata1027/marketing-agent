@@ -4,6 +4,11 @@
 
 本人の手動告知2投稿をkind=otherへ確認登録し、X全31件の一致を確認。19:21に通常準備を再開したが、保存・訂正済み朝食の卵50gに対するimage_analysis_mismatchで停止した。同一画像・解析・基準の単回独立再点検も保留。元判定を保持し、朝食再POST/PATCH・別round反復・昼夕登録は行っていない。19:42時点で朝食1件・2要求complete、候補0。置換は提供側4条件未設定、24日preconditionは未完成日422、統合は未配置・無効。全体復旧は未完了。本体・コード・本日分承認/公開は保持。詳細はX_HISTORY_RECOVERY_20261023.md、提供側確認依頼はLOGEATS_PARTIAL_DAY_REPLACEMENT_REQUEST_20261023.md。
 
+## 2026年10月23日・XのUTM本番反映と一食置換の提供側確認
+
+本人がUTMのX先行と置換追加課金100円/日を指定。稼働910419aを基点とするUTM単独版afd369cを配置し、新規X候補だけへの固定UTMを有効化した。Linux全440件・CI両ジョブ、新コードで23日4枠の正本/実OGP読取照合に成功。切替時26台帳不変、起動後は25台帳と既存監査行が不変で起動監査2件だけ追記。3サービス・3タイマーactive、巡回失敗0。既存承認・投稿は保持。詳細はMINA_X_UTM_RELEASE_20261023.md。
+
+一食置換は最新稼働版との統合687c75cでWindows/CI Linux各521件成功、ドラフトPR #14へ保存。23日実APIはservice_unavailable/budget_unconfigured/deadline_unverifiedのため本番未配置・無効を維持。提供側の状況確認プロンプトを本人へ提示済み、担当へ未送信。100円の指定を実単価・既消費・提供側割当の受入済みとは扱わない。残条件はMINA_REPLACEMENT_PRODUCTION_READINESS_20261023.md。
 
 ## 2026年10月22日の翌23日X候補復旧
 
