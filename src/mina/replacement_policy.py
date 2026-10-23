@@ -9,17 +9,34 @@ class ReplacementPolicy:
         self.store,self.policy,self.clock=store,policy,clock
         required=('approval_digest','currency','limit_units','opening_exposure_units','server_allocation_units','call_bounds',
                   'cost_bounds_verified','existing_usage_verified','server_allocation_verified','policy_version')
-        if any(k not in policy for k in required) or any(policy[k] is not True for k in ('cost_bounds_verified','existing_usage_verified','server_allocation_verified')):
-            raise ValueError('budget_unconfigured')
-        for key in ('limit_units','opening_exposure_units','server_allocation_units'):
-            if type(policy[key]) is not int or policy[key]<0:raise ValueError('budget_unconfigured')
-        if len(policy['approval_digest'])!=64 or not policy['currency'] or not policy['policy_version']:
-            raise ValueError('budget_unconfigured')
-        if any(type(v) is not int or v<0 for v in policy['call_bounds'].values()):raise ValueError('budget_unconfigured')
+        self.waived = policy.get('cost_control_mode') == 'waived'
+        if self.waived:
+            import re
+            if (any(k not in policy for k in required)
+                    or any(policy[k] is not None for k in ('currency','limit_units','opening_exposure_units','server_allocation_units'))
+                    or policy['cost_bounds_verified'] is not False
+                    or policy.get('approval_reference_digest') != policy['approval_digest']
+                    or not re.fullmatch('[0-9a-f]{64}',policy['approval_digest'])
+                    or policy.get('analysis_provider') != 'gemini' or policy.get('model') != 'gemini-3.1-flash-lite'
+                    or policy.get('max_output_tokens') != 2048 or not policy['policy_version']
+                    or not isinstance(policy['call_bounds'],dict) or not policy['call_bounds']
+                    or any(v is not None for v in policy['call_bounds'].values())):
+                raise ValueError('budget_unconfigured')
+        else:
+            if any(k not in policy for k in required) or any(policy[k] is not True for k in ('cost_bounds_verified','existing_usage_verified','server_allocation_verified')):
+                raise ValueError('budget_unconfigured')
+            for key in ('limit_units','opening_exposure_units','server_allocation_units'):
+                if type(policy[key]) is not int or policy[key]<0:raise ValueError('budget_unconfigured')
+            if len(policy['approval_digest'])!=64 or not policy['currency'] or not policy['policy_version']:
+                raise ValueError('budget_unconfigured')
+            if any(type(v) is not int or v<0 for v in policy['call_bounds'].values()):raise ValueError('budget_unconfigured')
         self.policy_digest=digest(policy)
         with store.transaction() as db:
             db.execute('''CREATE TABLE IF NOT EXISTS replacement_budget_days (
                 target_date TEXT PRIMARY KEY, policy_digest TEXT NOT NULL, policy TEXT NOT NULL)''')
+            db.execute('''CREATE TABLE IF NOT EXISTS replacement_waived_calls (
+                call_key TEXT PRIMARY KEY,target_date TEXT NOT NULL,kind TEXT NOT NULL,max_units INTEGER CHECK(max_units IS NULL),
+                state TEXT NOT NULL CHECK(state IN ('reserved','complete','unknown')))''')
             db.execute('''CREATE TABLE IF NOT EXISTS replacement_cost_reservations (
                 call_key TEXT PRIMARY KEY,target_date TEXT NOT NULL,kind TEXT NOT NULL,units INTEGER NOT NULL,
                 state TEXT NOT NULL CHECK(state IN ('reserved','complete','unknown')))''')
@@ -33,6 +50,9 @@ class ReplacementPolicy:
     def _day(self,db,target):
         old=db.execute('SELECT policy_digest FROM replacement_budget_days WHERE target_date=?',(target,)).fetchone()
         if old and old[0]!=self.policy_digest:raise ValueError('replacement_budget_policy_changed')
+        if self.waived:
+            if not old:db.execute('INSERT INTO replacement_budget_days VALUES(?,?,?)',(target,self.policy_digest,json.dumps(self.policy)))
+            return
         if not old:
             db.execute('INSERT INTO replacement_budget_days VALUES(?,?,?)',(target,self.policy_digest,json.dumps(self.policy)))
             db.execute("INSERT INTO replacement_cost_reservations VALUES(?,?,?,?,'reserved')",('server-allocation:'+target,target,'server_allocation',self.policy['server_allocation_units']))
@@ -44,6 +64,10 @@ class ReplacementPolicy:
         if kind not in self.policy['call_bounds']:raise ValueError('budget_unconfigured')
         with self.store.transaction() as db:
             self._day(db,target)
+            if self.waived:
+                if db.execute('SELECT 1 FROM replacement_waived_calls WHERE call_key=?',(call_key,)).fetchone():raise ValueError('replacement_call_lookup_only')
+                db.execute("INSERT INTO replacement_waived_calls VALUES(?,?,?,NULL,'reserved')",(call_key,target,kind))
+                return
             if db.execute('SELECT 1 FROM replacement_cost_reservations WHERE call_key=?',(call_key,)).fetchone():raise ValueError('replacement_call_lookup_only')
             total=db.execute('SELECT sum(units) FROM replacement_cost_reservations WHERE target_date=?',(target,)).fetchone()[0]
             units=self.policy['call_bounds'][kind]
@@ -52,7 +76,8 @@ class ReplacementPolicy:
 
     def called(self,key,success):
         with self.store.transaction() as db:
-            db.execute('UPDATE replacement_cost_reservations SET state=? WHERE call_key=?',('complete' if success else 'unknown',key))
+            table='replacement_waived_calls' if self.waived else 'replacement_cost_reservations'
+            db.execute('UPDATE '+table+' SET state=? WHERE call_key=?',('complete' if success else 'unknown',key))
 
     def attempt(self,target,slot):
         now=self.clock();existing_deadline=approval_time(date.fromisoformat(target))

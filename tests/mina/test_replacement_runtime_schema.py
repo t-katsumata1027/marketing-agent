@@ -26,16 +26,18 @@ class RuntimeSchemaTests(unittest.TestCase):
         for url in vectors['invalid']:
             with self.subTest(url=url),self.assertRaises(Exception):self.contract.validate('ShareURL',url)
         frozen=json.loads((FROZEN_DIRECTORY/'CONTRACT.schema.json').read_text(encoding='utf-8'))
-        self.assertEqual(set(frozen['$defs']),set(self.contract.schema['$defs']))
+        history=json.loads((CONTRACT_ROOT/'replacement_runtime_20261018/mina-replace-v1.schema.json').read_bytes())
         for name,definition in frozen['$defs'].items():
-            if name!='ShareURL':self.assertEqual(definition,self.contract.schema['$defs'][name])
+            if name!='ShareURL':self.assertEqual(definition,history['$defs'][name])
+        for name in ('PrepareInput','DiscardInput','CommitInput','Candidate','MealResult','DailyResult'):
+            self.assertEqual(history['$defs'][name],self.contract.schema['$defs'][name])
         with self.assertRaises(Exception):
             Draft202012Validator({**frozen,'$ref':'#/$defs/ShareURL'},format_checker=FORMATS).validate(vectors['valid'][1])
 
     def test_runtime_and_frozen_resources_have_exact_independent_hashes(self):
         evidence,raw=load_contract_resources()
         self.assertEqual(hashlib.sha256(raw).hexdigest(),RUNTIME_SCHEMA_SHA256)
-        self.assertEqual(evidence['provider_commit'],'a24bd429504c70d9b4d799bd593308316f676c86')
+        self.assertEqual(evidence['provider_commit'],'66be0089cbdfb49150ba9271a7e25899e1d81483')
         self.assertEqual(self.contract.schema['$id'],'urn:logeats:mina-meal-replacement:runtime:v1:20261018')
         for name,sha in FROZEN_HASHES.items():
             self.assertEqual(hashlib.sha256((FROZEN_DIRECTORY/name).read_bytes()).hexdigest(),sha)

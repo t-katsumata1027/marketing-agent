@@ -134,3 +134,25 @@ def maintain(store,clock,*,factory=None):
             store.audit.emit('creation',target,None,None,'reconciliation','held','outcome_unknown',now=clock())
             outcomes.append({'target_date':target,'state':'held:replacement_lookup'})
     return outcomes
+
+
+def explicit_resume(store,target,clock):
+    """運用者が指定した既存日のpausedだけを、元の実行文脈で再開する。"""
+    import json
+    from .replacement_control import resume_paused
+    from .clients import MealClient
+    from .codex_client import generation_client
+    from .drive import DriveClient
+    from .domain import date
+    if date.fromisoformat(target).isoformat()!=target:
+        raise ValueError('replacement_date_invalid')
+    if os.getenv('MINA_MEAL_REPLACEMENT_ENABLED','false').lower()!='true' or os.getenv('MINA_LIVE_WRITES','false').lower()!='true':
+        raise ValueError('replacement_write_disabled')
+    with store.transaction() as db:
+        row=db.execute('SELECT context FROM replacement_runtime_context WHERE target_date=?',(target,)).fetchone()
+        if not row:raise ValueError('replacement_context_missing')
+        ctx=json.loads(row['context'])
+    coordinator=build_coordinator(store,ctx['directory'],ctx['draft'],ctx['saved'],ctx['evidence'],ctx['commit'],ctx['host'],
+        generation_client(),DriveClient.from_env(),MealClient(os.getenv('MINA_MEAL_API_BASE_URL',''),os.getenv('MINA_AGENT_API_TOKEN','')),clock)
+    resume_paused(coordinator.flow,target)
+    return coordinator.advance(target)

@@ -13,3 +13,5 @@ deploy/systemd/mina-gateway-instagram.conf.example text eol=lf
 src/mina/contracts/replacement_v21/* -text whitespace=cr-at-eol,-blank-at-eof
 src/mina/contracts/replacement_runtime/* -text whitespace=cr-at-eol,-blank-at-eof
 MINA_REPLACEMENT_INTEGRATION_PLAN_20261018.md -text
+
+src/mina/contracts/replacement_runtime_20261018/* -text whitespace=cr-at-eol,-blank-at-eof

@@ -22,20 +22,21 @@ class ReplacementJournal:
                 request_key TEXT NOT NULL, sequence INTEGER PRIMARY KEY, payload TEXT NOT NULL)''')
 
     def _owned(self, db, row):
+        row=dict(row)
         hold = db.execute('SELECT * FROM publication_holds WHERE target_date=?', (row['target_date'],)).fetchone()
-        if (not hold or hold['owner'] != row['owner'] or hold['epoch'] != row['hold_epoch'] or hold['state'] != 'held'):
+        if (not hold or hold['owner'] != row['owner'] or hold['epoch'] != row['hold_epoch'] or hold['state'] not in (('held','saved_pending_review') if row.get('operation')=='replacement_resume' else ('held',))):
             raise ValueError('replacement_hold_not_owned_or_blocked')
 
     def prepare(self, key, operation, target, slot, hold_epoch, owner, body):
         MealClient.request_key(key)
-        if operation not in ('candidate_prepare', 'candidate_discard', 'meal_replace') or slot not in ('breakfast','lunch','dinner'):
+        if operation not in ('candidate_prepare', 'candidate_discard', 'meal_replace', 'replacement_resume') or slot not in ('breakfast','lunch','dinner'):
             raise ValueError('replacement_request_kind_invalid')
         if not isinstance(body, bytes) or not 0 < len(body) <= 5*1024*1024:
             raise ValueError('replacement_wire_body_invalid')
         MealClient.request_key(owner)
         if type(hold_epoch) is not int or hold_epoch <= 0:
             raise ValueError('replacement_hold_epoch_invalid')
-        row = {'target_date':target,'owner':owner,'hold_epoch':hold_epoch}
+        row = {'target_date':target,'owner':owner,'hold_epoch':hold_epoch,'operation':operation}
         digest = hashlib.sha256(body).hexdigest()
         with self.store.transaction() as db:
             self._owned(db, row)

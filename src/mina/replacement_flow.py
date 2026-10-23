@@ -125,7 +125,11 @@ class ReplacementFlow:
         p=self.contract.preconditions(self.client.preconditions(target),target)
         if self.ports.previous_image_hashes()!={m['expected']['target_slot']:m['image_sha256'] for m in p['meals']}:
             raise ValueError('replacement_original_source_changed')
-        if (p['policy']['budget_configured'] is not True or p['policy']['existing_preparation_deadline_verified'] is not True
+        from .replacement_control import observe_circuit
+        observe_circuit(self.store,p,self.clock())
+        waived=self.policy.waived
+        costs_ok=(p['policy'].get('cost_control')=={'mode':'waived','approval_reference_digest':self.policy.policy.get('approval_reference_digest')} and p['policy'].get('analysis_provider')=='gemini' and p['policy']['budget_configured'] is False) if waived else p['policy']['budget_configured'] is True
+        if (not costs_ok or p['policy']['existing_preparation_deadline_verified'] is not True
                 or p['policy']['policy_version']!=self.policy.policy['policy_version'] or p['policy']['budget_policy_digest']!=self.policy.policy_digest
                 or p['policy']['blocking_reasons']):raise ValueError('replacement_policy_unverified')
         with self.store.transaction() as db:
@@ -167,6 +171,8 @@ class ReplacementFlow:
 
     def send(self,target,operation,metadata,image=None):
         e=self.episode(target);self.checkpoint(e);key=metadata['request_uuid']
+        from .replacement_control import require_available
+        require_available(self.store,self.clock())
         key_field={'candidate_prepare':'prepare_uuid','candidate_discard':'discard_uuid','meal_replace':'commit_uuid'}.get(operation)
         if key_field is None or e[key_field]!=key:raise ValueError('replacement_request_target_changed')
         self.contract.validate({'candidate_prepare':'PrepareInput','candidate_discard':'DiscardInput','meal_replace':'CommitInput'}[operation],metadata)
@@ -180,14 +186,28 @@ class ReplacementFlow:
         with self.store.transaction() as db:db.execute('INSERT OR IGNORE INTO replacement_wire VALUES(?,?,?)',(key,canonical(metadata).decode(),content_type))
         # startと実送信の間の停止も不明として残し、再送しない。
         wire=self.journal.start(key);self.progress(target,operation+':started')
-        value=self.client.send(operation,key,wire,content_type,e['prepare_uuid'])
+        from .replacement_control import ReplacementPaused,remember,require_available
+        require_available(self.store,self.clock())
+        try:value=self.client.send(operation,key,wire,content_type,e['prepare_uuid'])
+        except ReplacementPaused as error:
+            remember(self.store,error.envelope)
+            request=error.envelope.get('request')
+            if request and request.get('request_uuid')==key and request.get('operation')==operation:
+                self.journal.envelope(key,error.envelope)
+            self.progress(target,'paused','replacement_recovery_required')
+            raise
         return self.accept(target,key,value)
 
     def accept(self,target,key,value):
         e=self.episode(target);row=self.journal.get(key)
         value=self.contract.decode('meal_replace' if row['operation']=='meal_replace' else row['operation'],value)
         if value.get('candidate') and value['candidate']['prepare_uuid']!=e['prepare_uuid']:raise ValueError('replacement_candidate_target_changed')
+        from .replacement_control import remember
+        remember(self.store,value)
         state=self.journal.envelope(key,value)
+        if value['request']['stage']=='paused':
+            self.progress(target,'paused',value['request'].get('reason'))
+            return value
         if state.get('conflict'):self.progress(target,'unknown','replacement_conflict');return value
         if row['operation']=='meal_replace':stage='saved' if state['persistence']=='saved' else ('not_saved' if value['request']['status']=='failed' and state['persistence']=='not_saved' else 'unknown')
         elif state['outcome']=='applied':
@@ -207,7 +227,19 @@ class ReplacementFlow:
         """再開は既存UUIDを読み、要求の操作・入力版と照合するだけ。"""
         e=self.episode(target);key=e['commit_uuid'] or e['discard_uuid'] or e['prepare_uuid']
         if not key:raise ValueError('replacement_no_request_to_reconcile')
-        row=self.journal.get(key);return self.accept(target,key,self.client.request(key,row['operation']))
+        row=self.journal.get(key);value=self.accept(target,key,self.client.request(key,row['operation']))
+        from .replacement_control import initialize
+        initialize(self.store)
+        with self.store.transaction() as db:
+            controls=[dict(r) for r in db.execute("SELECT r.request_key,r.observation,c.original_uuid FROM meal_replacement_requests r JOIN replacement_resume_claims c ON c.control_uuid=r.request_key WHERE r.target_date=? AND r.operation='replacement_resume' AND r.phase<>'prepared'",(target,))]
+        for control in controls:
+            observed=json.loads(control['observation']) if control['observation'] else {}
+            if observed.get('outcome') in ('applied','rejected') and not observed.get('conflict'):continue
+            result=self.client.request(control['request_key'],'replacement_resume')
+            if result['request'].get('original_request_uuid')!=control['original_uuid']:raise ValueError('replacement_resume_target_changed')
+            final=self.journal.envelope(control['request_key'],result)
+            if final.get('conflict') or final.get('outcome') not in ('applied','rejected'):raise ValueError('replacement_resume_lookup_only')
+        return value
 
     @tracked
     def finish(self,target,rebuild,host,hosts):

@@ -45,7 +45,7 @@ def build(output, commit):
     selected = [name for name in names if (
         name.startswith(('src/mina/', 'deploy/', 'tests/mina/', 'tests/contract_bridge/', 'assets/instagram/'))
         or name in ('.gitattributes', 'src/__init__.py', 'requirements-mina.txt', 'requirements-mina.in',
-                    'scripts/test_logeats_contract.py', 'scripts/build_mina_release.py')
+                    'scripts/test_logeats_contract.py', 'scripts/build_mina_release.py', 'scripts/build_replacement_waived_policy.py')
         or ('/' not in name and name.endswith('.md') and name != 'README.md')
     )]
     # 配布にリンクがあると、展開先以外の設定・認証を参照する恐れがある。

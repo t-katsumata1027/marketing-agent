@@ -117,8 +117,10 @@ class ReplacementReadClient:
 
     def request(self, key, operation):
         key = MealClient.request_key(key)
-        if operation not in ('candidate_prepare', 'candidate_discard', 'meal_replace'):
+        if operation not in ('candidate_prepare', 'candidate_discard', 'meal_replace', 'replacement_resume'):
             raise ReplacementReadFailure('replacement_operation_invalid')
+        if operation == 'replacement_resume':
+            return self._json('/api/internal/mina/meal-replacement-resumes/'+key, operation)
         prefix = '/api/internal/mina/requests/' if operation == 'meal_replace' else '/api/internal/mina/meal-replacement-requests/'
         return self._json(prefix+key+'?'+urlencode({'operation':operation}), operation)
 
@@ -194,6 +196,7 @@ class ReplacementClient(ReplacementReadClient):
         if operation=='candidate_prepare':path='/api/internal/mina/meal-replacement-candidates'
         elif operation=='candidate_discard':path='/api/internal/mina/meal-replacement-candidates/'+MealClient.request_key(prepare_uuid)+'/discard'
         elif operation=='meal_replace':path='/api/internal/mina/meal-replacements'
+        elif operation=='replacement_resume':path='/api/internal/mina/meal-replacement-resumes'
         else:raise ReplacementReadFailure('replacement_operation_invalid')
         request=Request(self.base+path,data=body,method='POST',headers={'Authorization':'Bearer '+self.token,
             'Cache-Control':'no-store','Accept':'application/json','Content-Type':content_type,'Idempotency-Key':key})
@@ -207,7 +210,9 @@ class ReplacementClient(ReplacementReadClient):
                                parse_constant=lambda _: (_ for _ in ()).throw(ValueError()))
             if isinstance(payload.get('freshness'),dict):await_checked_at(payload['freshness'],clock=self.clock,sleep=self.sleep,max_ahead=5)
             # HTTPだけで既存の成否を変更せず、元要求のenvelopeを検証する。
-            return self.decoder('candidate' if operation!='meal_replace' else 'meal_replace',payload)
+            return self.decoder(operation,payload)
+        except ReplacementReadFailure:
+            raise
         except (URLError,OSError,TimeoutError,ValueError,KeyError,TypeError):
             raise ReplacementReadFailure('replacement_write_lookup_required') from None
         finally:

@@ -11,6 +11,13 @@ def summarize(db,now):
               'deadline_remaining_seconds':round(deadline-now.timestamp())}
         if 'replacement_attempts' in tables:item['attempt_ordinal']=db.execute('SELECT coalesce(max(ordinal),0) FROM replacement_attempts WHERE target_date=? AND slot=?',(target,slot)).fetchone()[0]
         if 'replacement_cost_reservations' in tables:item['cost_reservations']={state:{'count':count,'maximum_units':units} for state,count,units in db.execute('SELECT state,count(*),sum(units) FROM replacement_cost_reservations WHERE target_date=? GROUP BY state',(target,))}
+        policy_row=db.execute('SELECT policy FROM replacement_budget_days WHERE target_date=?',(target,)).fetchone() if 'replacement_budget_days' in tables else None
+        if 'replacement_waived_calls' in tables and policy_row and json.loads(policy_row[0]).get('cost_control_mode')=='waived':
+            item['cost_control_mode']='waived'
+            item['cost_reservations_waived']={state:{'count':count,'maximum_units':None} for state,count in db.execute('SELECT state,count(*) FROM replacement_waived_calls WHERE target_date=? GROUP BY state',(target,))}
+        if 'replacement_control_wait' in tables:
+            wait=db.execute('SELECT retry_at,recovery_required FROM replacement_control_wait WHERE singleton=1').fetchone()
+            if wait:item['control_wait']={'retry_at':wait[0],'recovery_required':bool(wait[1]),'next_operation':'lookup'}
         if 'meal_replacement_requests' in tables:
             item['requests']=[]
             for op,phase,observation in db.execute('SELECT operation,phase,observation FROM meal_replacement_requests WHERE target_date=?',(target,)):

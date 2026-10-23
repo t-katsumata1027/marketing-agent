@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:logeats:mina-meal-replacement:runtime:v1:20261018",
-  "title": "保存済み一食置換 mina-replace-v1 実行契約（旧M1短縮ID互換補正）",
-  "description": "計画v2.1を基準に、ShareURLの/s/短縮IDへ旧M1で有効なハイフンとアンダースコアを追加。その他の制約・版・hash計算は変更しない。",
+  "title": "保存済み一食置換 mina-replace-v1（Gemini・永続停止制御）",
+  "description": "Gemini経路と永続停止制御・未発行stageの明示再開を追加。旧M1の版・hash計算は変更しない。",
   "$ref": "#/$defs/AnyResponse",
   "$defs": {
     "UUID": {
@@ -416,8 +416,50 @@
           },
           "minItems": 0,
           "maxItems": 20
+        },
+        "cost_control": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "approval_reference_digest"
+          ],
+          "properties": {
+            "mode": {
+              "const": "waived"
+            },
+            "approval_reference_digest": {
+              "$ref": "#/$defs/SHA"
+            }
+          }
+        },
+        "analysis_provider": {
+          "const": "gemini"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "cost_control"
+            ]
+          },
+          "then": {
+            "properties": {
+              "budget_configured": {
+                "const": false
+              },
+              "budget_policy_digest": {
+                "$ref": "#/$defs/SHA"
+              },
+              "policy_version": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
     },
     "Migration": {
       "type": "object",
@@ -789,7 +831,11 @@
         "transaction_aborted",
         "source_changed",
         "og_image_preparation_failed",
-        "service_unavailable"
+        "service_unavailable",
+        "analysis_provider_unconfigured",
+        "replacement_cooldown",
+        "replacement_guard_unavailable",
+        "replacement_recovery_required"
       ]
     },
     "ControlRequest": {
@@ -811,7 +857,8 @@
         "operation": {
           "enum": [
             "candidate_prepare",
-            "candidate_discard"
+            "candidate_discard",
+            "replacement_resume"
           ]
         },
         "input_hash": {
@@ -835,7 +882,9 @@
             "ready",
             "discard",
             "discarded",
-            "reconciliation_required"
+            "reconciliation_required",
+            "paused",
+            "completed"
           ]
         },
         "reason": {
@@ -857,6 +906,15 @@
               "type": "null"
             }
           ]
+        },
+        "cooldown": {
+          "$ref": "#/$defs/Cooldown"
+        },
+        "original_request_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "quota_claimed": {
+          "type": "boolean"
         }
       }
     },
@@ -907,7 +965,8 @@
             "ogp_preparing",
             "ogp_failed",
             "ogp_source_check",
-            "completed"
+            "completed",
+            "paused"
           ]
         },
         "reason": {
@@ -919,6 +978,12 @@
               "type": "null"
             }
           ]
+        },
+        "cooldown": {
+          "$ref": "#/$defs/Cooldown"
+        },
+        "saved_at": {
+          "$ref": "#/$defs/Time"
         }
       },
       "allOf": [
@@ -1646,6 +1711,16 @@
         },
         "freshness": {
           "$ref": "#/$defs/Freshness"
+        },
+        "circuit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Circuit"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },
@@ -1681,6 +1756,13 @@
               "type": "null"
             }
           ]
+        },
+        "cooldown": {
+          "$ref": "#/$defs/Cooldown"
+        },
+        "resume_stage_version": {
+          "type": "integer",
+          "minimum": 0
         }
       }
     },
@@ -1723,6 +1805,13 @@
               "type": "null"
             }
           ]
+        },
+        "cooldown": {
+          "$ref": "#/$defs/Cooldown"
+        },
+        "resume_stage_version": {
+          "type": "integer",
+          "minimum": 0
         }
       }
     },
@@ -1829,6 +1918,13 @@
         },
         "freshness": {
           "$ref": "#/$defs/Freshness"
+        },
+        "cooldown": {
+          "$ref": "#/$defs/Cooldown"
+        },
+        "resume_stage_version": {
+          "type": "integer",
+          "minimum": 0
         }
       }
     },
@@ -1889,6 +1985,13 @@
         },
         "checked_at": {
           "$ref": "#/$defs/Time"
+        },
+        "cooldown": {
+          "$ref": "#/$defs/Cooldown"
+        },
+        "resume_stage_version": {
+          "type": "integer",
+          "minimum": 0
         }
       }
     },
@@ -1911,6 +2014,9 @@
         },
         {
           "$ref": "#/$defs/Hidden"
+        },
+        {
+          "$ref": "#/$defs/ResumeResponse"
         }
       ]
     },
@@ -2154,6 +2260,184 @@
           },
           "minItems": 1,
           "maxItems": 3
+        }
+      }
+    },
+    "Cooldown": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope",
+        "retry_at",
+        "trigger",
+        "mutation_started",
+        "recovery_required"
+      ],
+      "properties": {
+        "scope": {
+          "const": "mina_saved_meal_replacement"
+        },
+        "retry_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "trigger": {
+          "enum": [
+            "request_rate",
+            "external_failures",
+            "probe_pending"
+          ]
+        },
+        "mutation_started": {
+          "const": false
+        },
+        "recovery_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Circuit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "generation",
+        "retry_at",
+        "recovery_required",
+        "trigger"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "closed",
+            "open",
+            "half_open"
+          ]
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "retry_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "recovery_required": {
+          "type": "boolean"
+        },
+        "trigger": {
+          "anyOf": [
+            {
+              "enum": [
+                "request_rate",
+                "external_failures",
+                "probe_pending"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "ResumeInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_uuid",
+        "original_request_uuid",
+        "expected_stage_version",
+        "expected_input_sha256",
+        "policy_version",
+        "budget_policy_digest",
+        "publication_hold"
+      ],
+      "properties": {
+        "request_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "original_request_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "expected_stage_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expected_input_sha256": {
+          "$ref": "#/$defs/SHA"
+        },
+        "policy_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "budget_policy_digest": {
+          "$ref": "#/$defs/SHA"
+        },
+        "publication_hold": {
+          "$ref": "#/$defs/Hold"
+        }
+      }
+    },
+    "ResumeResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "request",
+        "candidate",
+        "freshness",
+        "reason"
+      ],
+      "properties": {
+        "contract_version": {
+          "const": "mina-replace-v1"
+        },
+        "request": {
+          "$ref": "#/$defs/ControlRequest"
+        },
+        "candidate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Candidate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "freshness": {
+          "$ref": "#/$defs/Freshness"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reason"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cooldown": {
+          "$ref": "#/$defs/Cooldown"
+        },
+        "resume_stage_version": {
+          "type": "integer",
+          "minimum": 0
         }
       }
     }

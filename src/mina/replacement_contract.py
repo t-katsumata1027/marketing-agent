@@ -12,8 +12,8 @@ SLOTS = ('breakfast','lunch','dinner')
 CONTRACT_ROOT = Path(__file__).parent/'contracts'
 FROZEN_DIRECTORY = CONTRACT_ROOT/'replacement_v21'
 RUNTIME_SCHEMA = 'replacement_runtime/mina-replace-v1.schema.json'
-RUNTIME_SCHEMA_SHA256 = '2c2a44cc3830ef07bd0666182915b0e5e4bbab11239bb6aec6745f0d9d37a4f6'
-PROVIDER_COMMIT = 'a24bd429504c70d9b4d799bd593308316f676c86'
+RUNTIME_SCHEMA_SHA256 = '4f8d2be8f47a741ff8578a25c29bd6422cf88ebd817f8450339eaee76216f6e2'
+PROVIDER_COMMIT = '66be0089cbdfb49150ba9271a7e25899e1d81483'
 PROVIDER_SCHEMA_PATH = 'docs/marketing/contracts/mina-replace-v1.schema.json'
 FROZEN_HASHES = {'CONTRACT.schema.json':'8b5fc6ecce9a9b406e7197f60c6ae49cb8f94edd9702c3b2db33babe78396090',
           'FIXTURES.json':'6561ad1dbdeb755e9a6fca55f2981355dee1b879f404f069489e8c927ecf52c7'}
@@ -22,7 +22,9 @@ FORMATS=FormatChecker()
 def load_contract_resources(base=None):
     """通信せず同梱実バイトの固定SHAを検証する。履歴やネット取得へ退避しない。"""
     base=Path(base) if base is not None else CONTRACT_ROOT
-    hashes={RUNTIME_SCHEMA:RUNTIME_SCHEMA_SHA256,
+    history_schema='replacement_runtime_20261018/mina-replace-v1.schema.json'
+    history_sha='2c2a44cc3830ef07bd0666182915b0e5e4bbab11239bb6aec6745f0d9d37a4f6'
+    hashes={RUNTIME_SCHEMA:RUNTIME_SCHEMA_SHA256,history_schema:history_sha,
             **{'replacement_v21/'+name:sha for name,sha in FROZEN_HASHES.items()}}
     loaded={}
     for relative,sha in hashes.items():
@@ -40,6 +42,7 @@ def load_contract_resources(base=None):
     evidence={'contract_version':'mina-replace-v1','provider_commit':PROVIDER_COMMIT,'provider_path':PROVIDER_SCHEMA_PATH,
         'runtime_schema':{'path':prefix+RUNTIME_SCHEMA,'sha256':RUNTIME_SCHEMA_SHA256},
         'frozen_history':{name:{'path':prefix+'replacement_v21/'+name,'sha256':sha} for name,sha in FROZEN_HASHES.items()}}
+    evidence['frozen_history']['runtime-20261018']={'path':prefix+history_schema,'sha256':history_sha}
     return evidence,loaded[RUNTIME_SCHEMA]
 
 @FORMATS.checks('date-time',raises=(ValueError,TypeError))
@@ -124,9 +127,11 @@ class Contract:
 
     def decode(self, kind, value):
         name={'preconditions':'PreconditionResponse','candidate':'CandidateResponse','candidate_prepare':'ControlLookupResponse',
-              'candidate_discard':'ControlLookupResponse','meal_replace':'CommitResponse'}[kind]
+              'candidate_discard':'ControlLookupResponse','meal_replace':'CommitResponse','replacement_resume':'ResumeResponse'}[kind]
         if 'error' in value:
-            raise ReplacementReadFailure('replacement_lookup_unknown')
+            self.validate('Error',value)
+            from .replacement_control import ReplacementPaused
+            raise ReplacementPaused(value)
         self.validate(name,value);self.fresh(value['freshness'])
         if value.get('candidate'):self.candidate(value['candidate'])
         return value
