@@ -1,5 +1,21 @@
 # サブPCでの開発
 
+## 2026年10月24日08:38・Agent初回P補修の配置・有効化完了
+
+本人承認に基づきf2119d4（受入実装6c43282と同一の実行コード）を配置し、MINA_MEAL_REPLACEMENT_ENABLED=trueと専用設定/etc/marketing-agent-replacement/agent.jsonを反映。UTMと他の運用設定を保持。Linux対象80件・私用DB実構築・全状態全4ページの公開先照合を経て、切替後は業務25表/既存監査行不変、起動監査2件追記、3サービス/3タイマーactive・巡回失敗0。退避は/var/lib/mina-agent/deployment-initial-f2119d4-r2、旧コードは/opt/marketing-agent-rollback-initial-f2119d4。Instagram draft4件の停止条件を維持し、実置換・投稿・過去日救済・期限延長は行っていない。詳細と設定読取失敗からの復帰経緯はMINA_AGENT_REPLACEMENT_ACTIVATION_20261024.md。
+
+## 2026年10月24日・提供側本番ONの読取確認、Agent配置は別段階
+
+本体761a55f6の配備/ON報告を受領し、07:24 JSTの認証付きGETで固定Schema・確定Gemini/waived policy・両digest・M1との版/画像一致を確認した。Agent設定は8ac2fdc・置換OFF・UTM ONを保持し、Agent修正版6c43282の配置や設定変更は行っていない。集約期限false/nullを補完せず、過去日の適格性も付与しない。提供側Previewの最新成功と過去の失敗runを区別する。詳細と次段階の境界はMINA_PROVIDER_RELEASE_ACCEPTANCE_20261024.mdを参照。
+
+## 2026年10月23日・初回P補修は隔離受入まで、本番未配置
+
+本体PR149の固定0e80de53を用いる隔離HTTP受入に対応し、Agent固定6c43282で初回Pの原本移行・期限・所有/epoch・試行消費と明示resumeのpolicy再確認を補修した。実ハンドラーHTTP41件・対象回帰70件・adapter型検査成功、独立レビューGo。今回の配置や設定反映は実行せず、本番コード8ac2fdc・置換OFFを保持する。本体Previewの後続C90秒タイムアウト1件も未合格のまま。再現手順と要求数・SHAはMINA_INITIAL_PREPARE_AGENT_ACCEPTANCE_20261023.mdを参照。
+
+## 2026年10月23日・Gemini一食置換コード配置、機能OFF
+
+本人が100円/日を撤回し金額上限なしへ変更。提供側66be008の新Schema SHA 4f8d2be8を照合し、waived/cooldown/明示resume・元UUID/制御UUID照会・saved保持へ対応。手動履歴対応be109b3を保持する8ac2fdcを、Windows/Linux各541件・CI39944266392両job成功後に配置した。切替時26台帳不変、起動後は既存行不変・起動監査2件追記のみ、3サービス/3タイマーactive・巡回失敗0。UTM ON・置換OFF。提供側policy未設定、Instagramのdraft4件（既存台帳照合2件・未照合2件）が開始を阻害する。24日の部分日422や期限は変更しない。詳細はMINA_REPLACEMENT_GEMINI_ACCEPTANCE_20261023.md、提供側への依頼はLOGEATS_REPLACEMENT_POLICY_HANDOFF_20261023.md。
+
 ## 2026年10月23日・Xの新規候補へUTM付与を有効化
 
 本番固定版afd369c87fde43f71205d50e0c7dd3de8c08d512、保護設定MINA_X_UTM_ENABLED=true。旧候補・承認・台帳は保持し、新規候補の承認元へ計測policyを固定する。Linux440件・CI・本番4枠読取照合成功。3サービス・3タイマーactive。保護バックアップは/var/lib/mina-agent/deployment-utm-afd369c87f。一食置換統合は未配置・無効、提供側設定の確認待ち。詳細はMINA_X_UTM_RELEASE_20261023.mdとMINA_REPLACEMENT_PRODUCTION_READINESS_20261023.md。

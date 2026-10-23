@@ -62,6 +62,9 @@ class BufferTrialClient:
         self.audit_context=None
 
     def _request(self, query, variables=None):
+        if query.lstrip().startswith('mutation'):
+            from .publication_hold import require_buffer_mutation
+            require_buffer_mutation(getattr(self, 'publication_store', None), getattr(self, 'publication_target', None))
         connection=query in (ORGANIZATIONS,CHANNELS)
         stage='connection' if connection else 'submission' if query==CREATE else 'delivery'
         operation='channel_organizations' if query==ORGANIZATIONS else 'channel_list' if query==CHANNELS else 'post_create' if query==CREATE else 'post_lookup'

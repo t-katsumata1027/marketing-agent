@@ -54,10 +54,11 @@ class AutomaticHistoryTest(unittest.TestCase):
         self.assertTrue(evidence['history_complete'])
         self.assertEqual(evidence['entries'][0]['menu'], c.menu)
 
-    def test_external_post_requires_review_then_bootstrap_matches(self):
+    def test_manual_post_is_observed_separately_and_known_history_still_matches(self):
         snapshot = self.snapshot([{'id': '456', 'author_id': '99', 'created_at': '2026-10-08T07:30:00+09:00', 'text': '旧投稿'}])
-        with self.assertRaises(ValueError):
-            build_automatic_history(self.root/'db', snapshot, self.bootstrap, self.cutover, self.now)
+        evidence=build_automatic_history(self.root/'db', snapshot, self.bootstrap, self.cutover, self.now)
+        self.assertEqual(evidence['manual_post_count'],1)
+        self.assertEqual(evidence['entries'],[])
         self.bootstrap['entries'] = [{'x_id': '456', 'date': '2026-10-08', 'menu': '確認済み献立', 'comment': '確認済み一言', 'publish_text': '旧投稿'}]
         self.assertTrue(build_automatic_history(self.root/'db', snapshot, self.bootstrap, self.cutover, self.now)['history_complete'])
         self.bootstrap['entries'][0]['date'] = '2026-10-07'

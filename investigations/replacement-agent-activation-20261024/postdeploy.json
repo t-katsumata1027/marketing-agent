@@ -1,0 +1,102 @@
+{
+  "checked_at": "2026-10-23T23:39:10.546570+00:00",
+  "source_commit": "f2119d48f2f9c5a7a5c4f979cdc85a9248b81f09",
+  "config": {
+    "MINA_SOURCE_COMMIT": "f2119d48f2f9c5a7a5c4f979cdc85a9248b81f09",
+    "MINA_X_UTM_ENABLED": "true",
+    "MINA_MEAL_REPLACEMENT_ENABLED": "true",
+    "MINA_REPLACEMENT_AGENT_CONFIG": "/etc/marketing-agent-replacement/agent.json"
+  },
+  "workers": [
+    {
+      "module": "src.mina",
+      "command": "daemon",
+      "replacement_enabled": true,
+      "replacement_config_matches": true
+    },
+    {
+      "module": "src.mina",
+      "command": "gateway",
+      "replacement_enabled": true,
+      "replacement_config_matches": true
+    },
+    {
+      "module": "src.mina.instagram_cli",
+      "command": "daemon",
+      "replacement_enabled": true,
+      "replacement_config_matches": true
+    },
+    {
+      "module": "src.mina",
+      "command": "gateway",
+      "replacement_enabled": true,
+      "replacement_config_matches": true
+    },
+    {
+      "module": "src.mina",
+      "command": "daemon",
+      "replacement_enabled": true,
+      "replacement_config_matches": true
+    },
+    {
+      "module": "src.mina.instagram_cli",
+      "command": "daemon",
+      "replacement_enabled": true,
+      "replacement_config_matches": true
+    }
+  ],
+  "services": {
+    "mina-agent": true,
+    "mina-gateway": true,
+    "mina-instagram": true,
+    "mina-prepare.timer": true,
+    "mina-notify.timer": true,
+    "mina-instagram-prepare.timer": true
+  },
+  "existing_business_rows_unchanged": true,
+  "retained_business_tables": 25,
+  "old_audit_prefix_unchanged": true,
+  "startup_audit_appends": 2,
+  "health": {
+    "checked": 1792798736.330781,
+    "last_success": 1792798736.330781,
+    "consecutive_failures": 0,
+    "mode": "live"
+  },
+  "provider": {
+    "policy": {
+      "policy_version": "mina_gemini_waived_20261023_v1",
+      "budget_policy_digest": "244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b",
+      "budget_configured": false,
+      "analysis_provider": "gemini",
+      "cost_control": {
+        "mode": "waived",
+        "approval_reference_digest": "8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083"
+      },
+      "existing_preparation_deadline_verified": false,
+      "max_replans": 2,
+      "daily_analysis_limit": 60,
+      "hard_deadline_at": null,
+      "used_replan_ordinals": [],
+      "available_replans": 2,
+      "blocking_reasons": [
+        "deadline_unverified"
+      ]
+    },
+    "circuit": {
+      "state": "closed",
+      "generation": 0,
+      "retry_at": null,
+      "recovery_required": false,
+      "trigger": null
+    },
+    "get_calls": 1,
+    "business_writes": 0
+  },
+  "policy_digest_matches": true,
+  "production_replacement_posts": 0,
+  "paid_calls": 0,
+  "forced_preparation": false,
+  "past_day_rescue": false,
+  "deadline_extension": false
+}

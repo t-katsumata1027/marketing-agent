@@ -130,6 +130,7 @@ regex==2026.1.15
 requests==2.34.2
 requests-oauthlib==2.0.0
 requests-toolbelt==1.0.0
+rfc8785==0.1.4
 rich==14.3.4
 rpds-py==2026.6.3
 shellingham==1.5.4

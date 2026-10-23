@@ -68,6 +68,7 @@ def validate_post(c, post, draft=False):
 def draft_once(store, c, client):
     """下書きの成否不明を反復しない。公開モードを使わない。"""
     require_live()
+    client.publication_target = c.target_date
     from .instagram_media import HOSTS
     c.validate(datetime.now(UTC), HOSTS, require_future=False)
     channel = instagram_channel(client)
@@ -86,7 +87,9 @@ def draft_once(store, c, client):
             raise ProbeError('instagram_post_id_changed')
         validate_post(c, post, True)
     else:
-        result = client._request(CREATE, {'input': request_for(c, True)})['createPost']
+        from .publication_hold import mutation_lease
+        with mutation_lease(store, c.target_date, 'instagram_draft'):
+            result = client._request(CREATE, {'input': request_for(c, True)})['createPost']
         if result.get('__typename') != 'PostActionSuccess' or not result.get('post', {}).get('id'):
             raise ProbeError('instagram_draft_unconfirmed')
         post = result['post']
@@ -110,6 +113,7 @@ def publish_once(store, row, verify_source, hosts, client=None, clock=lambda: da
                  sleep=time.sleep, verify_media=verify_public):
     c = InstagramCandidate(**json.loads(row['payload']))
     client = client or InstagramBufferClient(store)
+    client.publication_target = c.target_date
     started = time.monotonic()
     attempted = False
     stage = 'authorization'
@@ -145,6 +149,8 @@ def publish_once(store, row, verify_source, hosts, client=None, clock=lambda: da
         store.begin(row, request, clock())
         attempted = True
         stage = 'submission'
+        from .publication_hold import require_claim
+        require_claim(store, row, 'instagram_candidates')
         result = client._request(CREATE, {'input': request})['createPost']
         if result.get('__typename') != 'PostActionSuccess' or not result.get('post', {}).get('id'):
             raise ProbeError('instagram_submission_unknown')

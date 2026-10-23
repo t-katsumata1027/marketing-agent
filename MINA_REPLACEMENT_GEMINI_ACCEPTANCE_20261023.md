@@ -1,0 +1,51 @@
+# 一食置換・Gemini／waived／resumeのAgent側受入
+
+2026年10月23日。本人は追加課金100円/日を撤回し、金額上限なしへ変更すると明示回答した。無料・実費0円とは扱わない。回数・期限・技術枠・品質・公開排他は維持する。
+
+## 固定実装と正式契約
+
+Agent実装68bead25b90e79ec511e0a5667556a5021c98008。提供側66be0089cbdfb49150ba9271a7e25899e1d81483の正式Schemaと同梱checksumをGitHubから取得し、実LFバイト54,668とSHA 4f8d2be8f47a741ff8578a25c29bd6422cf88ebd817f8450339eaee76216f6e2を照合した。旧実行Schemaと凍結v2.1は別保存し、旧Schemaへ退避しない。PR #14へ反映済み。
+
+## 実装
+
+- 明示waivedでは金額・通貨・費用上限をnull、cost_bounds_verified=falseとする。費用記録は独立台帳へnullのまま予約・完了・不明を記録する。既存boundedの記録を変換しない。
+- budget_configured=falseだけで拒否せず、cost_control.mode、本人承認参照digest、policy版/digest、analysis_provider、停止理由を合わせて判定する。
+- 全日・全枠共通のcooldownを永続化する。再起動・対象日変更や短い後続応答で待機を縮めず、recovery_requiredを経過時刻だけで解除しない。OPEN期限経過後の新規要求は提供側の単一probe制御に従い、HALF_OPEN・不明は停止する。
+- GET巡回は元要求と未解決resume制御UUIDの照会だけを行う。明示コマンドreplacement-resume --dateで、元要求GETのpaused・段階版・元画像SHA・同じ公開holdを照合し、未発行工程だけの制御POSTを一度送る。通常GETからresume POSTは発生しない。
+- 制御応答喪失は制御UUIDと元UUIDの照会へ進め、同じ段階版へ新UUIDで再送しない。429・mutation_started:falseをnot_savedの証明にしない。Cのsavedは保持し、旧承認失効を維持する。保存後15分を超えるOGP再開は拒否する。
+- 登録前からの累積2回と、前日20時／初回再計画15分の最短期限を保持する。保存済み別メニュー再計画にもXコメント短文化を適用する。
+
+## 検証
+
+Windows533件、隔離サブPC Linux533件成功。CI39943037386のmina（533件）/test両ジョブ成功。新規12件でwaivedのnullと不明費用、再起動・日変更・短縮拒否、OPEN/HALF_OPEN、HTTP経路、明示resume一回、応答喪失、saved保持、期限、生成policyの再現性を確認した。
+
+隔離Linuxの初回は、単体Bufferテストが既定の本番DB存在を検出して拒否し、9エラー・2失敗となった。コードの保護は緩和せず、MINA_DATABASEへ隔離された不存在パスを明示して同じ固定版全533件に成功した。初回失敗ログは保持する。
+
+本番台帳の私用コピーへStore/ReplacementPolicy/Flow/制御台帳を初期化し、既存27表の全既存列の値が不変、quick_check=ok、外部呼出0件を確認した。
+
+## 実読取と残条件
+
+23日本番preconditionは新Schema適合・circuit.closed・recovery_required=false。policyは未設定でservice_unavailable/budget_unconfigured/analysis_provider_unconfigured/deadline_unverifiedを維持する。24日は422で未完成日を拒否する。
+
+Buffer固定2投稿先を実APIで全ページ照会した。X2ページは対象24日／日付不明の阻害0件、Instagram1ページにはdraft4件があり、安全条件で停止した。API呼出は既存共通利用枠へ計数し、下書きの削除・変更・公開は行っていない。
+
+実P/D/C/resume POST、再解析、置換、追加課金、投稿は0件。実モデル品質の受入や、Agentによる提供側APIへの実HTTP書込が完了したとは扱わない。provider policy案のagent_integration_verifiedはfalseを維持し、本受入証跡で確認できる範囲を両側で合意する。
+
+## 両側で合わせるpolicy案
+
+policy_version: mina_gemini_waived_20261023_v1
+budget_policy_digest: 244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b
+approval_reference_digest: 8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083
+
+正規化するAgent policyと本人承認参照はinvestigations/replacement-gemini-20261023/waived-policy-proposal.jsonに固定した。提供側が同じ版/digestで受け入れるかを合意してから設定する。受入前のfalseを機械的にtrueへ変えたり、この案をそのまま有効設定へ投入したりしない。
+
+## 最終統合・本番配置
+
+配置直前に別作業の手動投稿履歴対応be109b3990450c950d9893f74f701d8681b8dd0aが本番反映されていたため、最初の配置は基点照合で送信・停止前に拒否した。同修正を保持する8ac2fdc118fcfebde07a23053364de884aeb7254へ統合し、Windows/隔離Linux各541件、CI39944266392のmina/test両ジョブ成功を確認して本番へ配置した。
+
+3サービス・3タイマーactive。3プロセスの環境で同じsource commit、MINA_X_UTM_ENABLED=true、MINA_MEAL_REPLACEMENT_ENABLED=falseを確認した。切替時26台帳不変、起動後はoperation_eventsの起動2件追記だけで既存行は不変。cycle_healthはlive・新鮮・連続失敗0、SQLite quick_check=ok。バックアップは/var/lib/mina-agent/deployment-gemini-8ac2fdc118。
+
+Buffer下書き4件のうち2件は既存instagram_draftsのverified記録と一致し、残り2件は/var/lib/mina-agent内の診断台帳では未照合。削除・除外・公開は行っていない。
+
+置換の実有効化、既存食事置換、P/D/C/resume POSTは未実施。24日の朝食1件だけの未完成日を3食前提へ偽装したり、期限を延長したりしていない。提供側policyの受入・設定、下書きの扱いが残る。
+

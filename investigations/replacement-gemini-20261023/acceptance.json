@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-23",
+  "implementation_commit": "68bead25b90e79ec511e0a5667556a5021c98008",
+  "provider_commit": "66be0089cbdfb49150ba9271a7e25899e1d81483",
+  "runtime_schema_sha256": "4f8d2be8f47a741ff8578a25c29bd6422cf88ebd817f8450339eaee76216f6e2",
+  "windows_tests": 541,
+  "isolated_linux_tests": 541,
+  "ci_run": 39944266392,
+  "ci_jobs_success": [
+    "mina",
+    "test"
+  ],
+  "live_precondition_schema_verified": true,
+  "external_inventory_all_pages_verified": true,
+  "external_inventory_clear": false,
+  "external_inventory": {
+    "x_pages": 2,
+    "x_blockers": 0,
+    "instagram_pages": 1,
+    "instagram_drafts": 4
+  },
+  "migration_copy": {
+    "existing_tables": 27,
+    "existing_columns_unchanged": true,
+    "quick_check": "ok"
+  },
+  "business_writes": 0,
+  "real_model_quality_verified": false,
+  "paid_execution_performed": false,
+  "agent_integration_verified": false,
+  "activation_allowed": false,
+  "remaining": [
+    "agree_agent_acceptance_scope_and_provider_policy",
+    "resolve_external_drafts_without_assuming_unsent",
+    "provider_policy_configuration",
+    "feature_activation"
+  ],
+  "deployed_commit": "8ac2fdc118fcfebde07a23053364de884aeb7254",
+  "code_deployed": true,
+  "feature_enabled": false,
+  "previous_production_commit": "be109b3990450c950d9893f74f701d8681b8dd0a",
+  "existing_business_rows_unchanged": true,
+  "appended_launch_events": 2,
+  "instagram_drafts_verified_in_existing_ledger": 2,
+  "instagram_drafts_unmatched": 2
+}

@@ -1,5 +1,25 @@
 # みな運用の実装・サブPC配置状況
 
+## 2026年10月24日08:38・Agent初回P修正版を本番配置し置換ON
+
+本人の明示承認に基づき、稼働8ac2fdcを受入実装6c43282と同一コードのf2119d4へ切り替え、確定Gemini/waived policyと公開先・受入証跡を結び付けた設定で置換ON。UTM ON・既存の承認/公開/準備設定を保持した。Linux対象80件、私用DBの実Coordinator構築と既存27表全行保持、全4ページの公開先照合が成功。設定読取の初回検査はコード入替前に停止して旧版を再開し、専用設定ディレクトリで再検査後に切替完了。08:39の実プロセス設定反映・3サービス/3タイマーactive・巡回失敗0を確認。業務25表と既存監査行は不変、監査追記は起動2件のみ。Instagram draft4件は停止対象のまま保持し、強制準備・本番P/D/C/resume・実課金・食事置換・投稿・過去日救済・期限延長は実行していない。詳細はMINA_AGENT_REPLACEMENT_ACTIVATION_20261024.md。
+
+## 2026年10月24日・本体配備/ONを受領し本番GET照合、Agentは未配置/OFF
+
+提供側からPR149の本番761a55f6、確定Gemini/waived policy、専用Previewとpostdeploy成功を受領。07:24 JSTの認証付きGETで23日state/preconditionが200/no-store・正式Schema適合、3食の版/画像SHA、policy版・両digestが一致。停止理由はdeadline_unverifiedのみ、集約false/null、circuit closed/recoveryなしを確認した。受入0e80de53と本番のhandlers/Schema blobも一致し、残るsrc差分はQA専用診断。以前のPreview未合格は過去runとして保持し、現行の未合格阻害要因から更新する。Agent稼働設定は8ac2fdc・置換OFF・UTM ON、6c43282の配置/有効化は別承認範囲のため未実施。業務変更・本番POST・課金0。詳細はMINA_PROVIDER_RELEASE_ACCEPTANCE_20261024.md。
+
+## 2026年10月23日・初回PのAgent補修と隔離受入、未配置
+
+稼働8ac2fdcとUTM・手動履歴・Instagramを保持し、初回Pの全枠期限集約との循環を6c43282で解消。原本・版・所有/epoch・消費ordinal・真の初回時刻・既存期限を生成前に固定し、P直前再検証、単一probe、明示resumeの停止条件を補強した。本体固定0e80de53の全1,376ファイルSHAを照合した実ハンドラーHTTP41件、対象回帰70件、adapter型検査が成功。固定Agent commitを実装不参加Codexが読取レビューしGo。本番配置・設定変更・有効化・既存食事置換・投稿は行っていない。本体PR149はDraft、本体Previewの後続C90秒タイムアウト1件は未合格のまま。詳細はMINA_INITIAL_PREPARE_AGENT_ACCEPTANCE_20261023.mdとinvestigations/replacement-initial-prepare-20261023/http-acceptance.json。
+
+## 2026年10月23日・Gemini一食置換コード配置、機能OFF
+
+本人が100円/日を撤回し金額上限なしへ変更。提供側66be008の新Schema SHA 4f8d2be8を照合し、waived/cooldown/明示resume・元UUID/制御UUID照会・saved保持へ対応。手動履歴対応be109b3を保持する8ac2fdcを、Windows/Linux各541件・CI39944266392両job成功後に配置した。切替時26台帳不変、起動後は既存行不変・起動監査2件追記のみ、3サービス/3タイマーactive・巡回失敗0。UTM ON・置換OFF。提供側policy未設定、Instagramのdraft4件（既存台帳照合2件・未照合2件）が開始を阻害する。24日の部分日422や期限は変更しない。詳細はMINA_REPLACEMENT_GEMINI_ACCEPTANCE_20261023.md、提供側への依頼はLOGEATS_REPLACEMENT_POLICY_HANDOFF_20261023.md。
+
+## 2026年10月23日・翌24日の履歴保留を復旧、別の朝食品質保留は未解決
+
+本人の手動告知2投稿をkind=otherへ確認登録し、X全31件の一致を確認。19:21に通常準備を再開したが、保存・訂正済み朝食の卵50gに対するimage_analysis_mismatchで停止した。同一画像・解析・基準の単回独立再点検も保留。元判定を保持し、朝食再POST/PATCH・別round反復・昼夕登録は行っていない。19:42時点で朝食1件・2要求complete、候補0。置換は提供側4条件未設定、24日preconditionは未完成日422、統合は未配置・無効。全体復旧は未完了。本体・コード・本日分承認/公開は保持。詳細はX_HISTORY_RECOVERY_20261023.md、提供側確認依頼はLOGEATS_PARTIAL_DAY_REPLACEMENT_REQUEST_20261023.md。
+
 ## 2026年10月23日・XのUTM本番反映と一食置換の提供側確認
 
 本人がUTMのX先行と置換追加課金100円/日を指定。稼働910419aを基点とするUTM単独版afd369cを配置し、新規X候補だけへの固定UTMを有効化した。Linux全440件・CI両ジョブ、新コードで23日4枠の正本/実OGP読取照合に成功。切替時26台帳不変、起動後は25台帳と既存監査行が不変で起動監査2件だけ追記。3サービス・3タイマーactive、巡回失敗0。既存承認・投稿は保持。詳細はMINA_X_UTM_RELEASE_20261023.md。
@@ -28,6 +48,33 @@
 18日の登録／訂正6要求・正本・実OGPをGETで照合し、朝484・昼633の点検完了、夕610の識別保留、日合計1727・候補0・日次共有なしを確認。別に17日日次が最終GETの+1079.563msで公開側1秒上限を超え、送信前に停止していたことを記録から確認した。公開GET専用の最大5秒実待機clientと、書込まない日別診断を実装し、専用branchのWindows/Linux各385件とCI39084062056両ジョブ成功。共通Buffer callbackの実client接続をPR #6側で修正し、Windows/Linux各450件とCI39083950068両ジョブ成功。計画・隔離コード・X限定最終計画のagy Goを取得。
 
 本番はde3d571のまま。本体・設定・サービス・18日の食事／候補／承認／公開は変更せず、対象6テーブルの全行ハッシュ不変。既存v2.1の18日期限は経過しており、API配備だけで適用可能とは扱わない。詳細はX_CONTINUITY_PLAN_20261018.mdとX_CONTINUITY_RESULTS_20261018.md。担当へ渡せる確認依頼案も作成したが未送信。
+## 2026年10月18日の正式実行Schema互換補正・19日Instagram承認確認
+
+本人のAPI本番反映報告を受け、未配置PR #6の実行検証を正式Schema a24bd429/SHA 2c2a44ccへ切替えた。凍結Schema/fixtureは原本保持し、readiness SHA・配布manifest・tar実バイト検査と記号入りURLの実関数回帰を追加。コード56c17adはWindows/Linux各457件とCI39125712750両ジョブ成功。展開物から正式Contractの構築とSHAを確認し、修正版clientによる本番18/19日preconditionのGET検証も成功した。OFF・予算/期限未設定を維持し、P/D/Cは0件。新差分のagyレビューは利用上限で未実行、Go未取得。本番配置・有効化・18日置換は未実施。
+
+19日Instagramは4枠とも版1・本人承認済み、ストーリー3枚と日次5枚の全8実画像・本文・現在M1正本との一致を稼働コードで読取確認。Instagram/Gateway/timerはactive、4フラグtrue。前後の19日9テーブルの全行SHA一致で、既存X/Instagram承認を保持。Buffer要求0件、通知や承認の再作成0件。詳細はMINA_RUNTIME_SCHEMA_COMPATIBILITY_RESULT_20261018.md。明日の送信時には通常の公開直前照合を別途行う。
+
+## 2026年10月18日の保存済み一食置換・Agent統合と隔離検証完了
+
+本人承認後、通常準備の保存済み品質保留からP/D/C専用台帳、最大2回の別メニュー再計画、共通予算・期限、Buffer全件照会、新版X/Instagram再承認、通常巡回のGET復旧と停止理由診断まで接続した。Log-Eats本体・本番設定／台帳・サービス・18日分は変更せず、機能は既定無効。
+
+固定コード31ef097でWindows/Linux各448件成功。同headのCI39079775314はmina/test両ジョブ成功。agyは11分割と最終4差分すべて隔離範囲Go、必須残件0。実Buffer／Mina／Drive書込み、AI生成・従量課金は行わず、合成HTTPと専用SQLite・venvだけで検証した。
+
+本番利用には提供側QA・Preview／リリース、実Buffer全件列挙の受入、実予算・既消費・不明費用・本体割当、台帳コピーの移行dry-runと配置承認が残る。旧Instagram候補の旧版自動復帰や、外部工程の成否不明は未検証のまま解除しない。完全無停止・本番復旧済みとは扱わない。詳細はMINA_REPLACEMENT_INTEGRATION_IMPLEMENTATION_20261018.md、証跡はinvestigations/replacement-integration-20261018。以下の「統合計画承認待ち」は過去の記録。
+
+## 2026年10月17日の保存済み一食置換・Agent側先行準備
+
+本人の着手指示により、通知修正版を含む6848f79を基点とする隔離worktreeで、日単位のX/Instagram共通公開停止・既存入口の排他、新APIの読取専用接続部と実画像検証、P/D/C送信前の独立台帳を先行実装した。確定Schema/fixture未受領のため、検証器なしの通信と新API書込みは行わない。機能は既定無効、本番未配置。停止解除・新版再承認・外部Buffer全件照合・共通試行/費用/期限policyの接続は残作業であり、置換機能全体が完成したとの扱いにしない。
+
+18日分の期限延長や保存済み3食の再登録を行っていない。通常の前日20時期限と無料方針に対応する限定復旧条件は別途必要。実装範囲・接続条件はMINA_MEAL_REPLACEMENT_PREPARATION_20261017.md、本体担当へ渡せる準備状況はLOGEATS_REPLACEMENT_AGENT_PREPARATION_FEEDBACK_20261017.md。Log-Eats本体の直接参照・変更と他チャットへの連絡は行っていない。
+
+固定head449f4acはWindows/Linux各412件とCI39032524934のmina/test両ジョブ成功。新規36件。ドラフトPR #6と管理worktree mina-meal-replacement-preparationに保存済み。先行実装の本番有効化や、提供側Schema/fixtureとの受入完了を意味しない。
+
+## 2026年10月17日のInstagram画像未着と停止通知の修正
+
+18日分のInstagram準備は20:10に起動したが、元のX用食事準備が品質保留で4候補未完成のため画像生成前に停止した。画像・Instagram承認候補・送信試行はいずれも0件。画像生成前の失敗通知が欠けていたため、対象日ごとに一度だけ通知する修正を固定コード版de3d571として本番配置した。Windows/Linux各376件とCI39028836718両ジョブ成功、業務14テーブルの全行不変を確認。既存通知経路で18日分の保留通知1件の送信成功を確認した。
+
+18日分の画像自体は未完成。夕食点検保留と合計1,727kcalの問題は維持し、保存済み食事を再POSTしない。Log-Eats側の安全な保存済み画像・メニュー置換手段を確認する依頼案は既存文書にあり、他プロジェクトは直接変更していない。詳細はMINA_INSTAGRAM_PREPARATION_HOLD_20261017.md、差分はPR #5。
 
 ## 2026年10月17日のInstagram登録目標接続
 

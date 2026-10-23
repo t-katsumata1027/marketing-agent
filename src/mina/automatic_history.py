@@ -11,7 +11,7 @@ from .artifact_backup import checked_path
 from .domain import ACCOUNT, Candidate, JST, instant
 from .encrypted_backup import save_new
 from .readiness import check_evidence, read_json
-from .x_history import reconcile_timeline
+from .x_history import reconcile_timeline,manual_post_metadata
 
 
 def build_automatic_history(database, snapshot, bootstrap, cutover, now):
@@ -68,19 +68,28 @@ def build_automatic_history(database, snapshot, bootstrap, cutover, now):
             add({'x_id': key, 'date': recorded, 'menu': candidate.menu,
                  'comment': candidate.comment, 'publish_text': candidate.content,
                  'kind': 'daily' if slot == 'daily' else 'meal'})
-    comparison = reconcile_timeline(snapshot, list(records.values()))
+    # 台帳の自動投稿はID・完成本文を厳密照合し、手動投稿で欠落や改変を埋め合わせない。
+    known,manual,seen=[],[],set()
+    for post in snapshot['posts']:
+        key=post['id']
+        if key in seen:raise ValueError('X履歴IDが重複しています')
+        seen.add(key)
+        if key in records:known.append(post)
+        else:manual.append(manual_post_metadata(post,snapshot))
+    comparison = reconcile_timeline({**snapshot,'posts':known}, list(records.values()))
     if not comparison['timeline_matches_ledger']:
         raise ValueError('外部投稿・消失・本文変更の確認が必要です')
-    for post in snapshot['posts']:
+    for post in known:
         if instant(datetime.fromisoformat(post['created_at'])).astimezone(JST).date().isoformat() != records[post['id']]['date']:
             raise ValueError('公開台帳と実投稿の日付が不一致です')
     evidence = {'account': ACCOUNT, 'target_date': target, 'checked_at': instant(now).isoformat(),
-                'reviewer': 'Marketing Agent履歴照合', 'history_source': '公式X API全ページと公開台帳・移行前確認履歴の照合',
+                'reviewer': 'Marketing Agent履歴照合', 'history_source': '公式X API全ページと公開台帳・移行前確認履歴・手動投稿の分離照合',
                 'schedule_source': '旧予約ゼロ・旧生成停止の切替確認',
                 'history_complete': True, 'legacy_schedule_clear': True,
                 'history_from': first.isoformat(), 'history_to': (day-timedelta(days=1)).isoformat(),
                 'entries': [{k: row[k] for k in ('date','menu','comment','x_id')} for row in records.values() if row['kind'] != 'other'],
-                'coverage_post_count': len(records),
+                'coverage_post_count': len(records)+len(manual),
+                'manual_posts': manual, 'manual_post_count': len(manual),
                 'reviewed_other_post_count': sum(row['kind'] == 'other' for row in records.values()),
                 'timeline_sha256': hashlib.sha256(json.dumps(snapshot, sort_keys=True, ensure_ascii=False).encode()).hexdigest(),
                 'history_observed_until': observed_until.isoformat(),

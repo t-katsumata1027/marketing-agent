@@ -1,0 +1,62 @@
+{
+  "preflight": true,
+  "receipt": {
+    "read_started_at": "2026-10-23T23:34:14.195Z",
+    "checked_at": "2026-10-23T23:34:33.128Z",
+    "all_pages_complete": true,
+    "target_date_for_inventory": "2026-10-25",
+    "channels": [
+      {
+        "channel": "x",
+        "pages": 2,
+        "blocking_statuses": {},
+        "blocking_items": 0
+      },
+      {
+        "channel": "instagram",
+        "pages": 2,
+        "blocking_statuses": {
+          "draft": 4
+        },
+        "blocking_items": 4
+      }
+    ],
+    "pages": [
+      {
+        "channel": "x",
+        "cursor_digest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "response_digest": "16758c1fcf8ea7accea11c8313ab215cfb3f640ce86a3fb8b6b8dc8a2405a8af"
+      },
+      {
+        "channel": "x",
+        "cursor_digest": "87753c03cdb7a739f3fbd92ff773fea0eb4ceb0895472d5bf0365146733afc8c",
+        "response_digest": "2fbc289cfb3d1fd014ad75f4897b3b9cfffa81d78c2914246b5ec10f91cab436"
+      },
+      {
+        "channel": "instagram",
+        "cursor_digest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "response_digest": "b5fb22eedf6b8ac0ce57886a25561ad0b9055ba8a4af49fb3c42f9cdce0694ec"
+      },
+      {
+        "channel": "instagram",
+        "cursor_digest": "d63fec3fc0aae2c571dba72462fb1cc0eff802aed6f09d10e94fbb6b18fb2a40",
+        "response_digest": "f7047076bb1e47573a13f6d3d6f8f13f9cc987e2908436aa9a033767222daa32"
+      }
+    ],
+    "organization_digest": "109e75d2c35e47f6f10c7ceb6163b021deb0e7f60cc4c7f723af04e95d9c77cc",
+    "binding_digests": {
+      "x": "1784b7114d5b28264bb4d73da2a83f162b13e6ef5885541a82bf7441b68c8771",
+      "instagram": "147ae26266c41d653bb13419995727d19c5ffdc50410278b30ce41bc5f71dec8"
+    },
+    "buffer_read_calls": 14,
+    "provider_policy_matches": true,
+    "provider_commit": "761a55f606fbe87b42cf50e4321815fb7ffeb916",
+    "business_writes": 0,
+    "candidate_generation": 0,
+    "publication_authorized": false,
+    "target_eligibility_granted": false
+  },
+  "settings_sha256": "2c65ea2979f7b5c8d623a71eda9f71cde4933d553a6ed051aea3c681e744d3a1",
+  "staged_config": "/var/lib/mina-agent/activation-initial-f2119d4/replacement-agent.json",
+  "applied": false
+}

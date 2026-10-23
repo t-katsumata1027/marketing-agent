@@ -1,0 +1,17 @@
+{
+  "base": "0e80de53ef5dc48ddd997db9e88bb9750d753719",
+  "head": "761a55f606fbe87b42cf50e4321815fb7ffeb916",
+  "compare_status": "diverged",
+  "merge_base": "66be0089cbdfb49150ba9271a7e25899e1d81483",
+  "source_files_in_merge_base_head_comparison": [
+    "src/lib/minaReplacement/handlers.ts",
+    "src/lib/minaReplacement/qaOwnedRuntime.ts"
+  ],
+  "handlers_blob_sha_before": "8a034b08124132d5d0e444b41c17ff484afc14ae",
+  "handlers_blob_sha_after": "8a034b08124132d5d0e444b41c17ff484afc14ae",
+  "schema_blob_sha_before": "d52007cdafbaa1a81d7d40a19d6dd8cdc6993ad4",
+  "schema_blob_sha_after": "d52007cdafbaa1a81d7d40a19d6dd8cdc6993ad4",
+  "qa_owned_runtime_blob_before": "a5ce91999e0a734bce9dcfd1ca9bc6c3d9d67eaf",
+  "qa_owned_runtime_blob_after": "8add1b66640415bc90ea6e7edd0b6a17ea11a70d",
+  "qa_owned_runtime_review": "固定項目のQA専用診断だけを追加し、既存の停止・unknown記録を維持"
+}

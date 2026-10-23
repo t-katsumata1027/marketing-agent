@@ -1,0 +1,9 @@
+{
+  "commit": "31ef097e0b686ed0a00e6739a723e5d6f068328b",
+  "activation_allowed": false,
+  "contract_hashes_verified": true,
+  "compile": "passed",
+  "tests": "passed",
+  "isolation_directory": "/home/logeats-runner-win/projects/isolated/mina-replacement-31ef097-20261018",
+  "production_operations": false
+}

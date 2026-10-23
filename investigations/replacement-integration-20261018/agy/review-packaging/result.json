@@ -1,0 +1,16 @@
+{
+  "approval_explanation": "凍結SchemaおよびFixtureの原本バイト列（CRLF）を保護するための.gitattributes（-text指定）の追加は妥当であり、固定コミット693c0adb316bb3d34afad0d72e1e2e41128b2968においてWindows・Linux双方で原本SHA256の一致とテスト通過が確認されています。追加の実書き込みや課金、本体操作も発生しないため、隔離配布範囲でのGOを承認します。",
+  "approved_scope": "隔離配布範囲のみ（本番環境への適用・実書き込み・課金・本体操作は含まない）",
+  "blockers": [],
+  "cause_assessment": [
+    "旧コミット（82f74c6）において、Gitの改行変換により凍結契約ファイル（CONTRACT.schema.json / FIXTURES.json）のGit blobがLF化され、提供側原本（CRLF）のバイト列に対するSHA256ハッシュと不一致が生じていた。",
+    "修正コミット（693c0adb316bb3d34afad0d72e1e2e41128b2968）にて、.gitattributesで対象パスに-text属性を付与し改行変換を抑止したことで、Git blob・Windows作業実体・Linux新規clone環境のすべてで原本SHA256との完全一致が保証された。"
+  ],
+  "decision": "GO",
+  "major_findings": [
+    ".gitattributesにおいて、Linux実行系ファイル（*.sh, *.py, *.service等）をtext eol=lfで固定しつつ、src/mina/contracts/replacement_v21/*および計画書を-textで保護する構成は適切であり、OS間の改行変換によるハッシュ汚染を確実に防止できている。",
+    "Contractクラスの初期化処理でread_bytes()を用いて生バイト列のSHA256を検証しており、-text属性との組み合わせによって原本の1バイトの改変も許さない厳格な整合性チェックが機能している。",
+    "全体11分割および診断差分は既に隔離コードとして検証済みであり、今回の差分も.gitattributesによるバイト保護のみに限定されているため、既存の正規化・型検証・栄養計算ロジックへの副作用はない。"
+  ],
+  "required_plan_changes": []
+}

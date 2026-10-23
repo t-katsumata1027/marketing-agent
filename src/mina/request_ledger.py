@@ -34,6 +34,8 @@ class RequestLedger:
             raise ValueError('要求入力が大きすぎます')
         digest = fingerprint(envelope)
         with self.store.transaction() as db:
+            if db.execute("SELECT 1 FROM sqlite_master WHERE name='meal_replacement_requests'").fetchone() and db.execute('SELECT 1 FROM meal_replacement_requests WHERE request_key=?',(key,)).fetchone():
+                raise ValueError('replacement_uuid_m1_collision')
             previous = db.execute('SELECT input_digest FROM mina_requests WHERE request_key=?', (key,)).fetchone()
             if previous:
                 if previous['input_digest'] != digest:
@@ -98,6 +100,8 @@ class RequestLedger:
     def execute_once(self, key, client, operation):
         request = self.restore(key)
         with self.store.transaction() as db:
+            from .publication_hold import require_m1_write
+            require_m1_write(db,request['target_date'],request['operation'])
             claimed = db.execute("UPDATE mina_requests SET phase='dispatching' WHERE request_key=? AND phase='prepared'", (key,)).rowcount
             if claimed==1:
                 self.store.audit.emit('creation',request['target_date'],request['slot'],None,'request','started',
