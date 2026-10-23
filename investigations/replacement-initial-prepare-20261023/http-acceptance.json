@@ -1,0 +1,741 @@
+{
+  "fixture": {
+    "port": 61545,
+    "version": "mina-initial-prepare-http-v1",
+    "provider_commit": "0e80de53ef5dc48ddd997db9e88bb9750d753719",
+    "source_tree_sha256": "e823f4a98a7771893b1a1d18806b565f93faf5762ec693a09d807114b2a5adf1",
+    "verified_files": 1376,
+    "schema_sha256": "4f8d2be8f47a741ff8578a25c29bd6422cf88ebd817f8450339eaee76216f6e2"
+  },
+  "cases": [
+    {
+      "case": "test_contextless_get_initial_p_review_commit_and_no_repost",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 7,
+          "POST /api/internal/mina/meal-replacement-candidates": 1,
+          "GET /api/internal/mina/meal-replacement-requests/334bf1e0-6f7d-4398-a93d-84f27933d900": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/334bf1e0-6f7d-4398-a93d-84f27933d900": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/334bf1e0-6f7d-4398-a93d-84f27933d900/images/original": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/334bf1e0-6f7d-4398-a93d-84f27933d900/images/stored": 1,
+          "POST /api/internal/mina/meal-replacements": 1,
+          "GET /api/internal/mina/requests/80dcb40d-ecda-4e58-a358-044d17d38210": 1
+        },
+        "analysis": 1,
+        "image": 1,
+        "render": 1,
+        "put": 1
+      },
+      "contexts": [
+        "7:2030-01-02:dinner"
+      ],
+      "history": 1,
+      "requests": 2
+    },
+    {
+      "case": "test_exactly_60_seconds_remaining_is_accepted",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 4,
+          "POST /api/internal/mina/meal-replacement-candidates": 1
+        },
+        "analysis": 1,
+        "image": 1,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [
+        "7:2030-01-02:dinner"
+      ],
+      "history": 0,
+      "requests": 1
+    },
+    {
+      "case": "test_existing_registration_ordinal_one_is_inherited",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 4,
+          "POST /api/internal/mina/meal-replacement-candidates": 1
+        },
+        "analysis": 1,
+        "image": 1,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [
+        "7:2030-01-02:dinner"
+      ],
+      "history": 0,
+      "requests": 1
+    },
+    {
+      "case": "test_expired_open_allows_one_probe",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 5,
+          "POST /api/internal/mina/meal-replacement-candidates": 1
+        },
+        "analysis": 1,
+        "image": 1,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [
+        "7:2030-01-02:dinner"
+      ],
+      "history": 0,
+      "requests": 1
+    },
+    {
+      "case": "test_explicit_resume_does_not_repeat_completed_analysis",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 8,
+          "POST /api/internal/mina/meal-replacement-candidates": 1,
+          "GET /api/internal/mina/meal-replacement-requests/07cc27aa-590b-4e8f-816f-bf78f75b27c9": 3,
+          "POST /api/internal/mina/meal-replacement-resumes": 1
+        },
+        "analysis": 1,
+        "image": 1,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [
+        "7:2030-01-02:dinner"
+      ],
+      "history": 0,
+      "requests": 2
+    },
+    {
+      "case": "test_future_first_timestamp_is_not_reset",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 3
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 0
+    },
+    {
+      "case": "test_generation_leaving_59_seconds_does_not_send_p",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 4
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 0
+    },
+    {
+      "case": "test_guard_missing_not_waived",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 2
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 0
+    },
+    {
+      "case": "test_lost_c_saved_never_downgrades",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 6,
+          "POST /api/internal/mina/meal-replacement-candidates": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/6900aa95-78b6-4a5b-8318-8081dc07892f": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/6900aa95-78b6-4a5b-8318-8081dc07892f/images/original": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/6900aa95-78b6-4a5b-8318-8081dc07892f/images/stored": 1,
+          "POST /api/internal/mina/meal-replacements": 1,
+          "GET /api/internal/mina/requests/a541348b-080b-4b70-9cb7-1c3d22b5e959": 2
+        },
+        "analysis": 1,
+        "image": 1,
+        "render": 1,
+        "put": 1
+      },
+      "contexts": [
+        "7:2030-01-02:dinner"
+      ],
+      "history": 1,
+      "requests": 2
+    },
+    {
+      "case": "test_lost_p_and_restart_only_gets_original_uuid",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 4,
+          "POST /api/internal/mina/meal-replacement-candidates": 1,
+          "GET /api/internal/mina/meal-replacement-requests/ce8cc15d-8ad8-49d4-ad25-b3e45e30724c": 1
+        },
+        "analysis": 1,
+        "image": 1,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [
+        "7:2030-01-02:dinner"
+      ],
+      "history": 0,
+      "requests": 1
+    },
+    {
+      "case": "test_max_two_includes_registration_replans",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 3
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 0
+    },
+    {
+      "case": "test_missing_legacy_full_plan_is_rejected",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 3
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 0
+    },
+    {
+      "case": "test_missing_local_context_history_does_not_reset_provider_ordinal",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 5,
+          "POST /api/internal/mina/meal-replacement-candidates": 1
+        },
+        "analysis": 1,
+        "image": 1,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [
+        "7:2030-01-02:dinner"
+      ],
+      "history": 0,
+      "requests": 1
+    },
+    {
+      "case": "test_missing_original_stops_before_generation",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 3
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 0
+    },
+    {
+      "case": "test_old_first_timestamp_is_not_reset",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 3
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 0
+    },
+    {
+      "case": "test_open_cooldown_blocks_before_generation",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 2
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 0
+    },
+    {
+      "case": "test_ordinal_gap_is_not_zeroed",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 3
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 0
+    },
+    {
+      "case": "test_original_removed_after_reservation_stops_p",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 4
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 0
+    },
+    {
+      "case": "test_partial_day_is_not_bypassed",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 2
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 0
+    },
+    {
+      "case": "test_policy_changed_during_generation_stops_before_p",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 4
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 0
+    },
+    {
+      "case": "test_probe_success_then_discard_allows_second_in_closed_state",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 8,
+          "POST /api/internal/mina/meal-replacement-candidates": 2,
+          "GET /api/internal/mina/meal-replacement-candidates/c4999d71-d94f-44b4-8fd4-805208d2b70d": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/c4999d71-d94f-44b4-8fd4-805208d2b70d/images/original": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/c4999d71-d94f-44b4-8fd4-805208d2b70d/images/stored": 1,
+          "POST /api/internal/mina/meal-replacement-candidates/c4999d71-d94f-44b4-8fd4-805208d2b70d/discard": 1
+        },
+        "analysis": 2,
+        "image": 2,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [
+        "7:2030-01-02:dinner"
+      ],
+      "history": 0,
+      "requests": 3
+    },
+    {
+      "case": "test_provider_stop_not_waived",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 2
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 0
+    },
+    {
+      "case": "test_real_handler_rejects_59_seconds",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 2,
+          "POST /api/internal/mina/meal-replacement-candidates": 1
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 1
+    },
+    {
+      "case": "test_real_handler_rejects_future_first",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 2,
+          "POST /api/internal/mina/meal-replacement-candidates": 1
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 1
+    },
+    {
+      "case": "test_real_handler_rejects_old_first",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 2,
+          "POST /api/internal/mina/meal-replacement-candidates": 1
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 1
+    },
+    {
+      "case": "test_real_handler_rejects_ordinal_gap",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 2,
+          "POST /api/internal/mina/meal-replacement-candidates": 1
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 1
+    },
+    {
+      "case": "test_registration_input_digest_mismatch_is_rejected",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 3
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 0
+    },
+    {
+      "case": "test_rejected_candidate_next_consumes_second_once",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 9,
+          "POST /api/internal/mina/meal-replacement-candidates": 2,
+          "GET /api/internal/mina/meal-replacement-candidates/37246c9e-e321-4c45-9cf8-571f7ff03a47": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/37246c9e-e321-4c45-9cf8-571f7ff03a47/images/original": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/37246c9e-e321-4c45-9cf8-571f7ff03a47/images/stored": 1,
+          "POST /api/internal/mina/meal-replacement-candidates/37246c9e-e321-4c45-9cf8-571f7ff03a47/discard": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/a33a14e1-adbf-41ab-812f-720e40b47cf0": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/a33a14e1-adbf-41ab-812f-720e40b47cf0/images/original": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/a33a14e1-adbf-41ab-812f-720e40b47cf0/images/stored": 1,
+          "POST /api/internal/mina/meal-replacements": 1
+        },
+        "analysis": 2,
+        "image": 2,
+        "render": 1,
+        "put": 1
+      },
+      "contexts": [
+        "7:2030-01-02:dinner"
+      ],
+      "history": 1,
+      "requests": 4
+    },
+    {
+      "case": "test_resume_budget_unconfigured_has_zero_post_increment",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 7,
+          "POST /api/internal/mina/meal-replacement-candidates": 1,
+          "GET /api/internal/mina/meal-replacement-requests/7afd7ce7-22e4-4103-b481-8a18063d60b9": 1
+        },
+        "analysis": 1,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [
+        "7:2030-01-02:dinner"
+      ],
+      "history": 0,
+      "requests": 1
+    },
+    {
+      "case": "test_resume_provider_stop_has_zero_post_increment",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 7,
+          "POST /api/internal/mina/meal-replacement-candidates": 1,
+          "GET /api/internal/mina/meal-replacement-requests/132a4206-e8d9-4c21-b9eb-d82f0f618d8a": 1
+        },
+        "analysis": 1,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [
+        "7:2030-01-02:dinner"
+      ],
+      "history": 0,
+      "requests": 1
+    },
+    {
+      "case": "test_resume_service_stop_has_zero_post_increment",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 7,
+          "POST /api/internal/mina/meal-replacement-candidates": 1,
+          "GET /api/internal/mina/meal-replacement-requests/c10b78c0-88e7-4ada-a300-e346cb962fc3": 1
+        },
+        "analysis": 1,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [
+        "7:2030-01-02:dinner"
+      ],
+      "history": 0,
+      "requests": 1
+    },
+    {
+      "case": "test_saved_ogp_pause_remains_saved_through_resume",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 10,
+          "POST /api/internal/mina/meal-replacement-candidates": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/286fd81b-f61d-462a-89df-831aa511cfe5": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/286fd81b-f61d-462a-89df-831aa511cfe5/images/original": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/286fd81b-f61d-462a-89df-831aa511cfe5/images/stored": 1,
+          "POST /api/internal/mina/meal-replacements": 1,
+          "GET /api/internal/mina/requests/68e36088-71d9-48a9-b6fb-68b57d9d60c2": 3,
+          "POST /api/internal/mina/meal-replacement-resumes": 1
+        },
+        "analysis": 1,
+        "image": 1,
+        "render": 1,
+        "put": 1
+      },
+      "contexts": [
+        "7:2030-01-02:dinner"
+      ],
+      "history": 1,
+      "requests": 3
+    },
+    {
+      "case": "test_service_stop_not_waived",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 2
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 0
+    },
+    {
+      "case": "test_sqlite_publication_claim_blocks_initial_p",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 1
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 0
+    },
+    {
+      "case": "test_started_generation_is_not_retried",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 3
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 0
+    },
+    {
+      "case": "test_tampered_origin_and_receipt_not_accepted",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 4,
+          "POST /api/internal/mina/meal-replacement-candidates": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/0e1194b0-73c7-4c9b-acc1-3b972702b5e1": 1
+        },
+        "analysis": 1,
+        "image": 1,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [
+        "7:2030-01-02:dinner"
+      ],
+      "history": 0,
+      "requests": 1
+    },
+    {
+      "case": "test_unknown_analysis_lookup_only",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 4,
+          "POST /api/internal/mina/meal-replacement-candidates": 1,
+          "GET /api/internal/mina/meal-replacement-requests/2a57800e-9abd-4815-8172-234434220293": 1
+        },
+        "analysis": 1,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [
+        "7:2030-01-02:dinner"
+      ],
+      "history": 0,
+      "requests": 1
+    },
+    {
+      "case": "test_unknown_original_requires_original_lookup",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 1
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 0
+    },
+    {
+      "case": "test_unobserved_half_open_does_not_unlock_by_time",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 2
+        },
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [],
+      "history": 0,
+      "requests": 0
+    },
+    {
+      "case": "test_version_change_before_commit_rejected",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 5,
+          "POST /api/internal/mina/meal-replacement-candidates": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/0234a660-0fea-4807-a5aa-3ed507e7cd58": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/0234a660-0fea-4807-a5aa-3ed507e7cd58/images/original": 1,
+          "GET /api/internal/mina/meal-replacement-candidates/0234a660-0fea-4807-a5aa-3ed507e7cd58/images/stored": 1
+        },
+        "analysis": 1,
+        "image": 1,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [
+        "7:2030-01-02:dinner"
+      ],
+      "history": 0,
+      "requests": 1
+    },
+    {
+      "case": "test_wire_replay_has_no_external_increment",
+      "http_and_external_counts": {
+        "http": {
+          "GET /api/internal/mina/meal-replacement-preconditions": 4,
+          "POST /api/internal/mina/meal-replacement-candidates": 2
+        },
+        "analysis": 1,
+        "image": 1,
+        "render": 0,
+        "put": 0
+      },
+      "contexts": [
+        "7:2030-01-02:dinner"
+      ],
+      "history": 0,
+      "requests": 1
+    }
+  ],
+  "provider_commit": "0e80de53ef5dc48ddd997db9e88bb9750d753719",
+  "tests_run": 41,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "successful": true,
+  "production_changes": false,
+  "paid_external_calls": 0,
+  "agent_source_sha256": {
+    "src/mina/replacement_flow.py": "8ab6e72b0579c158ad77f82ee84413cb490afbae41b3e4d147478a3ceef605fd",
+    "src/mina/replacement_origin.py": "8a44f962be1623c060ceb801453f32d31a17638e50e103e12a8e5b89da8c5cf6",
+    "src/mina/replacement_policy.py": "c8868656b01e4c0cf29b4787260da340d78954ff49cc780de66ab4b25f056dc1",
+    "src/mina/replacement_control.py": "c1126605b037e1ffe30e1d89bd02635b638ce1710f02f62b2e601d1be4fe925e",
+    "scripts/mina_initial_prepare_http.ts": "7abb0e954cdf6507e86a0128f67b7b759919a6cce7c94dd389765cda269749be",
+    "tests/mina/test_replacement_initial_http.py": "fd5d0bfb47a79fd306640a61781427094107afb97942eb072e7d069cb709cb7d"
+  }
+}

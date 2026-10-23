@@ -1,0 +1,61 @@
+{
+  "agent_implementation_commit": "6c43282f28c5cd2cd68b302833da82f954e20534",
+  "provider_commit": "0e80de53ef5dc48ddd997db9e88bb9750d753719",
+  "schema_sha256": "4f8d2be8f47a741ff8578a25c29bd6422cf88ebd817f8450339eaee76216f6e2",
+  "http_fixture": {
+    "port": 61545,
+    "version": "mina-initial-prepare-http-v1",
+    "provider_commit": "0e80de53ef5dc48ddd997db9e88bb9750d753719",
+    "source_tree_sha256": "e823f4a98a7771893b1a1d18806b565f93faf5762ec693a09d807114b2a5adf1",
+    "verified_files": 1376,
+    "schema_sha256": "4f8d2be8f47a741ff8578a25c29bd6422cf88ebd817f8450339eaee76216f6e2"
+  },
+  "http_tests": {
+    "passed": 41,
+    "failed": 0,
+    "skipped": 0
+  },
+  "targeted_regressions": {
+    "passed": 70,
+    "failed": 0,
+    "modules": [
+      "test_replacement_control",
+      "test_replacement_integration",
+      "test_replacement_journal",
+      "test_replacement_inventory",
+      "test_replacement_runtime_schema",
+      "test_publication_hold",
+      "test_m1_contract"
+    ]
+  },
+  "typescript_adapter_typecheck": "passed",
+  "independent_review": {
+    "status": "go",
+    "reviewer": "initial_p_review",
+    "implementation_participation": false,
+    "fixed_commit": "6c43282f28c5cd2cd68b302833da82f954e20534",
+    "scope": "agent_changes_and_isolated_acceptance_only"
+  },
+  "business_http_requests": {
+    "GET": 203,
+    "POST": 33
+  },
+  "injected_provider_callbacks": {
+    "analysis": 20,
+    "image": 16,
+    "render": 4,
+    "put": 4
+  },
+  "real_external_calls": 0,
+  "paid_calls": 0,
+  "production_changes": false,
+  "agent_integration_verified": false,
+  "activation_allowed": false,
+  "http_report_sha256": "dd9a68b86e59d107c985477a8367294a4bf64dbd2efc973c6c34c2d8d6a6745d",
+  "remaining": [
+    "provider_pr149_draft_not_production",
+    "provider_preview_commit_90_second_timeout_unresolved",
+    "bilateral_policy_finalization_and_regular_provider_release_required",
+    "agent_deployment_and_activation_out_of_scope"
+  ]
+}

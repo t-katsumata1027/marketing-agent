@@ -1,5 +1,9 @@
 # みな運用の実装・サブPC配置状況
 
+## 2026年10月23日・初回PのAgent補修と隔離受入、未配置
+
+稼働8ac2fdcとUTM・手動履歴・Instagramを保持し、初回Pの全枠期限集約との循環を6c43282で解消。原本・版・所有/epoch・消費ordinal・真の初回時刻・既存期限を生成前に固定し、P直前再検証、単一probe、明示resumeの停止条件を補強した。本体固定0e80de53の全1,376ファイルSHAを照合した実ハンドラーHTTP41件、対象回帰70件、adapter型検査が成功。固定Agent commitを実装不参加Codexが読取レビューしGo。本番配置・設定変更・有効化・既存食事置換・投稿は行っていない。本体PR149はDraft、本体Previewの後続C90秒タイムアウト1件は未合格のまま。詳細はMINA_INITIAL_PREPARE_AGENT_ACCEPTANCE_20261023.mdとinvestigations/replacement-initial-prepare-20261023/http-acceptance.json。
+
 ## 2026年10月23日・Gemini一食置換コード配置、機能OFF
 
 本人が100円/日を撤回し金額上限なしへ変更。提供側66be008の新Schema SHA 4f8d2be8を照合し、waived/cooldown/明示resume・元UUID/制御UUID照会・saved保持へ対応。手動履歴対応be109b3を保持する8ac2fdcを、Windows/Linux各541件・CI39944266392両job成功後に配置した。切替時26台帳不変、起動後は既存行不変・起動監査2件追記のみ、3サービス/3タイマーactive・巡回失敗0。UTM ON・置換OFF。提供側policy未設定、Instagramのdraft4件（既存台帳照合2件・未照合2件）が開始を阻害する。24日の部分日422や期限は変更しない。詳細はMINA_REPLACEMENT_GEMINI_ACCEPTANCE_20261023.md、提供側への依頼はLOGEATS_REPLACEMENT_POLICY_HANDOFF_20261023.md。
