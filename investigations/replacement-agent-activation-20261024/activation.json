@@ -1,0 +1,16 @@
+{
+  "checked_at": "2026-10-23T23:38:07.515573+00:00",
+  "source_commit": "f2119d48f2f9c5a7a5c4f979cdc85a9248b81f09",
+  "implementation_commit": "6c43282f28c5cd2cd68b302833da82f954e20534",
+  "provider_commit": "761a55f606fbe87b42cf50e4321815fb7ffeb916",
+  "replacement_enabled": true,
+  "activation_allowed": true,
+  "activation_basis": "本人の明示承認と固定版受入・確定policy・公開先アダプター・私用DB構築検証",
+  "cost_control_mode": "waived",
+  "past_day_rescue": false,
+  "deadline_extension": false,
+  "initial_business_rows_unchanged": true,
+  "retained_business_tables": 25,
+  "backup": "/var/lib/mina-agent/deployment-initial-f2119d4-r2",
+  "services_and_timers_active": true
+}

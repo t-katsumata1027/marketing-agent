@@ -1,5 +1,9 @@
 # みな運用の実装・サブPC配置状況
 
+## 2026年10月24日08:38・Agent初回P修正版を本番配置し置換ON
+
+本人の明示承認に基づき、稼働8ac2fdcを受入実装6c43282と同一コードのf2119d4へ切り替え、確定Gemini/waived policyと公開先・受入証跡を結び付けた設定で置換ON。UTM ON・既存の承認/公開/準備設定を保持した。Linux対象80件、私用DBの実Coordinator構築と既存27表全行保持、全4ページの公開先照合が成功。設定読取の初回検査はコード入替前に停止して旧版を再開し、専用設定ディレクトリで再検査後に切替完了。08:39の実プロセス設定反映・3サービス/3タイマーactive・巡回失敗0を確認。業務25表と既存監査行は不変、監査追記は起動2件のみ。Instagram draft4件は停止対象のまま保持し、強制準備・本番P/D/C/resume・実課金・食事置換・投稿・過去日救済・期限延長は実行していない。詳細はMINA_AGENT_REPLACEMENT_ACTIVATION_20261024.md。
+
 ## 2026年10月24日・本体配備/ONを受領し本番GET照合、Agentは未配置/OFF
 
 提供側からPR149の本番761a55f6、確定Gemini/waived policy、専用Previewとpostdeploy成功を受領。07:24 JSTの認証付きGETで23日state/preconditionが200/no-store・正式Schema適合、3食の版/画像SHA、policy版・両digestが一致。停止理由はdeadline_unverifiedのみ、集約false/null、circuit closed/recoveryなしを確認した。受入0e80de53と本番のhandlers/Schema blobも一致し、残るsrc差分はQA専用診断。以前のPreview未合格は過去runとして保持し、現行の未合格阻害要因から更新する。Agent稼働設定は8ac2fdc・置換OFF・UTM ON、6c43282の配置/有効化は別承認範囲のため未実施。業務変更・本番POST・課金0。詳細はMINA_PROVIDER_RELEASE_ACCEPTANCE_20261024.md。

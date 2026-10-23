@@ -1,5 +1,9 @@
 # サブPCでの開発
 
+## 2026年10月24日08:38・Agent初回P補修の配置・有効化完了
+
+本人承認に基づきf2119d4（受入実装6c43282と同一の実行コード）を配置し、MINA_MEAL_REPLACEMENT_ENABLED=trueと専用設定/etc/marketing-agent-replacement/agent.jsonを反映。UTMと他の運用設定を保持。Linux対象80件・私用DB実構築・全状態全4ページの公開先照合を経て、切替後は業務25表/既存監査行不変、起動監査2件追記、3サービス/3タイマーactive・巡回失敗0。退避は/var/lib/mina-agent/deployment-initial-f2119d4-r2、旧コードは/opt/marketing-agent-rollback-initial-f2119d4。Instagram draft4件の停止条件を維持し、実置換・投稿・過去日救済・期限延長は行っていない。詳細と設定読取失敗からの復帰経緯はMINA_AGENT_REPLACEMENT_ACTIVATION_20261024.md。
+
 ## 2026年10月24日・提供側本番ONの読取確認、Agent配置は別段階
 
 本体761a55f6の配備/ON報告を受領し、07:24 JSTの認証付きGETで固定Schema・確定Gemini/waived policy・両digest・M1との版/画像一致を確認した。Agent設定は8ac2fdc・置換OFF・UTM ONを保持し、Agent修正版6c43282の配置や設定変更は行っていない。集約期限false/nullを補完せず、過去日の適格性も付与しない。提供側Previewの最新成功と過去の失敗runを区別する。詳細と次段階の境界はMINA_PROVIDER_RELEASE_ACCEPTANCE_20261024.mdを参照。
