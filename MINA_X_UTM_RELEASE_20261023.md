@@ -20,3 +20,13 @@ MINA_X_UTM_ENABLED=trueのとき、通常の候補作成時に固定policyをapp
 ## 適用・停止
 
 新しい候補の作成から適用する。既に生成・承認された23日分へは遡及しない。設定をfalseへ戻すと以後の新規候補への付与を止める。既に承認したUTM付き本文を変えるには新しい候補版と再承認が必要。URLの付与成功は、遷移先での分析基盤・コンバージョン計測の受入を意味しない。
+
+## 2026年10月23日の最終結果
+
+- 固定実装afd369c87fde43f71205d50e0c7dd3de8c08d512を本番反映し、MINA_X_UTM_ENABLED=trueを設定。3プロセスが同じcommitとtrueを継承したことを確認した。
+- 専用9件成功。Windows全体438件成功後、追加2件を含む専用9件を確認。隔離サブPCLinux全440件成功。CI39914480453のmina（440件）/test両ジョブ成功。
+- 新コードから23日4枠すべてを読取検証し、現在正本・API完成本文・UTM付き実OGPを照合した。元候補のdigestと行は不変。投稿要求0件。
+- 切替時は26台帳が不変。起動後も25台帳と既存監査行は不変で、operation_eventsへ起動startedが2件追加された。cycle_healthは別途更新、live・連続失敗0。SQLite quick_check=ok。
+- 3サービス・3タイマーactive。既存23日承認・公開記録を保持し、以後作成する候補から適用する。初回の自然準備・本人の新承認・UTM付き実公開は今後の確認事項。
+- 保護バックアップ：/var/lib/mina-agent/deployment-utm-afd369c87f。台帳は巻き戻していない。
+- PR #13：https://github.com/t-katsumata1027/marketing-agent/pull/13。ドラフト維持、mainへマージしていない。

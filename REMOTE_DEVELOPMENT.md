@@ -1,5 +1,9 @@
 # サブPCでの開発
 
+## 2026年10月23日・Xの新規候補へUTM付与を有効化
+
+本番固定版afd369c87fde43f71205d50e0c7dd3de8c08d512、保護設定MINA_X_UTM_ENABLED=true。旧候補・承認・台帳は保持し、新規候補の承認元へ計測policyを固定する。Linux440件・CI・本番4枠読取照合成功。3サービス・3タイマーactive。保護バックアップは/var/lib/mina-agent/deployment-utm-afd369c87f。一食置換統合は未配置・無効、提供側設定の確認待ち。詳細はMINA_X_UTM_RELEASE_20261023.mdとMINA_REPLACEMENT_PRODUCTION_READINESS_20261023.md。
+
 ## 2026年10月22日・Instagram公開結果の自動照会を接続
 
 稼働f35a7edを保持した1539fd5を配置。公開確認の初回待機を超えても、保存済み受付IDをバックオフ付きで読取照会し、公開済みと解消通知へ進める。新規投稿・IDなし再送・未知結果の未保存扱いはしない。Windows/Linux各417件・CI・実受付を使う私用台帳コピーの確認成功。切替時24台帳を保持し、配置後は稼働記録以外の台帳不変、未解決0件・平常時API計数増加0。3サービス・3タイマーactive。保護バックアップは`/var/lib/mina-agent/deployment-instagram-delivery-1539fd59f7`。詳細は`MINA_INSTAGRAM_DELIVERY_RECONCILIATION_20261022.md`。
