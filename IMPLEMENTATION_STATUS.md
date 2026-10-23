@@ -1,5 +1,9 @@
 # みな運用の実装・サブPC配置状況
 
+## 2026年10月24日・本体配備/ONを受領し本番GET照合、Agentは未配置/OFF
+
+提供側からPR149の本番761a55f6、確定Gemini/waived policy、専用Previewとpostdeploy成功を受領。07:24 JSTの認証付きGETで23日state/preconditionが200/no-store・正式Schema適合、3食の版/画像SHA、policy版・両digestが一致。停止理由はdeadline_unverifiedのみ、集約false/null、circuit closed/recoveryなしを確認した。受入0e80de53と本番のhandlers/Schema blobも一致し、残るsrc差分はQA専用診断。以前のPreview未合格は過去runとして保持し、現行の未合格阻害要因から更新する。Agent稼働設定は8ac2fdc・置換OFF・UTM ON、6c43282の配置/有効化は別承認範囲のため未実施。業務変更・本番POST・課金0。詳細はMINA_PROVIDER_RELEASE_ACCEPTANCE_20261024.md。
+
 ## 2026年10月23日・初回PのAgent補修と隔離受入、未配置
 
 稼働8ac2fdcとUTM・手動履歴・Instagramを保持し、初回Pの全枠期限集約との循環を6c43282で解消。原本・版・所有/epoch・消費ordinal・真の初回時刻・既存期限を生成前に固定し、P直前再検証、単一probe、明示resumeの停止条件を補強した。本体固定0e80de53の全1,376ファイルSHAを照合した実ハンドラーHTTP41件、対象回帰70件、adapter型検査が成功。固定Agent commitを実装不参加Codexが読取レビューしGo。本番配置・設定変更・有効化・既存食事置換・投稿は行っていない。本体PR149はDraft、本体Previewの後続C90秒タイムアウト1件は未合格のまま。詳細はMINA_INITIAL_PREPARE_AGENT_ACCEPTANCE_20261023.mdとinvestigations/replacement-initial-prepare-20261023/http-acceptance.json。

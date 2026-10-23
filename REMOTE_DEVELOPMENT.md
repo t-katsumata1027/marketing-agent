@@ -1,5 +1,9 @@
 # サブPCでの開発
 
+## 2026年10月24日・提供側本番ONの読取確認、Agent配置は別段階
+
+本体761a55f6の配備/ON報告を受領し、07:24 JSTの認証付きGETで固定Schema・確定Gemini/waived policy・両digest・M1との版/画像一致を確認した。Agent設定は8ac2fdc・置換OFF・UTM ONを保持し、Agent修正版6c43282の配置や設定変更は行っていない。集約期限false/nullを補完せず、過去日の適格性も付与しない。提供側Previewの最新成功と過去の失敗runを区別する。詳細と次段階の境界はMINA_PROVIDER_RELEASE_ACCEPTANCE_20261024.mdを参照。
+
 ## 2026年10月23日・初回P補修は隔離受入まで、本番未配置
 
 本体PR149の固定0e80de53を用いる隔離HTTP受入に対応し、Agent固定6c43282で初回Pの原本移行・期限・所有/epoch・試行消費と明示resumeのpolicy再確認を補修した。実ハンドラーHTTP41件・対象回帰70件・adapter型検査成功、独立レビューGo。今回の配置や設定反映は実行せず、本番コード8ac2fdc・置換OFFを保持する。本体Previewの後続C90秒タイムアウト1件も未合格のまま。再現手順と要求数・SHAはMINA_INITIAL_PREPARE_AGENT_ACCEPTANCE_20261023.mdを参照。
