@@ -193,7 +193,7 @@ def verify_source(candidate, client, host, capture, now=None, clock=None, timer=
     completed_request(response, binding['request_key'], operation, result)
     if not isinstance(result, dict) or fingerprint(result) != binding['result_sha256']:
         raise ValueError('承認後に対象の正本結果が変更されています')
-    if result['normalized_comment'] != candidate.comment or result['x']['fixed_text'] != candidate.api_text or result['x']['publish_text'] != candidate.content:
+    if result['normalized_comment'] != candidate.comment or result['x']['fixed_text'] != candidate.api_text or result['x']['publish_text'] != candidate.source_content:
         raise ValueError('承認した完成本文が一致しません')
     if 'result_version' in binding:
         if binding['result_version'] != result['result_version'] or binding.get('operation') != operation:
@@ -211,6 +211,8 @@ def verify_source(candidate, client, host, capture, now=None, clock=None, timer=
         raise ValueError('承認したOGPと現在の実画像が一致しません')
     from .ogp import verify_image_reference
     verify_image_reference(snapshot, ogp, candidate.share_url, host)
+    from .tracking import verify_tracked_ogp
+    verify_tracked_ogp(candidate, host, capture, snapshot)
     # 実画像取得中の正本変更を、最後の対象日照会で検出する。
     final_state = client.day_state(candidate.target_date)
     if (validate_state(final_state, candidate.target_date, clock()) != current or

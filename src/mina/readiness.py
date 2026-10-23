@@ -103,6 +103,10 @@ def build_candidates(reviewed, evidence, commit, host, now, excluded_slots=(), l
             continue
         source = {**post['approval_source'], 'readiness_sha256': evidence_hash,
                   'ogp_image_url': post['ogp']['image_url'], 'ogp_image_sha256': post['ogp']['image_sha256']}
+        from .tracking import configured_policy
+        tracking = configured_policy()
+        if tracking is not None:
+            source['url_tracking'] = tracking
         if lunch_after_approval_until and slot=='lunch':
             if set(excluded_slots) != {'breakfast'}:
                 raise ValueError('当日朝食除外時だけ昼食を臨時公開できます')
