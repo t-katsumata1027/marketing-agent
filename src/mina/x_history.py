@@ -1,5 +1,7 @@
 """X履歴を全ページ確認し、公開台帳と照合する。予約不存在は推測しない。"""
 
+import hashlib
+import json
 import re
 from datetime import UTC, date, datetime, timedelta
 
@@ -36,7 +38,9 @@ def collect_timeline(fetch_page, account_id, target, *, max_pages=40, as_of=None
                 created = instant(datetime.fromisoformat(post['created_at']))
                 if not isinstance(key, str) or not key.isdigit() or key in identifiers or post['author_id'] != account_id or not instant(start) <= created < instant(end):
                     raise ValueError()
-                canonical_text(post)
+                # 長文や添付メディアを含む手動投稿も取得する。自動投稿の本文は照合時に厳密検査する。
+                if not isinstance(post.get('text'),str) or not post['text'].strip():
+                    raise ValueError()
                 identifiers.add(key)
                 posts.append(post)
                 # 取得可能件数の境界では、終端を全履歴の証明にしない。
@@ -44,7 +48,7 @@ def collect_timeline(fetch_page, account_id, target, *, max_pages=40, as_of=None
                     raise ValueError()
             token = meta.get('next_token')
             if token is None:
-                return {'account': ACCOUNT, 'target_date': target, 'posts': posts,
+                return {'account': ACCOUNT, 'account_id': account_id, 'target_date': target, 'posts': posts,
                         'read_until': end.isoformat(),
                         'read_started_at': read_started.isoformat(),
                         'timeline_pages_complete': True, 'legacy_schedule_verified': False}
@@ -56,6 +60,23 @@ def collect_timeline(fetch_page, account_id, target, *, max_pages=40, as_of=None
             # SDK例外には認証値や応答本文が含まれる可能性がある。
             raise ValueError('X履歴を完全に取得できません') from None
     raise ValueError('X履歴のページ上限に達しました')
+
+
+def manual_post_metadata(post, snapshot):
+    """本人アカウントで観測した台帳外投稿を、架空の献立や確認済み判定なしで記録する。"""
+    account_id=snapshot.get('account_id')
+    created=instant(datetime.fromisoformat(post['created_at']))
+    first=instant(datetime.combine(date.fromisoformat(snapshot['target_date'])-timedelta(days=14),datetime.min.time(),JST))
+    end=instant(datetime.fromisoformat(snapshot['read_until']))
+    if (snapshot.get('account')!=ACCOUNT or snapshot.get('timeline_pages_complete') is not True or
+            not isinstance(account_id,str) or not account_id.isdigit() or post.get('author_id')!=account_id or
+            not isinstance(post.get('id'),str) or not post['id'].isdigit() or not first<=created<end or
+            not isinstance(post.get('text'),str) or not post['text'].strip()):
+        raise ValueError('手動投稿の取得元・対象・日時を確認できません')
+    raw=json.dumps(post,sort_keys=True,ensure_ascii=False,separators=(',',':'),allow_nan=False).encode()
+    return {'x_id':post['id'],'date':created.astimezone(JST).date().isoformat(),
+            'created_at':created.isoformat(),'kind':'manual','source':'x_api_verified_account',
+            'source_sha256':hashlib.sha256(raw).hexdigest()}
 
 
 def canonical_text(post):

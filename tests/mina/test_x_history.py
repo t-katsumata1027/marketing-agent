@@ -61,13 +61,19 @@ class XHistoryTest(unittest.TestCase):
     def test_partial_response_and_failure_never_return_success(self):
         for bad in ({'errors': [{}], **page([])}, {'data': [], 'meta': {'result_count': 1}},
                     page([], 'next'), page([post(), post()]), page([{**post(), 'author_id': '88'}]),
-                    page([{**post(), 'created_at': '2026-10-12T00:00:00Z'}]), page([{**post(), 'note_tweet': {'text': '長文'}}])):
+                    page([{**post(), 'created_at': '2026-10-12T00:00:00Z'}]), page([{**post(),'text':''}])):
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 collect_timeline(lambda *a, **k: bad, '99', '2026-10-12')
         def fail(*a, **k):
             raise RuntimeError('secret')
         with self.assertRaisesRegex(ValueError, '^X履歴を完全に取得できません$'):
             collect_timeline(fail, '99', '2026-10-12')
+
+    def test_long_manual_post_is_collected_but_known_auto_post_cannot_use_truncated_text(self):
+        value={**post(),'note_tweet':{'text':'長文の手動投稿'}}
+        snapshot=collect_timeline(lambda *a,**k:page([value]),'99','2026-10-12')
+        with self.assertRaises(ValueError):
+            reconcile_timeline(snapshot,[{'x_id':'1','publish_text':value['text']}])
 
     def test_repeated_token_and_page_cap(self):
         with self.assertRaises(ValueError):
