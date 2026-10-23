@@ -13,6 +13,7 @@ def initialize(store):
     with store.transaction() as db:
         db.execute('CREATE TABLE IF NOT EXISTS replacement_control_wait (singleton INTEGER PRIMARY KEY CHECK(singleton=1),retry_at TEXT,recovery_required INTEGER NOT NULL,envelope TEXT NOT NULL)')
         db.execute('CREATE TABLE IF NOT EXISTS replacement_resume_claims (original_uuid TEXT NOT NULL,stage_version INTEGER NOT NULL,control_uuid TEXT NOT NULL UNIQUE,PRIMARY KEY(original_uuid,stage_version))')
+        db.execute('CREATE TABLE IF NOT EXISTS replacement_circuit_observations (singleton INTEGER PRIMARY KEY CHECK(singleton=1),circuit TEXT NOT NULL)')
 
 
 def remember(store, envelope):
@@ -38,11 +39,20 @@ def require_available(store, now):
             raise ValueError('replacement_recovery_required' if row['recovery_required'] else 'replacement_cooldown')
 
 
-def observe_circuit(store, precondition, now):
+def observe_circuit(store, precondition, now, *, allow_probe=False):
     """実GETのclosed確認だけで共通待機を解消し、時間経過や再起動で解除しない。"""
     initialize(store)
     circuit = precondition.get('circuit')
-    if circuit and (circuit['recovery_required'] or circuit['state']=='half_open' or circuit['state']=='open' and (not circuit['retry_at'] or now<timestamp(circuit['retry_at']))):
+    proof=None
+    with store.transaction() as db:
+        previous=db.execute('SELECT circuit FROM replacement_circuit_observations WHERE singleton=1').fetchone()
+        if circuit and circuit['state']=='open' and circuit['retry_at'] and not circuit['recovery_required']:
+            db.execute('INSERT OR REPLACE INTO replacement_circuit_observations VALUES(1,?)',(json.dumps(circuit),))
+        if circuit and circuit['state']=='half_open' and not circuit['recovery_required'] and allow_probe and previous:
+            old=json.loads(previous[0])
+            if old['state']=='open' and old['generation']==circuit['generation'] and old['retry_at'] and timestamp(old['retry_at'])<=now:
+                proof=old
+    if circuit and (circuit['recovery_required'] or circuit['state']=='half_open' and not proof or circuit['state']=='open' and (not circuit['retry_at'] or now<timestamp(circuit['retry_at']))):
         raise ValueError('replacement_recovery_required' if circuit['recovery_required'] else 'replacement_cooldown')
     if circuit and circuit['state'] == 'closed' and circuit['recovery_required'] is False:
         with store.transaction() as db:
@@ -50,6 +60,7 @@ def observe_circuit(store, precondition, now):
             if row and row['retry_at'] and now < timestamp(row['retry_at']):
                 raise ValueError('replacement_cooldown')
             db.execute('DELETE FROM replacement_control_wait WHERE singleton=1')
+    return proof
 
 
 def resume_paused(flow, target):
@@ -76,8 +87,15 @@ def resume_paused(flow, target):
     else:
         flow.checkpoint(e)
     precondition = flow.contract.preconditions(flow.client.preconditions(target), target)
-    observe_circuit(flow.store, precondition, flow.clock())
+    probe=observe_circuit(flow.store, precondition, flow.clock(),allow_probe=True)
     require_available(flow.store, flow.clock())
+    flow.target_policy(precondition,e)
+    if row['operation']=='meal_replace':
+        current=value.get('current_result')
+        own=next(m for m in precondition['meals'] if m['expected']['target_slot']==e['slot'])
+        if (value.get('result_status')!='unchanged' or not current or value.get('result')!=current
+                or own['expected']['target_result_version']!=current['result_version']):
+            raise ValueError('replacement_source_changed')
     with flow.store.transaction() as db:
         wire = db.execute('SELECT metadata FROM replacement_wire WHERE request_key=?', (original,)).fetchone()
     if not wire:
@@ -91,6 +109,10 @@ def resume_paused(flow, target):
     flow.contract.validate('ResumeInput', body)
     initialize(flow.store)
     with flow.store.transaction() as db:
+        if probe:
+            if db.execute('SELECT 1 FROM replacement_probe_claims WHERE retry_at=?',(probe['retry_at'],)).fetchone():
+                raise ValueError('replacement_recovery_required')
+            db.execute('INSERT INTO replacement_probe_claims VALUES(?,?,?,?)',(probe['retry_at'],e['owner'],e['epoch'],target))
         if db.execute('SELECT 1 FROM replacement_resume_claims WHERE original_uuid=? AND stage_version=?', (original, value['resume_stage_version'])).fetchone():
             raise ValueError('replacement_resume_lookup_only')
         db.execute('INSERT INTO replacement_resume_claims VALUES(?,?,?)', (original, value['resume_stage_version'], key))

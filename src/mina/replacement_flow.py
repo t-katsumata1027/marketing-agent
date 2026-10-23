@@ -100,10 +100,35 @@ class ReplacementFlow:
             if not row:raise ValueError('replacement_call_not_complete')
             return row[0]
 
+    def policy_gate(self,p,*,initial=False,expired_open=False):
+        """初回Pの実証跡経路だけを区別し、機能・費用方式・providerの拒否を維持する。"""
+        policy=p['policy']
+        costs_ok=(policy.get('cost_control')=={'mode':'waived','approval_reference_digest':self.policy.policy.get('approval_reference_digest')}
+                  and policy.get('analysis_provider')=='gemini' and policy['budget_configured'] is False) if self.policy.waived else policy['budget_configured'] is True
+        initial_ok=(initial and policy['existing_preparation_deadline_verified'] is False
+                    and policy.get('analysis_provider')=='gemini'
+                    and policy['blocking_reasons']==(['replacement_cooldown','deadline_unverified'] if expired_open else ['deadline_unverified']))
+        if (not costs_ok or policy['policy_version']!=self.policy.policy['policy_version']
+                or policy['budget_policy_digest']!=self.policy.policy_digest
+                or not (initial_ok or policy['existing_preparation_deadline_verified'] is True and not policy['blocking_reasons'])):
+            raise ValueError('replacement_policy_unverified')
+
+    def target_policy(self,p,e):
+        """既知対象contextの原本照合後も、他枠未開始という表示だけは保持する。"""
+        initial=json.loads(e['old_source'])['policy']['existing_preparation_deadline_verified'] is False
+        if initial:
+            from .replacement_origin import verify_receipt
+            with self.store.transaction() as db:
+                wire=db.execute('SELECT metadata FROM replacement_wire WHERE request_key=?',(e['prepare_uuid'],)).fetchone()
+                if not wire:raise ValueError('migration_unverified')
+                metadata=json.loads(wire[0])
+                verify_receipt(db,e['target_date'],e['slot'],metadata['migration'],e['owner'],e['epoch'])
+        self.policy_gate(p,initial=initial)
+
     @tracked
     def begin(self,target,slot,*,quality_hold):
         from .preparation_status import QualityHold
-        if (not isinstance(quality_hold,QualityHold) or not quality_hold.step.startswith('meal_review:'+slot)
+        if (not isinstance(quality_hold,QualityHold) or quality_hold.step.split(':')[:2]!=['meal_review',slot]
                 or not quality_hold.reason_codes or not set(quality_hold.reason_codes)<={'image_analysis_mismatch','nutrition_semantic_mismatch'}):
             raise ValueError('replacement_quality_hold_required')
         # 再起動・別UUIDによって同じ日の途中状態を上書きしない。
@@ -125,13 +150,14 @@ class ReplacementFlow:
         p=self.contract.preconditions(self.client.preconditions(target),target)
         if self.ports.previous_image_hashes()!={m['expected']['target_slot']:m['image_sha256'] for m in p['meals']}:
             raise ValueError('replacement_original_source_changed')
-        from .replacement_control import observe_circuit
-        observe_circuit(self.store,p,self.clock())
-        waived=self.policy.waived
-        costs_ok=(p['policy'].get('cost_control')=={'mode':'waived','approval_reference_digest':self.policy.policy.get('approval_reference_digest')} and p['policy'].get('analysis_provider')=='gemini' and p['policy']['budget_configured'] is False) if waived else p['policy']['budget_configured'] is True
-        if (not costs_ok or p['policy']['existing_preparation_deadline_verified'] is not True
-                or p['policy']['policy_version']!=self.policy.policy['policy_version'] or p['policy']['budget_policy_digest']!=self.policy.policy_digest
-                or p['policy']['blocking_reasons']):raise ValueError('replacement_policy_unverified')
+        from .replacement_control import observe_circuit,require_available
+        observe_circuit(self.store,p,self.clock(),allow_probe=True)
+        require_available(self.store,self.clock())
+        circuit=p.get('circuit')
+        from .replacement_contract import timestamp
+        expired_open=bool(circuit and circuit['state']=='open' and not circuit['recovery_required']
+                   and circuit['retry_at'] and timestamp(circuit['retry_at'])<=self.clock())
+        self.policy_gate(p,initial=True,expired_open=expired_open)
         with self.store.transaction() as db:
             db.execute("UPDATE replacement_episodes SET stage='held',old_source=? WHERE target_date=?",(canonical(p).decode(),target))
         return self.next_candidate(target)
@@ -142,7 +168,14 @@ class ReplacementFlow:
         if e['stage'] not in ('held','discarded','rejected'):raise ValueError('replacement_lookup_required')
         with self.store.transaction() as db:
             if db.execute("UPDATE replacement_episodes SET stage='generating' WHERE target_date=? AND stage=?",(target,e['stage'])).rowcount!=1:raise ValueError('replacement_concurrent_operation')
-        migration,deadline=self.policy.attempt(target,e['slot']);self.progress(target,'generating',deadline=deadline)
+        old=json.loads(e['old_source'])
+        fresh=self.contract.preconditions(self.client.preconditions(target),target)
+        if digest_source(fresh)!=digest_source(old):raise ValueError('replacement_source_changed')
+        from .replacement_control import observe_circuit,require_available
+        observe_circuit(self.store,fresh,self.clock(),allow_probe=True);require_available(self.store,self.clock())
+        self.policy_gate(fresh,initial=old['policy']['existing_preparation_deadline_verified'] is False)
+        binding={'owner':e['owner'],'epoch':e['epoch'],'preconditions':fresh} if old['policy']['existing_preparation_deadline_verified'] is False else None
+        migration,deadline=self.policy.attempt(target,e['slot'],binding=binding);self.progress(target,'generating',deadline=deadline)
         e=self.episode(target);old=json.loads(e['old_source']);plan=self.call(e,'menu',lambda:self.ports.plan(e['slot'],old,migration['attempt_ordinal']))
         from .generation import MEAL_SCHEMA
         from .m1_contract import normalized_comment
@@ -171,6 +204,18 @@ class ReplacementFlow:
 
     def send(self,target,operation,metadata,image=None):
         e=self.episode(target);self.checkpoint(e);key=metadata['request_uuid']
+        if operation=='candidate_prepare':
+            fresh=self.contract.preconditions(self.client.preconditions(target),target)
+            old=json.loads(e['old_source'])
+            if digest_source(fresh)!=digest_source(old):raise ValueError('replacement_source_changed')
+            self.policy_gate(fresh,initial=old['policy']['existing_preparation_deadline_verified'] is False)
+            from .replacement_control import observe_circuit
+            observe_circuit(self.store,fresh,self.clock(),allow_probe=True)
+            if self.clock().timestamp()+60>e['deadline']:raise ValueError('deadline_exceeded')
+            if json.loads(e['old_source'])['policy']['existing_preparation_deadline_verified'] is False:
+                from .replacement_origin import verify_receipt
+                with self.store.transaction() as db:
+                    verify_receipt(db,target,e['slot'],metadata['migration'],e['owner'],e['epoch'])
         from .replacement_control import require_available
         require_available(self.store,self.clock())
         key_field={'candidate_prepare':'prepare_uuid','candidate_discard':'discard_uuid','meal_replace':'commit_uuid'}.get(operation)
@@ -188,6 +233,8 @@ class ReplacementFlow:
         wire=self.journal.start(key);self.progress(target,operation+':started')
         from .replacement_control import ReplacementPaused,remember,require_available
         require_available(self.store,self.clock())
+        if operation=='candidate_prepare' and self.clock().timestamp()+60>e['deadline']:
+            raise ValueError('deadline_exceeded')
         try:value=self.client.send(operation,key,wire,content_type,e['prepare_uuid'])
         except ReplacementPaused as error:
             remember(self.store,error.envelope)
@@ -195,6 +242,7 @@ class ReplacementFlow:
             if request and request.get('request_uuid')==key and request.get('operation')==operation:
                 self.journal.envelope(key,error.envelope)
             self.progress(target,'paused','replacement_recovery_required')
+            self.observe_pause(target)
             raise
         return self.accept(target,key,value)
 
@@ -207,6 +255,7 @@ class ReplacementFlow:
         state=self.journal.envelope(key,value)
         if value['request']['stage']=='paused':
             self.progress(target,'paused',value['request'].get('reason'))
+            self.observe_pause(target)
             return value
         if state.get('conflict'):self.progress(target,'unknown','replacement_conflict');return value
         if row['operation']=='meal_replace':stage='saved' if state['persistence']=='saved' else ('not_saved' if value['request']['status']=='failed' and state['persistence']=='not_saved' else 'unknown')
@@ -221,6 +270,16 @@ class ReplacementFlow:
         else:stage='rejected' if row['operation']=='candidate_prepare' and state['outcome']=='rejected' and value.get('candidate',{}).get('candidate_state')=='rejected' else 'unknown'
         if row['operation']=='meal_replace' and stage=='saved' and e['stage'] in ('rebuilding','new_bundle_pending_approval'):stage=e['stage']
         self.progress(target,stage);return value
+
+    def observe_pause(self,target):
+        """停止時にOPENの実GET証跡を保存する。取得失敗から復旧許可を作らない。"""
+        from .replacement_control import observe_circuit
+        try:
+            p=self.contract.preconditions(self.client.preconditions(target),target)
+            observe_circuit(self.store,p,self.clock())
+        except ValueError:
+            # 停止・不明のまま維持する。後続の明示resumeは証跡がなければ拒否される。
+            return
 
     @tracked
     def reconcile(self,target):
@@ -322,6 +381,13 @@ class ReplacementFlow:
             material=db.execute('SELECT * FROM replacement_materials WHERE prepare_uuid=?',(e['prepare_uuid'],)).fetchone()
             wire=db.execute('SELECT metadata FROM replacement_wire WHERE request_key=?',(e['prepare_uuid'],)).fetchone()
         metadata=json.loads(wire[0]);old=json.loads(e['old_source'])
+        if old['policy']['existing_preparation_deadline_verified'] is False:
+            from .replacement_origin import verify_receipt
+            from .replacement_contract import timestamp
+            with self.store.transaction() as db:
+                verify_receipt(db,e['target_date'],e['slot'],metadata['migration'],e['owner'],e['epoch'])
+            if timestamp(c['hard_deadline_at']).timestamp()!=e['deadline']:
+                raise ValueError('replacement_candidate_input_changed')
         if (c['prepared_preconditions']!=metadata['expected'] or c['prepared_publication_hold']!=metadata['publication_hold']
                 or c['original']['sha256']!=material['sha256'] or c['normalized_comment']!=metadata['normalized_comment']
                 or c['policy_version']!=metadata['migration']['policy_version'] or c['attempt_ordinal']!=metadata['migration']['attempt_ordinal']):raise ValueError('replacement_candidate_input_changed')
@@ -339,6 +405,7 @@ class ReplacementFlow:
         review=self.call(e,'review',lambda:self.ports.review(images,json.loads(material['plan']),c))
         if set(review)!= {'verdict','observations'} or review['verdict'] not in ('pass','fail') or not isinstance(review['observations'],list):raise ValueError('replacement_review_invalid')
         fresh=self.contract.preconditions(self.client.preconditions(target),target)
+        self.target_policy(fresh,e)
         reason=None
         if review['verdict']=='fail':reason='independent_review_failed'
         else:
@@ -363,7 +430,7 @@ class ReplacementFlow:
                 or drive['original_download_sha256']!=c['original']['sha256'] or drive['previous_original_sha256']!=previous
                 or drive['previous_download_sha256']!=previous):raise ValueError('replacement_drive_evidence_invalid')
         # 最後の外部照会と正本照会を点検・Drive処理後にやり直す。
-        hold=self.external(e);fresh=self.client.preconditions(target);nutrition=self.contract.nutrition(fresh,c)
+        hold=self.external(e);fresh=self.client.preconditions(target);self.target_policy(fresh,e);nutrition=self.contract.nutrition(fresh,c)
         metadata={'contract_version':'mina-replace-v1','request_uuid':str(uuid.uuid4()),'prepare_uuid':e['prepare_uuid'],
             'candidate_version':c['candidate_version'],'analysis_digest':c['analysis_digest'],'input_image_sha256':c['original']['sha256'],
             'expected_control_revision':c['control_revision'],'expected':c['prepared_preconditions'],'precondition_digest':c['precondition_digest'],
