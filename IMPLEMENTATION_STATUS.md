@@ -1,5 +1,15 @@
 # みな運用の実装・サブPC配置状況
 
+## 2026年10月24日13:39・当日限定救済Agentを本番配置、救済OFF
+
+本人の条件付き承認に基づき、最終CI40049695981と本体固定5001250の専用Preview40059175879成功を確認してAgent5dbc45bを配置。既存27表全行不変・追加7空台帳、実3サービス子プロセスで救済false、UTM/通常置換true保持。起動監査2件のみ追記、巡回失敗0、既存5timer active。食事登録/置換・実課金・投稿・Log-Eats本体変更は0。本体PR151本番導入、救済ON、当日L/Rは別承認。退避/var/lib/mina-agent/deployment-rescue-off-5dbc45b、旧コード/opt/marketing-agent-rollback-rescue-5dbc45b。詳細はMINA_RESCUE_AGENT_DEPLOYMENT_20261024.md。下記の未配置記述は以前の時点の記録。
+
+
+## 2026年10月24日・当日限定救済のAgent実装（本番未配置）
+
+本人承認の実装・隔離検証・独立レビュー・PR作成範囲で、稼働f2119d4系を保持したL許可・mina-rescue-v1 adapter・専用台帳を追加。本体固定48e5459/Schema SHA1532cae8を参照し、本体変更・本番配置／有効化・実課金・食事登録／置換・投稿は行わない。詳細はMINA_RESCUE_AGENT_IMPLEMENTATION_20261024.md。独立最終判定・CIは専用証跡を参照し、先行設計Goと混同しない。
+
+
 ## 2026年10月24日08:38・Agent初回P修正版を本番配置し置換ON
 
 本人の明示承認に基づき、稼働8ac2fdcを受入実装6c43282と同一コードのf2119d4へ切り替え、確定Gemini/waived policyと公開先・受入証跡を結び付けた設定で置換ON。UTM ON・既存の承認/公開/準備設定を保持した。Linux対象80件、私用DBの実Coordinator構築と既存27表全行保持、全4ページの公開先照合が成功。設定読取の初回検査はコード入替前に停止して旧版を再開し、専用設定ディレクトリで再検査後に切替完了。08:39の実プロセス設定反映・3サービス/3タイマーactive・巡回失敗0を確認。業務25表と既存監査行は不変、監査追記は起動2件のみ。Instagram draft4件は停止対象のまま保持し、強制準備・本番P/D/C/resume・実課金・食事置換・投稿・過去日救済・期限延長は実行していない。詳細はMINA_AGENT_REPLACEMENT_ACTIVATION_20261024.md。

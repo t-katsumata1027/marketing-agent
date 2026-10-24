@@ -1,0 +1,675 @@
+{
+  "scope": "構造検証専用の合成値。時刻・版・SHA・UUID相互照合は未実装であり、実ハンドラー受入成功ではない。",
+  "cases": [
+    {
+      "name": "GrantIssueInput_structure",
+      "definition": "GrantIssueInput",
+      "valid": true,
+      "value": {
+        "contract_version": "mina-rescue-v1",
+        "case_uuid": "11111111-1111-4111-8111-111111111111",
+        "basis": {
+          "target_date": "2026-10-24",
+          "target_slot": "breakfast",
+          "initial_expected": {
+            "target_date": "2026-10-24",
+            "target_slot": "breakfast",
+            "target_share_url": "https://www.log-eats.com/s/rescue0001",
+            "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "original_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "source_ledger_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "cost_history_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_first_replan_started_at": null,
+          "original_preparation_deadline_at": "2026-10-23T11:00:00.000Z",
+          "original_hard_deadline_at": "2026-10-23T11:00:00.000Z",
+          "baseline_consumed_ordinals": [],
+          "source_requests_terminal": true,
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy_version": "mina_gemini_waived_20261023_v1",
+          "budget_policy_digest": "244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b",
+          "cost_approval_digest": "8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083",
+          "operator_approval_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "not_after": "2026-10-24T03:00:00.000Z"
+        },
+        "planned_prepare_uuid": "22222222-2222-4222-8222-222222222222",
+        "attempt_ordinal": 1
+      }
+    },
+    {
+      "name": "GrantRevokeInput_structure",
+      "definition": "GrantRevokeInput",
+      "valid": true,
+      "value": {
+        "contract_version": "mina-rescue-v1",
+        "rescue": {
+          "case_uuid": "11111111-1111-4111-8111-111111111111",
+          "authorization_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "expected_authorization_revision": 1
+        },
+        "reason": "operator_cancelled",
+        "operator_approval_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "name": "CaseResponse_structure",
+      "definition": "CaseResponse",
+      "valid": true,
+      "value": {
+        "contract_version": "mina-rescue-v1",
+        "case": {
+          "case_uuid": "11111111-1111-4111-8111-111111111111",
+          "authorization_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "authorization_revision": 1,
+          "basis": {
+            "target_date": "2026-10-24",
+            "target_slot": "breakfast",
+            "initial_expected": {
+              "target_date": "2026-10-24",
+              "target_slot": "breakfast",
+              "target_share_url": "https://www.log-eats.com/s/rescue0001",
+              "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "original_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_ledger_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "cost_history_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "original_first_replan_started_at": null,
+            "original_preparation_deadline_at": "2026-10-23T11:00:00.000Z",
+            "original_hard_deadline_at": "2026-10-23T11:00:00.000Z",
+            "baseline_consumed_ordinals": [],
+            "source_requests_terminal": true,
+            "hold_epoch": 1,
+            "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "policy_version": "mina_gemini_waived_20261023_v1",
+            "budget_policy_digest": "244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b",
+            "cost_approval_digest": "8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083",
+            "operator_approval_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "not_after": "2026-10-24T03:00:00.000Z"
+          },
+          "state": "active",
+          "first_activated_at": "2026-10-24T00:00:00.000Z",
+          "hard_deadline_at": "2026-10-24T00:15:00.000Z",
+          "used_ordinals": [
+            1
+          ],
+          "saved_commit_uuid": null,
+          "saved_at": null,
+          "ogp_finish_deadline_at": null,
+          "created_at": "2026-10-24T00:00:00.000Z",
+          "planned_prepare_uuid": "22222222-2222-4222-8222-222222222222",
+          "attempt_ordinal": 1
+        },
+        "freshness": {
+          "read_started_at": "2026-10-24T00:00:00.000Z",
+          "checked_at": "2026-10-24T00:00:00.000Z",
+          "valid_until": "2026-10-24T00:02:00.000Z",
+          "complete": true
+        }
+      }
+    },
+    {
+      "name": "PrepareInput_structure",
+      "definition": "PrepareInput",
+      "valid": true,
+      "value": {
+        "contract_version": "mina-rescue-v1",
+        "request_uuid": "22222222-2222-4222-8222-222222222222",
+        "expected": {
+          "target_date": "2026-10-24",
+          "target_slot": "breakfast",
+          "target_share_url": "https://www.log-eats.com/s/rescue0001",
+          "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "precondition_digest": "pc1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "input_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "original_mime": "image/jpeg",
+        "normalized_comment": "x",
+        "reason": "menu_replan_after_quality_hold",
+        "publication_hold": {
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "provider_check_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "provider_checked_at": "2026-10-24T00:00:00.000Z"
+        },
+        "rescue": {
+          "case_uuid": "11111111-1111-4111-8111-111111111111",
+          "authorization_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "expected_authorization_revision": 1
+        },
+        "attempt_ordinal": 1
+      }
+    },
+    {
+      "name": "DiscardInput_structure",
+      "definition": "DiscardInput",
+      "valid": true,
+      "value": {
+        "contract_version": "mina-rescue-v1",
+        "request_uuid": "33333333-3333-4333-8333-333333333333",
+        "prepare_uuid": "22222222-2222-4222-8222-222222222222",
+        "candidate_version": "cv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "analysis_digest": "ad1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "expected_control_revision": 1,
+        "reason": "independent_review_failed",
+        "review_evidence_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "review": {
+          "candidate_version": "cv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "analysis_digest": "ad1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "stored_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "reviewer_role": "independent_reviewer",
+          "reviewed_at": "2026-10-24T00:00:00.000Z",
+          "verdict": "fail",
+          "observations": [
+            "image_analysis_mismatch"
+          ]
+        },
+        "rescue": {
+          "case_uuid": "11111111-1111-4111-8111-111111111111",
+          "authorization_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "expected_authorization_revision": 1
+        }
+      }
+    },
+    {
+      "name": "CommitInput_structure",
+      "definition": "CommitInput",
+      "valid": true,
+      "value": {
+        "contract_version": "mina-rescue-v1",
+        "request_uuid": "33333333-3333-4333-8333-333333333333",
+        "prepare_uuid": "22222222-2222-4222-8222-222222222222",
+        "candidate_version": "cv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "analysis_digest": "ad1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "input_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "expected_control_revision": 1,
+        "expected": {
+          "target_date": "2026-10-24",
+          "target_slot": "breakfast",
+          "target_share_url": "https://www.log-eats.com/s/rescue0001",
+          "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "precondition_digest": "pc1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "publication_hold": {
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "provider_check_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "provider_checked_at": "2026-10-24T00:00:00.000Z"
+        },
+        "review_evidence_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "drive_evidence_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "nutrition_check": {
+          "precondition_digest": "pc1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "candidate_analysis_digest": "ad1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "other_meals_analysis_digests": [
+            "ad1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ad1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ],
+          "other_meals_total_calories": 1,
+          "candidate_total_calories": 1,
+          "total_calories": 1800,
+          "min_calories": 1800,
+          "max_calories": 2000,
+          "checked_at": "2026-10-24T00:00:00.000Z",
+          "evidence_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "review": {
+          "candidate_version": "cv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "analysis_digest": "ad1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "stored_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "reviewer_role": "independent_reviewer",
+          "review_method": "x",
+          "reviewed_at": "2026-10-24T00:00:00.000Z",
+          "verdict": "pass"
+        },
+        "drive_check": {
+          "candidate_version": "cv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_download_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "previous_original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "previous_download_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "checked_at": "2026-10-24T00:00:00.000Z",
+          "verdict": "pass"
+        },
+        "rescue": {
+          "case_uuid": "11111111-1111-4111-8111-111111111111",
+          "authorization_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "expected_authorization_revision": 1
+        }
+      }
+    },
+    {
+      "name": "ResumeInput_structure",
+      "definition": "ResumeInput",
+      "valid": true,
+      "value": {
+        "request_uuid": "11111111-1111-4111-8111-111111111111",
+        "original_request_uuid": "11111111-1111-4111-8111-111111111111",
+        "expected_stage_version": 1,
+        "expected_input_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy_version": "x",
+        "budget_policy_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "publication_hold": {
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "provider_check_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "provider_checked_at": "2026-10-24T00:00:00.000Z"
+        },
+        "rescue": {
+          "case_uuid": "11111111-1111-4111-8111-111111111111",
+          "authorization_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "expected_authorization_revision": 1
+        },
+        "contract_version": "mina-rescue-v1"
+      }
+    },
+    {
+      "name": "Error_structure",
+      "definition": "Error",
+      "valid": true,
+      "value": {
+        "contract_version": "mina-rescue-v1",
+        "error": "x",
+        "reason": "input_invalid",
+        "read_outcome": "rejected",
+        "request": null,
+        "candidate": null,
+        "complete": false,
+        "checked_at": "2026-10-24T00:00:00.000Z",
+        "rescue_case": null
+      }
+    },
+    {
+      "name": "GrantIssueInput_missing_planned_prepare_uuid",
+      "definition": "GrantIssueInput",
+      "valid": false,
+      "value": {
+        "contract_version": "mina-rescue-v1",
+        "case_uuid": "11111111-1111-4111-8111-111111111111",
+        "basis": {
+          "target_date": "2026-10-24",
+          "target_slot": "breakfast",
+          "initial_expected": {
+            "target_date": "2026-10-24",
+            "target_slot": "breakfast",
+            "target_share_url": "https://www.log-eats.com/s/rescue0001",
+            "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "original_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "source_ledger_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "cost_history_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_first_replan_started_at": null,
+          "original_preparation_deadline_at": "2026-10-23T11:00:00.000Z",
+          "original_hard_deadline_at": "2026-10-23T11:00:00.000Z",
+          "baseline_consumed_ordinals": [],
+          "source_requests_terminal": true,
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy_version": "mina_gemini_waived_20261023_v1",
+          "budget_policy_digest": "244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b",
+          "cost_approval_digest": "8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083",
+          "operator_approval_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "not_after": "2026-10-24T03:00:00.000Z"
+        },
+        "attempt_ordinal": 1
+      }
+    },
+    {
+      "name": "PrepareInput_missing_rescue",
+      "definition": "PrepareInput",
+      "valid": false,
+      "value": {
+        "contract_version": "mina-rescue-v1",
+        "request_uuid": "22222222-2222-4222-8222-222222222222",
+        "expected": {
+          "target_date": "2026-10-24",
+          "target_slot": "breakfast",
+          "target_share_url": "https://www.log-eats.com/s/rescue0001",
+          "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "precondition_digest": "pc1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "input_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "original_mime": "image/jpeg",
+        "normalized_comment": "x",
+        "reason": "menu_replan_after_quality_hold",
+        "publication_hold": {
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "provider_check_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "provider_checked_at": "2026-10-24T00:00:00.000Z"
+        },
+        "attempt_ordinal": 1
+      }
+    },
+    {
+      "name": "CommitInput_missing_rescue",
+      "definition": "CommitInput",
+      "valid": false,
+      "value": {
+        "contract_version": "mina-rescue-v1",
+        "request_uuid": "33333333-3333-4333-8333-333333333333",
+        "prepare_uuid": "22222222-2222-4222-8222-222222222222",
+        "candidate_version": "cv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "analysis_digest": "ad1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "input_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "expected_control_revision": 1,
+        "expected": {
+          "target_date": "2026-10-24",
+          "target_slot": "breakfast",
+          "target_share_url": "https://www.log-eats.com/s/rescue0001",
+          "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "precondition_digest": "pc1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "publication_hold": {
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "provider_check_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "provider_checked_at": "2026-10-24T00:00:00.000Z"
+        },
+        "review_evidence_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "drive_evidence_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "nutrition_check": {
+          "precondition_digest": "pc1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "candidate_analysis_digest": "ad1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "other_meals_analysis_digests": [
+            "ad1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ad1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ],
+          "other_meals_total_calories": 1,
+          "candidate_total_calories": 1,
+          "total_calories": 1800,
+          "min_calories": 1800,
+          "max_calories": 2000,
+          "checked_at": "2026-10-24T00:00:00.000Z",
+          "evidence_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "review": {
+          "candidate_version": "cv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "analysis_digest": "ad1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "stored_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "reviewer_role": "independent_reviewer",
+          "review_method": "x",
+          "reviewed_at": "2026-10-24T00:00:00.000Z",
+          "verdict": "pass"
+        },
+        "drive_check": {
+          "candidate_version": "cv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_download_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "previous_original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "previous_download_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "checked_at": "2026-10-24T00:00:00.000Z",
+          "verdict": "pass"
+        }
+      }
+    },
+    {
+      "name": "legacy_migration_rejected",
+      "definition": "PrepareInput",
+      "valid": false,
+      "value": {
+        "contract_version": "mina-rescue-v1",
+        "request_uuid": "22222222-2222-4222-8222-222222222222",
+        "expected": {
+          "target_date": "2026-10-24",
+          "target_slot": "breakfast",
+          "target_share_url": "https://www.log-eats.com/s/rescue0001",
+          "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "precondition_digest": "pc1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "input_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "original_mime": "image/jpeg",
+        "normalized_comment": "x",
+        "reason": "menu_replan_after_quality_hold",
+        "publication_hold": {
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "provider_check_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "provider_checked_at": "2026-10-24T00:00:00.000Z"
+        },
+        "rescue": {
+          "case_uuid": "11111111-1111-4111-8111-111111111111",
+          "authorization_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "expected_authorization_revision": 1
+        },
+        "attempt_ordinal": 1,
+        "migration": {}
+      }
+    },
+    {
+      "name": "wrong_day",
+      "definition": "GrantIssueInput",
+      "valid": false,
+      "value": {
+        "contract_version": "mina-rescue-v1",
+        "case_uuid": "11111111-1111-4111-8111-111111111111",
+        "basis": {
+          "target_date": "2026-10-25",
+          "target_slot": "breakfast",
+          "initial_expected": {
+            "target_date": "2026-10-24",
+            "target_slot": "breakfast",
+            "target_share_url": "https://www.log-eats.com/s/rescue0001",
+            "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "original_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "source_ledger_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "cost_history_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_first_replan_started_at": null,
+          "original_preparation_deadline_at": "2026-10-23T11:00:00.000Z",
+          "original_hard_deadline_at": "2026-10-23T11:00:00.000Z",
+          "baseline_consumed_ordinals": [],
+          "source_requests_terminal": true,
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy_version": "mina_gemini_waived_20261023_v1",
+          "budget_policy_digest": "244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b",
+          "cost_approval_digest": "8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083",
+          "operator_approval_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "not_after": "2026-10-24T03:00:00.000Z"
+        },
+        "planned_prepare_uuid": "22222222-2222-4222-8222-222222222222",
+        "attempt_ordinal": 1
+      }
+    },
+    {
+      "name": "unverified_terminal",
+      "definition": "GrantIssueInput",
+      "valid": false,
+      "value": {
+        "contract_version": "mina-rescue-v1",
+        "case_uuid": "11111111-1111-4111-8111-111111111111",
+        "basis": {
+          "target_date": "2026-10-24",
+          "target_slot": "breakfast",
+          "initial_expected": {
+            "target_date": "2026-10-24",
+            "target_slot": "breakfast",
+            "target_share_url": "https://www.log-eats.com/s/rescue0001",
+            "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "original_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "source_ledger_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "cost_history_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_first_replan_started_at": null,
+          "original_preparation_deadline_at": "2026-10-23T11:00:00.000Z",
+          "original_hard_deadline_at": "2026-10-23T11:00:00.000Z",
+          "baseline_consumed_ordinals": [],
+          "source_requests_terminal": false,
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy_version": "mina_gemini_waived_20261023_v1",
+          "budget_policy_digest": "244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b",
+          "cost_approval_digest": "8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083",
+          "operator_approval_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "not_after": "2026-10-24T03:00:00.000Z"
+        },
+        "planned_prepare_uuid": "22222222-2222-4222-8222-222222222222",
+        "attempt_ordinal": 1
+      }
+    },
+    {
+      "name": "completed_without_saved_fields",
+      "definition": "CaseResponse",
+      "valid": false,
+      "value": {
+        "contract_version": "mina-rescue-v1",
+        "case": {
+          "case_uuid": "11111111-1111-4111-8111-111111111111",
+          "authorization_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "authorization_revision": 1,
+          "basis": {
+            "target_date": "2026-10-24",
+            "target_slot": "breakfast",
+            "initial_expected": {
+              "target_date": "2026-10-24",
+              "target_slot": "breakfast",
+              "target_share_url": "https://www.log-eats.com/s/rescue0001",
+              "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "original_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_ledger_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "cost_history_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "original_first_replan_started_at": null,
+            "original_preparation_deadline_at": "2026-10-23T11:00:00.000Z",
+            "original_hard_deadline_at": "2026-10-23T11:00:00.000Z",
+            "baseline_consumed_ordinals": [],
+            "source_requests_terminal": true,
+            "hold_epoch": 1,
+            "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "policy_version": "mina_gemini_waived_20261023_v1",
+            "budget_policy_digest": "244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b",
+            "cost_approval_digest": "8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083",
+            "operator_approval_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "not_after": "2026-10-24T03:00:00.000Z"
+          },
+          "state": "completed",
+          "first_activated_at": "2026-10-24T00:00:00.000Z",
+          "hard_deadline_at": "2026-10-24T00:15:00.000Z",
+          "used_ordinals": [
+            1
+          ],
+          "saved_commit_uuid": null,
+          "saved_at": null,
+          "ogp_finish_deadline_at": null,
+          "created_at": "2026-10-24T00:00:00.000Z",
+          "planned_prepare_uuid": "22222222-2222-4222-8222-222222222222",
+          "attempt_ordinal": 1
+        },
+        "freshness": {
+          "read_started_at": "2026-10-24T00:00:00.000Z",
+          "checked_at": "2026-10-24T00:00:00.000Z",
+          "valid_until": "2026-10-24T00:02:00.000Z",
+          "complete": true
+        }
+      }
+    },
+    {
+      "name": "active_with_saved_fields",
+      "definition": "CaseResponse",
+      "valid": false,
+      "value": {
+        "contract_version": "mina-rescue-v1",
+        "case": {
+          "case_uuid": "11111111-1111-4111-8111-111111111111",
+          "authorization_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "authorization_revision": 1,
+          "basis": {
+            "target_date": "2026-10-24",
+            "target_slot": "breakfast",
+            "initial_expected": {
+              "target_date": "2026-10-24",
+              "target_slot": "breakfast",
+              "target_share_url": "https://www.log-eats.com/s/rescue0001",
+              "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "original_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_ledger_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "cost_history_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "original_first_replan_started_at": null,
+            "original_preparation_deadline_at": "2026-10-23T11:00:00.000Z",
+            "original_hard_deadline_at": "2026-10-23T11:00:00.000Z",
+            "baseline_consumed_ordinals": [],
+            "source_requests_terminal": true,
+            "hold_epoch": 1,
+            "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "policy_version": "mina_gemini_waived_20261023_v1",
+            "budget_policy_digest": "244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b",
+            "cost_approval_digest": "8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083",
+            "operator_approval_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "not_after": "2026-10-24T03:00:00.000Z"
+          },
+          "state": "active",
+          "first_activated_at": "2026-10-24T00:00:00.000Z",
+          "hard_deadline_at": "2026-10-24T00:15:00.000Z",
+          "used_ordinals": [
+            1
+          ],
+          "saved_commit_uuid": "33333333-3333-4333-8333-333333333333",
+          "saved_at": null,
+          "ogp_finish_deadline_at": null,
+          "created_at": "2026-10-24T00:00:00.000Z",
+          "planned_prepare_uuid": "22222222-2222-4222-8222-222222222222",
+          "attempt_ordinal": 1
+        },
+        "freshness": {
+          "read_started_at": "2026-10-24T00:00:00.000Z",
+          "checked_at": "2026-10-24T00:00:00.000Z",
+          "valid_until": "2026-10-24T00:02:00.000Z",
+          "complete": true
+        }
+      }
+    }
+  ]
+}

@@ -12,11 +12,13 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from src.mina.readiness import release_commit
 from src.mina.replacement_contract import load_contract_resources
+from src.mina.rescue_contract import resources as rescue_resources, SCHEMA_SHA as RESCUE_SCHEMA_SHA
 
 
 def verify_archive_contract(archive, evidence):
     """配布tarにも正式契約と凍結履歴が同じ実バイトで入っていることを確認する。"""
-    for entry in (evidence['runtime_schema'],*evidence['frozen_history'].values()):
+    for entry in (evidence['runtime_schema'],*evidence['frozen_history'].values(),
+                  {'path':'src/mina/contracts/rescue_v1/mina-rescue-v1.schema.json','sha256':RESCUE_SCHEMA_SHA}):
         try:
             member=archive.getmember(entry['path'])
             if not member.isfile():
@@ -41,11 +43,12 @@ def build(output, commit):
         raise ValueError('配布commitは現在のHEADに固定してください')
     release_commit(ROOT, commit)
     contract_evidence,_ = load_contract_resources(ROOT/'src/mina/contracts')
+    rescue_resources()
     names = git('ls-tree', '-r', '--name-only', commit).decode().splitlines()
     selected = [name for name in names if (
         name.startswith(('src/mina/', 'deploy/', 'tests/mina/', 'tests/contract_bridge/', 'assets/instagram/'))
         or name in ('.gitattributes', 'src/__init__.py', 'requirements-mina.txt', 'requirements-mina.in',
-                    'scripts/test_logeats_contract.py', 'scripts/build_mina_release.py', 'scripts/build_replacement_waived_policy.py')
+                    'scripts/test_logeats_contract.py', 'scripts/build_mina_release.py', 'scripts/build_replacement_waived_policy.py', 'scripts/mina_rescue_http.mts')
         or ('/' not in name and name.endswith('.md') and name != 'README.md')
     )]
     # 配布にリンクがあると、展開先以外の設定・認証を参照する恐れがある。
@@ -72,6 +75,7 @@ def build(output, commit):
                 'logeats_code_reference': 'b71d4a27ab8a4208487acbceb2f106b3ff128794',
                 'logeats_document_reference': '2bc563843646e594e443f5cec8428caa554b6bbf',
                 'meal_replacement_contract':contract_evidence,
+                'same_day_rescue_contract':{'schema_sha256':RESCUE_SCHEMA_SHA,'activation_allowed':False},
                 'activation_allowed': False, 'files': selected, 'artifacts': artifacts}
     (output / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     return {'source_commit': commit, 'file_count': len(selected), 'activation_allowed': False}

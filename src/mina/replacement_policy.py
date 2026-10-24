@@ -67,7 +67,8 @@ class ReplacementPolicy:
             raise ValueError('budget_exceeded')
 
     def reserve(self,target,call_key,kind):
-        if kind not in self.policy['call_bounds']:raise ValueError('budget_unconfigured')
+        rescue_kinds={'collection_register','collection_read','collection_review','collection_capture','collection_structured'}
+        if kind not in self.policy['call_bounds'] and not (self.waived and kind in rescue_kinds):raise ValueError('budget_unconfigured')
         with self.store.transaction() as db:
             self._day(db,target)
             if self.waived:
@@ -89,6 +90,9 @@ class ReplacementPolicy:
         now=self.clock();existing_deadline=approval_time(date.fromisoformat(target))
         if slot not in ('breakfast','lunch','dinner') or now>=existing_deadline:raise ValueError('deadline_exceeded')
         with self.store.transaction() as db:
+            from .publication_hold import exists
+            if exists(db,'rescue_jobs') and db.execute('SELECT 1 FROM rescue_jobs WHERE target_date=?',(target,)).fetchone():
+                raise ValueError('rescue_existing_reservation')
             self._day(db,target)
             origin=None
             if binding is not None:

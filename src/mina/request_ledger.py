@@ -36,6 +36,8 @@ class RequestLedger:
         with self.store.transaction() as db:
             if db.execute("SELECT 1 FROM sqlite_master WHERE name='meal_replacement_requests'").fetchone() and db.execute('SELECT 1 FROM meal_replacement_requests WHERE request_key=?',(key,)).fetchone():
                 raise ValueError('replacement_uuid_m1_collision')
+            from .rescue_storage import reject_reserved_uuid
+            reject_reserved_uuid(db,key)
             previous = db.execute('SELECT input_digest FROM mina_requests WHERE request_key=?', (key,)).fetchone()
             if previous:
                 if previous['input_digest'] != digest:
@@ -101,7 +103,9 @@ class RequestLedger:
         request = self.restore(key)
         with self.store.transaction() as db:
             from .publication_hold import require_m1_write
-            require_m1_write(db,request['target_date'],request['operation'])
+            from .rescue_collection import require_claim as require_collection_claim
+            if not require_collection_claim(db,request):
+                require_m1_write(db,request['target_date'],request['operation'])
             claimed = db.execute("UPDATE mina_requests SET phase='dispatching' WHERE request_key=? AND phase='prepared'", (key,)).rowcount
             if claimed==1:
                 self.store.audit.emit('creation',request['target_date'],request['slot'],None,'request','started',

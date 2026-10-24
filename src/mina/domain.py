@@ -107,7 +107,7 @@ class Candidate:
             expected = f'{self.comment}\n\n{self.api_text}\n{self.share_url}'
             if self.publish_text != expected:
                 raise ValueError('サーバー完成本文と承認対象の固定文が一致しません')
-        if isinstance(self.approval_source,dict) and self.approval_source.get('contract_version')=='mina-replace-v1':
+        if isinstance(self.approval_source,dict) and self.approval_source.get('contract_version') in ('mina-replace-v1','mina-rescue-v1'):
             from .replacement_source import validate_binding
             validate_binding(self)
         elif self.approval_source is not None:

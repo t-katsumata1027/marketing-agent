@@ -22,6 +22,10 @@ def verify_source(candidate,client,host,capture,now=None,clock=None,timer=time.m
     clock=clock or (lambda:now or datetime.now(UTC));started=clock();monotonic=timer()
     validate_binding(candidate);b=candidate.approval_source;contract=Contract(clock)
     reader=ReplacementReadClient(client.base,client.token,decoder=contract.decode,clock=clock)
+    if b.get('contract_version')=='mina-rescue-v1':
+        from .rescue_contract import RescueContract,RescueClient
+        contract=RescueContract(clock)
+        reader=RescueClient(client.base,client.token,decoder=contract.decode,clock=clock)
     response=reader.request(b['request_key'],'meal_replace');r=response['request']
     if (r['request_uuid']!=b['request_key'] or r['persistence']!='saved' or r['status']!='succeeded'
             or r['input_hash']!=b['input_hash'] or response['result_status']!='unchanged'

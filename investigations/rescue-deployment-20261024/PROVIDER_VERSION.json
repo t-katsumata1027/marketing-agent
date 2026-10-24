@@ -1,0 +1,8 @@
+{
+  "docs/marketing/contracts/mina-rescue-v1.schema.json": "1532cae8d201be23fbbee8ee1a8bd11d3740a527cf5a0e188734ff65b5c36082",
+  "scripts/migrations/20261024_mina_same_day_rescue.sql": "12dfe9d834689b28730a506bb8b45caabac3706d482c37e8b1fd04f78a318b1a",
+  "src_diff_from_accepted": [
+    "src/app/api/qa/mina-meal-rescue/route.ts",
+    "src/lib/minaRescue/qaFixture.ts"
+  ]
+}

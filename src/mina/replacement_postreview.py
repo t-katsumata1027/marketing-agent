@@ -22,7 +22,7 @@ def review_posts(store,client,ai,capture,target,commit_key,commit_response,draft
             r=response['current_daily_result'] if slot=='daily' else response['current_result']
             if not r or any(result.get(k)!=r.get(k) for k in r):raise ValueError('replacement_source_changed')
             result=r
-            source={'contract_version':'mina-replace-v1','request_key':commit_key,'operation':'meal_replace','input_hash':request['input_hash']}
+            source={'contract_version':response.get('contract_version','mina-replace-v1'),'request_key':commit_key,'operation':'meal_replace','input_hash':request['input_hash']}
         else:
             with store.transaction() as db:
                 row=db.execute("SELECT request_key,operation FROM mina_requests WHERE target_date=? AND slot=? AND phase='complete' ORDER BY CASE operation WHEN 'meal_correction' THEN 0 ELSE 1 END LIMIT 1",(target,slot)).fetchone()
