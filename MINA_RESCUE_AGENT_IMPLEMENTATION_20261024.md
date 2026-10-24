@@ -39,7 +39,7 @@ rescue_runtime.build_flowは専用のMINA_SAME_DAY_RESCUE_CONFIGと、両側固�
 
 実HTTPでP/実画像GET/独立点検/C、D終端、P/C応答喪失後の元UUID GET、取消、共通cooldown、saved OGP障害、OFF・再構築後の未発行OGP resume完了、旧P再照会でも完成済み保持を確認する。実render失敗の既発行工程はunknownとして再発行しない。
 
-最終証拠はinvestigations/rescue-integration-20261024へ記録。Windows618件（51skip、実行567成功）、独立72件と配布補修7件成功、CI40048808303両job成功（mina同618件、一般32件）、配布tar正式SHA一致。実行コードは2bf89bc、改行補修はb185509。途中で見つかった不足要求項目、要求hash規則の違い、保存再照会の失効、終端矛盾、版退行等を補修した。先行試験成功や設計Goを実装最終Goとして流用しない。
+最終証拠はinvestigations/rescue-integration-20261024へ記録。Windows618件（51skip、実行567成功）、独立72件と配布補修7件成功、CI40048808303両job成功（mina同618件、一般32件）、配布tar正式SHA一致。実行コードは2bf89bc、改行補修はb185509。最終fc81e75では、昼夕登録前に保存済み食品別概算の原本・食品fingerprint・完了・有限値・合計1800〜2000kcalを照合する保護を追加した。最終CI40049427665は619件/51skip（実行568成功）、一般32件成功。固定fc81e75の配布ビルドも313ファイル・activation_allowed=falseで成功。追加差分も対象3試験と既存概算処理との接続試験が独立成功し、最終Go。途中で見つかった不足要求項目、要求hash規則の違い、保存再照会の失効、終端矛盾、版退行等を補修した。先行試験成功や設計Goを実装最終Goとして流用しない。
 
 ## 次の承認
 

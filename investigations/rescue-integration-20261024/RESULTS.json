@@ -10,15 +10,18 @@
     "seconds": 194.26
   },
   "ci": {
-    "run_id": 40048808303,
-    "head": "b185509558fc36d5b54e2c1d6b974db35173a4da",
+    "run_id": 40049427665,
+    "head": "fc81e7514967a2e1db80b223e03ac41a1ea78a47",
     "conclusion": "success",
     "mina": {
-      "listed": 618,
+      "listed": 619,
       "skipped": 51,
-      "passed": 567
+      "passed": 568,
+      "seconds": 34.785
     },
-    "general_tests": 32
+    "general_tests": 32,
+    "event": "pull_request",
+    "release_build_commit": "077e0d733104dd748acd1fc709936a70d24a0728"
   },
   "independent": {
     "conclusion": "Go",
@@ -28,11 +31,18 @@
     "total": 72,
     "seconds": 47.4,
     "artifact_fix_regression": 7,
-    "scope": "Agent implementation and isolated acceptance only"
+    "scope": "Agent implementation and isolated acceptance only",
+    "final_budget_guard": {
+      "conclusion": "Go",
+      "commit": "fc81e7514967a2e1db80b223e03ac41a1ea78a47",
+      "targeted_tests": 3,
+      "seconds": 3.831,
+      "additional_integration": "実check_budget→verify_menu_budget成功、食品量変更拒否、AI Mock・外部0"
+    }
   },
   "release": {
-    "source_commit": "b185509558fc36d5b54e2c1d6b974db35173a4da",
-    "files": 312,
+    "source_commit": "fc81e7514967a2e1db80b223e03ac41a1ea78a47",
+    "files": 313,
     "activation_allowed": false
   },
   "production_deployed": false,
@@ -48,5 +58,17 @@
     "L_R_absolute_deadlines_and_execution_approval",
     "fresh_external_inventory",
     "new_publication_approval"
-  ]
+  ],
+  "final_code_commit": "fc81e7514967a2e1db80b223e03ac41a1ea78a47",
+  "previous_ci": {
+    "run_id": 40048808303,
+    "head": "b185509558fc36d5b54e2c1d6b974db35173a4da",
+    "conclusion": "success",
+    "mina": {
+      "listed": 618,
+      "skipped": 51,
+      "passed": 567
+    },
+    "general_tests": 32
+  }
 }
