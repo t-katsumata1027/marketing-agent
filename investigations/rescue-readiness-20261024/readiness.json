@@ -1,0 +1,48 @@
+{
+  "document_type": "agent-rescue-readiness-observation-v1",
+  "target_date": "2026-10-24",
+  "purpose": "準備票のみ。正式Schemaの要求入力・救済許可・品質合格の代用にはしない",
+  "execution_authorized": false,
+  "limited_rescue_enabled": false,
+  "contract_status": "awaiting_fixed_provider_contract",
+  "observed_state_version": "sv1_1cf1b82e3856d201ad17142f861eea525e3a427a68950bb808a7e43ff1431836",
+  "observed_breakfast": {
+    "slot": "breakfast",
+    "result_version": "rv1_c4aa9531b7593f2b55a8b5b4f39a4a27ddb1807b9d2110c28e140b6a8db35007",
+    "image_sha256": "15cbff4764b7741809ad0500f1f4fa6ed2da453f528c3da63ac0f9614a3ae61a",
+    "stored_image_sha256": "d4b1470430ab8f39ff8eb61d9b76e72a21accea1a467a407ae08ab7132f5de1c"
+  },
+  "source_sha256": {
+    "api_observation": "10c4d134a06773ffa6fc98c7cd128c090dbd95b1c83b9394b7b36a43298e09a4",
+    "agent_observation": "2895f1d303be06a8c4379fa168c6ab73924c78bfce1d48d047bee6cc73abfa6c"
+  },
+  "observed_at": "2026-10-23T23:54:40.393675+00:00",
+  "evidence_valid_until": "2026-10-23T23:56:40.393675+00:00",
+  "fresh_at_generation": false,
+  "standard_replacement_deadline_jst": "2026-10-23T20:00:00+09:00",
+  "breakfast_quality_hold": "image_analysis_mismatch",
+  "image_references_intact": true,
+  "next_normal_registration_slots": [
+    "lunch",
+    "dinner"
+  ],
+  "existing_breakfast_repost_allowed": false,
+  "external_inventory_status": "execution_time_full_inventory_required",
+  "pending": [
+    "正式な救済Schema・状態表・DDL・固定commit・独立レビュー",
+    "Agent専用adapter・昼夕収集許可と隔離受入",
+    "本体とAgentの本番反映承認・当日実行承認",
+    "本人承認の絶対終了時刻と初回有効化時刻",
+    "昼夕登録後の新鮮な3食正本・版・世代",
+    "旧期限・真の開始時刻・累積回数・費用・unknownの原本照合",
+    "外部予約全状態全ページ・Instagram担当の所有照合",
+    "全3食の独立点検・実合計1800〜2000kcal・新版再承認"
+  ],
+  "prohibited": [
+    "新UUIDやepisodeによる初期化",
+    "朝食の再POST・削除再登録",
+    "品質保留解除",
+    "昼夕だけの先行公開",
+    "準備票から直接API送信"
+  ]
+}
