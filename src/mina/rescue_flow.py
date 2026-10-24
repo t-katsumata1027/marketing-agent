@@ -51,6 +51,8 @@ class RescueFlow:
         hold=acquire(self.store,TARGET,owner,self.clock())
         if hold['state']!='held': raise ValueError('external_dispatch_unverified')
         self.external({'owner':owner,'epoch':hold['epoch']})
+        from .rescue_collection import verify_menu_budget
+        verify_menu_budget(self.store,draft)
         images={s:saved['images'][s]['sha256'] for s in ('lunch','dinner')}
         self.permit.issue(approval,owner,hold['epoch'],code_commit,images)
         inputs={'draft':draft,'saved':saved}

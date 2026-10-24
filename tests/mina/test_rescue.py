@@ -163,6 +163,20 @@ class RescueTests(unittest.TestCase):
         client.json_write.assert_not_called();self.assertEqual(ai.review_meal.call_count,2)
         with store.transaction() as db:self.assertEqual(db.execute('SELECT state FROM publication_holds').fetchone()[0],'held')
 
+    def test_collection_requires_saved_independent_food_budget(self):
+        from src.mina.rescue_collection import verify_menu_budget
+        from src.mina.preparation import fingerprint
+        draft={'meals':{s:{'foods':[{'name':'合成食品','amount':'1食'}]} for s in ('breakfast','lunch','dinner')}}
+        inputs={'foods':{s:v['foods'] for s,v in draft['meals'].items()}};sha=fingerprint(inputs)
+        with self.assertRaisesRegex(ValueError,'origin_missing'):verify_menu_budget(self.store,draft)
+        with self.store.transaction() as db:
+            db.execute("INSERT INTO preparation_steps VALUES(?,?,?,'complete',?,?)",(TARGET,'menu_nutrition:'+sha,sha,
+                json.dumps({'breakfast':[600],'lunch':[650],'dinner':[650]}),self.now.timestamp()))
+        self.assertEqual(verify_menu_budget(self.store,draft),sha)
+        with self.store.transaction() as db:
+            db.execute('UPDATE preparation_steps SET result=? WHERE step=?',(json.dumps({'breakfast':[500],'lunch':[500],'dinner':[500]}),'menu_nutrition:'+sha))
+        with self.assertRaisesRegex(ValueError,'nutrition_budget_failed'):verify_menu_budget(self.store,draft)
+
     def test_origin_preserves_real_images_and_zero_replans_only_when_proven(self):
         from src.mina.rescue_origin import capture
         pre=self.origin_fixture();origin=capture(self.store,pre,OWNER,1,self.now)

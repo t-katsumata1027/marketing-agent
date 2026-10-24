@@ -171,3 +171,24 @@ def require_claim(db, request):
     if scope is None: return False
     scope.claim(db,request)
     return True
+
+
+def verify_menu_budget(store, draft):
+    """登録前に完了した食品別概算の原本を再利用。予定kcalだけで承認しない。"""
+    import math
+    from .preparation import fingerprint
+    slots=('breakfast','lunch','dinner')
+    inputs={'foods':{slot:draft['meals'][slot]['foods'] for slot in slots}}
+    sha=fingerprint(inputs)
+    with store.transaction() as db:
+        row=db.execute("SELECT state,result,digest FROM preparation_steps WHERE target_date=? AND step=?",
+                       (TARGET,'menu_nutrition:'+sha)).fetchone()
+    if not row or row['state']!='complete' or row['digest']!=fingerprint(inputs):
+        raise ValueError('rescue_menu_budget_origin_missing')
+    values=json.loads(row['result'])
+    if set(values)!=set(slots) or any(not isinstance(values[s],list) or len(values[s])!=len(inputs['foods'][s])
+            or any(type(v) not in (int,float) or not math.isfinite(v) or not 0<=v<=10000 for v in values[s]) for s in slots):
+        raise ValueError('rescue_menu_budget_origin_invalid')
+    if not 1800<=sum(sum(values[s]) for s in slots)<=2000:
+        raise ValueError('nutrition_budget_failed')
+    return sha
