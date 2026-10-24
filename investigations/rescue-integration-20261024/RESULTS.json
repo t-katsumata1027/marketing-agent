@@ -1,0 +1,52 @@
+{
+  "implementation_commit": "2bf89bc8169b178fac11fad46a54833ab6c060f3",
+  "artifact_fix_commit": "b185509558fc36d5b54e2c1d6b974db35173a4da",
+  "provider_commit": "48e5459de86130ea622a098bf1c316bb11836112",
+  "provider_schema_sha256": "1532cae8d201be23fbbee8ee1a8bd11d3740a527cf5a0e188734ff65b5c36082",
+  "windows_regression": {
+    "listed": 618,
+    "skipped": 51,
+    "passed": 567,
+    "seconds": 194.26
+  },
+  "ci": {
+    "run_id": 40048808303,
+    "head": "b185509558fc36d5b54e2c1d6b974db35173a4da",
+    "conclusion": "success",
+    "mina": {
+      "listed": 618,
+      "skipped": 51,
+      "passed": 567
+    },
+    "general_tests": 32
+  },
+  "independent": {
+    "conclusion": "Go",
+    "unit": 26,
+    "actual_http": 10,
+    "related_regression": 36,
+    "total": 72,
+    "seconds": 47.4,
+    "artifact_fix_regression": 7,
+    "scope": "Agent implementation and isolated acceptance only"
+  },
+  "release": {
+    "source_commit": "b185509558fc36d5b54e2c1d6b974db35173a4da",
+    "files": 312,
+    "activation_allowed": false
+  },
+  "production_deployed": false,
+  "production_writes": 0,
+  "paid_external_calls": 0,
+  "meals_registered": 0,
+  "meals_replaced": 0,
+  "posts_published": 0,
+  "body_changed_by_agent": false,
+  "next_gates": [
+    "provider_preview_success",
+    "both_sides_production_approval",
+    "L_R_absolute_deadlines_and_execution_approval",
+    "fresh_external_inventory",
+    "new_publication_approval"
+  ]
+}

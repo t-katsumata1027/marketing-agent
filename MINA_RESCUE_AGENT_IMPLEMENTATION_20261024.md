@@ -29,7 +29,7 @@ Agentは稼働f2119d4／受入6c43282系、配置文書ea77976を基点とし、
 
 追加SQLite台帳はrescue_collection_permits、rescue_collection_claims、rescue_jobs、rescue_requests、rescue_events、rescue_calls、rescue_uuid_registryの7表。通常要求／費用／公開hold台帳を共用する。既存行を移行で更新する処理はない。saved確定時だけ既存の承認失効・履歴保存を行う。
 
-本番配置前には実DBの私用コピーで既存全行hash・7表作成・再起動・切戻しを確認する。今回本番コピーを使う移行は未実施。新要求があれば旧コードへ戻して照会口を失わせず、新規操作OFF＋照会を残すrollforwardを原則とする。DB全体を巻き戻さない。
+本番DBの読取コピーで既存27表全行hash不変、追加7表、再構築不変、integrity okを確認し、コピーを削除済み。本番書込みは0。新要求を作った後の運用切戻しは別承認の本番手順で照合する。新要求があれば旧コードへ戻して照会口を失わせず、新規操作OFF＋照会を残すrollforwardを原則とする。DB全体を巻き戻さない。
 
 rescue_runtime.build_flowは専用のMINA_SAME_DAY_RESCUE_CONFIGと、両側固定版受入／独立レビュー／本番反映承認／当日実行承認artifactを実読取する。role・日・scope・両commit・Schema・判定とSHAを照合する。既存通常ONを救済ONへ転記しない。今回これらの本番artifactや設定は作成していない。
 
@@ -39,7 +39,7 @@ rescue_runtime.build_flowは専用のMINA_SAME_DAY_RESCUE_CONFIGと、両側固�
 
 実HTTPでP/実画像GET/独立点検/C、D終端、P/C応答喪失後の元UUID GET、取消、共通cooldown、saved OGP障害、OFF・再構築後の未発行OGP resume完了、旧P再照会でも完成済み保持を確認する。実render失敗の既発行工程はunknownとして再発行しない。
 
-最終の実行件数・固定head・独立判定・CIはinvestigations/rescue-integration-20261024へ記録する。途中で見つかった不足要求項目、要求hash規則の違い、保存再照会の失効、終端矛盾、版退行等を補修した。先行試験成功や設計Goを実装最終Goとして流用しない。
+最終証拠はinvestigations/rescue-integration-20261024へ記録。Windows618件（51skip、実行567成功）、独立72件と配布補修7件成功、CI40048808303両job成功（mina同618件、一般32件）、配布tar正式SHA一致。実行コードは2bf89bc、改行補修はb185509。途中で見つかった不足要求項目、要求hash規則の違い、保存再照会の失効、終端矛盾、版退行等を補修した。先行試験成功や設計Goを実装最終Goとして流用しない。
 
 ## 次の承認
 

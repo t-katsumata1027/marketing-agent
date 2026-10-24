@@ -1,0 +1,23 @@
+{
+  "checked_at": "2026-10-24T01:16:54.906807+00:00",
+  "source_access": "readonly_sqlite_backup_to_memory",
+  "production_writes": 0,
+  "private_existing_tables": 27,
+  "all_existing_rows_unchanged": true,
+  "new_tables": [
+    "rescue_calls",
+    "rescue_collection_claims",
+    "rescue_collection_permits",
+    "rescue_events",
+    "rescue_jobs",
+    "rescue_requests",
+    "rescue_uuid_registry"
+  ],
+  "reopen_unchanged": true,
+  "integrity_check": "ok",
+  "private_synthetic_reservation_count": 1,
+  "source_snapshot_sha256": "a927334c1aecedf54a581efc9d6a03be0a45bb11796faf69a9d29dc9d466bccb",
+  "full_database_retained": false,
+  "private_copy_cleanup_verified": true,
+  "cleanup_initially_blocked_then_closed": true
+}
