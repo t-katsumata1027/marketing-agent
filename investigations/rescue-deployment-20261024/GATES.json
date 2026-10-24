@@ -1,0 +1,48 @@
+{
+  "bundle_sha256": "24635f61437c9eae620f04f1e43a69445d4dc7ad0e34099a1682265b2cff4e3e",
+  "operator_sha256": "d815417b1373538f0fa4fd12b27fade7d3f27b65816483cfe10275c180c9d691",
+  "approved_scope": "Agent deployment, same-day rescue OFF; no business writes",
+  "agent": {
+    "head": "5dbc45bce2e49fb8f940b31075f304fb5a3292a3",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "mina",
+        "conclusion": "success"
+      },
+      {
+        "name": "test",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "provider": {
+    "head": "5001250ce852a35c8b2242c714f278da60000a32",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "preview-e2e-decision",
+        "conclusion": "success"
+      },
+      {
+        "name": "qa-foundation",
+        "conclusion": "success"
+      },
+      {
+        "name": "mina-operator-receipt",
+        "conclusion": "skipped"
+      },
+      {
+        "name": "preview-e2e",
+        "conclusion": "success"
+      },
+      {
+        "name": "manual-critical-approval-check",
+        "conclusion": "skipped"
+      }
+    ]
+  },
+  "operator_independent_review": "Go: d815417b1373538f0fa4fd12b27fade7d3f27b65816483cfe10275c180c9d691; 本番・外部処理なしの読取レビュー",
+  "first_local_attempt": "GitHub JSONをWindows既定cp932で読めず、リモート操作前に停止。UTF-8明示で補修して再照合。",
+  "prior_provider_failure_retained": "40047098435 failure。成功40059175879を別runとして記録。失敗を上書きしない。"
+}

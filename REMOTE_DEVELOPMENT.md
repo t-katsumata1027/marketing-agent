@@ -1,5 +1,10 @@
 # サブPCでの開発
 
+## 2026年10月24日13:39・当日限定救済Agentを本番配置、救済OFF
+
+本人の条件付き承認に基づき、最終CI40049695981と本体固定5001250の専用Preview40059175879成功を確認してAgent5dbc45bを配置。既存27表全行不変・追加7空台帳、実3サービス子プロセスで救済false、UTM/通常置換true保持。起動監査2件のみ追記、巡回失敗0、既存5timer active。食事登録/置換・実課金・投稿・Log-Eats本体変更は0。本体PR151本番導入、救済ON、当日L/Rは別承認。退避/var/lib/mina-agent/deployment-rescue-off-5dbc45b、旧コード/opt/marketing-agent-rollback-rescue-5dbc45b。詳細はMINA_RESCUE_AGENT_DEPLOYMENT_20261024.md。下記の未配置記述は以前の時点の記録。
+
+
 ## 2026年10月24日・当日限定救済のAgent実装（本番未配置）
 
 本人承認の実装・隔離検証・独立レビュー・PR作成範囲で、稼働f2119d4系を保持したL許可・mina-rescue-v1 adapter・専用台帳を追加。本体固定48e5459/Schema SHA1532cae8を参照し、本体変更・本番配置／有効化・実課金・食事登録／置換・投稿は行わない。詳細はMINA_RESCUE_AGENT_IMPLEMENTATION_20261024.md。独立最終判定・CIは専用証跡を参照し、先行設計Goと混同しない。
