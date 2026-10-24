@@ -1,5 +1,10 @@
 # サブPCでの開発
 
+## 2026年10月24日・当日限定救済のAgent実装（本番未配置）
+
+本人承認の実装・隔離検証・独立レビュー・PR作成範囲で、稼働f2119d4系を保持したL許可・mina-rescue-v1 adapter・専用台帳を追加。本体固定48e5459/Schema SHA1532cae8を参照し、本体変更・本番配置／有効化・実課金・食事登録／置換・投稿は行わない。詳細はMINA_RESCUE_AGENT_IMPLEMENTATION_20261024.md。独立最終判定・CIは専用証跡を参照し、先行設計Goと混同しない。
+
+
 ## 2026年10月24日08:38・Agent初回P補修の配置・有効化完了
 
 本人承認に基づきf2119d4（受入実装6c43282と同一の実行コード）を配置し、MINA_MEAL_REPLACEMENT_ENABLED=trueと専用設定/etc/marketing-agent-replacement/agent.jsonを反映。UTMと他の運用設定を保持。Linux対象80件・私用DB実構築・全状態全4ページの公開先照合を経て、切替後は業務25表/既存監査行不変、起動監査2件追記、3サービス/3タイマーactive・巡回失敗0。退避は/var/lib/mina-agent/deployment-initial-f2119d4-r2、旧コードは/opt/marketing-agent-rollback-initial-f2119d4。Instagram draft4件の停止条件を維持し、実置換・投稿・過去日救済・期限延長は行っていない。詳細と設定読取失敗からの復帰経緯はMINA_AGENT_REPLACEMENT_ACTIVATION_20261024.md。

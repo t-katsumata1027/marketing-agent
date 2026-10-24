@@ -42,6 +42,8 @@ class ReplacementJournal:
             self._owned(db, row)
             if db.execute("SELECT 1 FROM sqlite_master WHERE name='mina_requests'").fetchone() and db.execute('SELECT 1 FROM mina_requests WHERE request_key=?',(key,)).fetchone():
                 raise ValueError('replacement_uuid_m1_collision')
+            from .rescue_storage import reject_reserved_uuid
+            reject_reserved_uuid(db,key)
             previous = db.execute('SELECT * FROM meal_replacement_requests WHERE request_key=?', (key,)).fetchone()
             binding = (operation,target,slot,hold_epoch,owner,body,digest)
             if previous:

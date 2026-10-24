@@ -1,0 +1,2842 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:logeats:mina-rescue:proposal:v1:20261024",
+  "title": "10月24日朝食だけの限定救済契約案（未実装）",
+  "description": "旧契約の固定型を複製し救済だけを追加。動的検証・HTTP状態表・DDLは同階層PLANを併読。",
+  "x-base-schema-sha256": "4f8d2be8f47a741ff8578a25c29bd6422cf88ebd817f8450339eaee76216f6e2",
+  "$ref": "#/$defs/AnyResponse",
+  "$defs": {
+    "UUID": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "Time": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    },
+    "Date": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "Slot": {
+      "enum": [
+        "breakfast",
+        "lunch",
+        "dinner"
+      ]
+    },
+    "ShareURL": {
+      "type": "string",
+      "pattern": "^https://www\\.log-eats\\.com/(s/[a-z0-9_-]+|share/[A-Za-z0-9-]+|share/daily/[A-Za-z0-9-]+)$"
+    },
+    "SHA": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "SV": {
+      "type": "string",
+      "pattern": "^sv1_[a-f0-9]{64}$"
+    },
+    "RV": {
+      "type": "string",
+      "pattern": "^rv1_[a-f0-9]{64}$"
+    },
+    "CV": {
+      "type": "string",
+      "pattern": "^cv1_[a-f0-9]{64}$"
+    },
+    "AD": {
+      "type": "string",
+      "pattern": "^ad1_[a-f0-9]{64}$"
+    },
+    "IH": {
+      "type": "string",
+      "pattern": "^ih1_[a-f0-9]{64}$"
+    },
+    "PC": {
+      "type": "string",
+      "pattern": "^pc1_[a-f0-9]{64}$"
+    },
+    "Generation": {
+      "type": "string",
+      "pattern": "^gn1_[a-f0-9]{64}$"
+    },
+    "Food": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "amount",
+        "calories",
+        "protein",
+        "fat",
+        "carbs"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "amount": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "calories": {
+          "type": "number",
+          "minimum": 0
+        },
+        "protein": {
+          "type": "number",
+          "minimum": 0
+        },
+        "fat": {
+          "type": "number",
+          "minimum": 0
+        },
+        "carbs": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "Summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "totalCalories",
+        "totalProtein",
+        "totalFat",
+        "totalCarbs"
+      ],
+      "properties": {
+        "totalCalories": {
+          "type": "number",
+          "minimum": 0
+        },
+        "totalProtein": {
+          "type": "number",
+          "minimum": 0
+        },
+        "totalFat": {
+          "type": "number",
+          "minimum": 0
+        },
+        "totalCarbs": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "Quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "atwater_calories",
+        "calorie_difference",
+        "calorie_difference_ratio",
+        "warnings"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "pass",
+            "review_required"
+          ]
+        },
+        "atwater_calories": {
+          "type": "number",
+          "minimum": 0
+        },
+        "calorie_difference": {
+          "type": "number",
+          "minimum": 0
+        },
+        "calorie_difference_ratio": {
+          "type": "number",
+          "minimum": 0
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "enum": [
+                  "ambiguous_analysis",
+                  "invalid_nutrition_value",
+                  "calorie_pfc_mismatch",
+                  "meal_calories_out_of_range",
+                  "macro_out_of_range",
+                  "food_calories_out_of_range"
+                ]
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          },
+          "minItems": 0,
+          "maxItems": 20
+        }
+      }
+    },
+    "Expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_date",
+        "target_slot",
+        "target_share_url",
+        "state_version",
+        "target_result_version",
+        "account_generation",
+        "day_generation",
+        "meal_generation"
+      ],
+      "properties": {
+        "target_date": {
+          "$ref": "#/$defs/Date"
+        },
+        "target_slot": {
+          "$ref": "#/$defs/Slot"
+        },
+        "target_share_url": {
+          "$ref": "#/$defs/ShareURL"
+        },
+        "state_version": {
+          "$ref": "#/$defs/SV"
+        },
+        "target_result_version": {
+          "$ref": "#/$defs/RV"
+        },
+        "account_generation": {
+          "$ref": "#/$defs/Generation"
+        },
+        "day_generation": {
+          "$ref": "#/$defs/Generation"
+        },
+        "meal_generation": {
+          "$ref": "#/$defs/Generation"
+        }
+      }
+    },
+    "Analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "spec",
+        "analyzer_spec",
+        "quality_spec",
+        "foods",
+        "summary",
+        "is_ambiguous",
+        "quality",
+        "analysis_source"
+      ],
+      "properties": {
+        "spec": {
+          "const": "mina-candidate-analysis-v1"
+        },
+        "analyzer_spec": {
+          "type": "string"
+        },
+        "quality_spec": {
+          "type": "string"
+        },
+        "foods": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Food"
+          },
+          "minItems": 0
+        },
+        "summary": {
+          "$ref": "#/$defs/Summary"
+        },
+        "is_ambiguous": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "analysis_source": {
+          "enum": [
+            "candidate_analysis",
+            "stored_canonical"
+          ]
+        }
+      }
+    },
+    "Freshness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "read_started_at",
+        "checked_at",
+        "valid_until",
+        "complete"
+      ],
+      "properties": {
+        "read_started_at": {
+          "$ref": "#/$defs/Time"
+        },
+        "checked_at": {
+          "$ref": "#/$defs/Time"
+        },
+        "valid_until": {
+          "$ref": "#/$defs/Time"
+        },
+        "complete": {
+          "const": true
+        }
+      }
+    },
+    "Image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mime",
+        "sha256",
+        "byte_length",
+        "authenticated_path"
+      ],
+      "properties": {
+        "mime": {
+          "enum": [
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+          ]
+        },
+        "sha256": {
+          "$ref": "#/$defs/SHA"
+        },
+        "byte_length": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4194304
+        },
+        "authenticated_path": {
+          "type": "string",
+          "pattern": "^/api/internal/mina/meal-rescue-candidates/[0-9a-f-]{36}/images/(original|stored)$"
+        }
+      }
+    },
+    "Policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_version",
+        "budget_policy_digest",
+        "budget_configured",
+        "existing_preparation_deadline_verified",
+        "max_replans",
+        "daily_analysis_limit",
+        "hard_deadline_at",
+        "used_replan_ordinals",
+        "available_replans",
+        "blocking_reasons"
+      ],
+      "properties": {
+        "policy_version": {
+          "type": "string"
+        },
+        "budget_policy_digest": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SHA"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "budget_configured": {
+          "type": "boolean"
+        },
+        "existing_preparation_deadline_verified": {
+          "type": "boolean"
+        },
+        "max_replans": {
+          "const": 2
+        },
+        "daily_analysis_limit": {
+          "const": 60
+        },
+        "hard_deadline_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "used_replan_ordinals": {
+          "type": "array",
+          "items": {
+            "enum": [
+              1,
+              2
+            ]
+          },
+          "minItems": 0,
+          "maxItems": 2
+        },
+        "available_replans": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "blocking_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 0,
+          "maxItems": 20
+        },
+        "cost_control": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "approval_reference_digest"
+          ],
+          "properties": {
+            "mode": {
+              "const": "waived"
+            },
+            "approval_reference_digest": {
+              "$ref": "#/$defs/SHA"
+            }
+          }
+        },
+        "analysis_provider": {
+          "const": "gemini"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "cost_control"
+            ]
+          },
+          "then": {
+            "properties": {
+              "budget_configured": {
+                "const": false
+              },
+              "budget_policy_digest": {
+                "$ref": "#/$defs/SHA"
+              },
+              "policy_version": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Migration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receipt_digest",
+        "prior_consumed_ordinals",
+        "attempt_ordinal",
+        "agent_step_key",
+        "first_replan_started_at",
+        "existing_preparation_deadline_at",
+        "policy_version",
+        "budget_policy_digest",
+        "fee_reservation_digest"
+      ],
+      "properties": {
+        "receipt_digest": {
+          "$ref": "#/$defs/SHA"
+        },
+        "prior_consumed_ordinals": {
+          "type": "array",
+          "items": {
+            "enum": [
+              1,
+              2
+            ]
+          },
+          "minItems": 0,
+          "maxItems": 2
+        },
+        "attempt_ordinal": {
+          "enum": [
+            1,
+            2
+          ]
+        },
+        "agent_step_key": {
+          "type": "string",
+          "pattern": "^meal_replan:(breakfast|lunch|dinner):[12]$"
+        },
+        "first_replan_started_at": {
+          "$ref": "#/$defs/Time"
+        },
+        "existing_preparation_deadline_at": {
+          "$ref": "#/$defs/Time"
+        },
+        "policy_version": {
+          "type": "string"
+        },
+        "budget_policy_digest": {
+          "$ref": "#/$defs/SHA"
+        },
+        "fee_reservation_digest": {
+          "$ref": "#/$defs/SHA"
+        }
+      }
+    },
+    "Hold": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hold_epoch",
+        "pause_receipt_digest",
+        "provider_check_digest",
+        "provider_checked_at"
+      ],
+      "properties": {
+        "hold_epoch": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pause_receipt_digest": {
+          "$ref": "#/$defs/SHA"
+        },
+        "provider_check_digest": {
+          "$ref": "#/$defs/SHA"
+        },
+        "provider_checked_at": {
+          "$ref": "#/$defs/Time"
+        }
+      }
+    },
+    "Candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prepare_uuid",
+        "candidate_state",
+        "candidate_version",
+        "control_revision",
+        "prepared_preconditions",
+        "precondition_digest",
+        "analysis",
+        "analysis_digest",
+        "normalized_comment",
+        "original",
+        "stored",
+        "policy_version",
+        "attempt_ordinal",
+        "hard_deadline_at",
+        "candidate_expires_at",
+        "effective_usable",
+        "last_control_request_uuid",
+        "commit_request_uuid",
+        "prepared_publication_hold",
+        "rescue"
+      ],
+      "properties": {
+        "prepare_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "candidate_state": {
+          "enum": [
+            "processing",
+            "ready",
+            "rejected",
+            "reconciliation_required",
+            "discarded",
+            "expired",
+            "consumed"
+          ]
+        },
+        "candidate_version": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CV"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "control_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "prepared_preconditions": {
+          "$ref": "#/$defs/Expected"
+        },
+        "precondition_digest": {
+          "$ref": "#/$defs/PC"
+        },
+        "analysis": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Analysis"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "analysis_digest": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AD"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "normalized_comment": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "original": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Image"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "stored": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Image"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "policy_version": {
+          "type": "string"
+        },
+        "attempt_ordinal": {
+          "enum": [
+            1,
+            2
+          ]
+        },
+        "hard_deadline_at": {
+          "$ref": "#/$defs/Time"
+        },
+        "candidate_expires_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "effective_usable": {
+          "type": "boolean"
+        },
+        "last_control_request_uuid": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UUID"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "commit_request_uuid": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UUID"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "prepared_publication_hold": {
+          "$ref": "#/$defs/Hold"
+        },
+        "rescue": {
+          "$ref": "#/$defs/RescueRef"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "candidate_state": {
+                "const": "ready"
+              }
+            },
+            "required": [
+              "candidate_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "candidate_version": {
+                "$ref": "#/$defs/CV"
+              },
+              "analysis": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/Analysis"
+                  },
+                  {
+                    "properties": {
+                      "analysis_source": {
+                        "const": "candidate_analysis"
+                      },
+                      "is_ambiguous": {
+                        "const": false
+                      },
+                      "foods": {
+                        "minItems": 1,
+                        "maxItems": 20
+                      },
+                      "quality": {
+                        "properties": {
+                          "status": {
+                            "const": "pass"
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "analysis_digest": {
+                "$ref": "#/$defs/AD"
+              },
+              "original": {
+                "$ref": "#/$defs/Image"
+              },
+              "stored": {
+                "$ref": "#/$defs/Image"
+              },
+              "candidate_expires_at": {
+                "$ref": "#/$defs/Time"
+              },
+              "control_revision": {
+                "minimum": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "effective_usable": {
+                "const": true
+              }
+            },
+            "required": [
+              "effective_usable"
+            ]
+          },
+          "then": {
+            "properties": {
+              "candidate_state": {
+                "const": "ready"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Reason": {
+      "enum": [
+        "input_invalid",
+        "operation_invalid",
+        "image_missing",
+        "image_type_invalid",
+        "image_size_invalid",
+        "image_hash_mismatch",
+        "candidate_version_required",
+        "candidate_version_mismatch",
+        "candidate_not_found",
+        "request_not_found",
+        "precondition_invalid",
+        "candidate_preconditions_mismatch",
+        "state_conflict",
+        "generation_conflict",
+        "day_composition_invalid",
+        "target_not_found",
+        "share_inactive",
+        "state_record_invalid",
+        "response_too_large",
+        "candidate_busy",
+        "candidate_not_ready",
+        "candidate_expired",
+        "candidate_already_consumed",
+        "analysis_failed",
+        "quality_review_required",
+        "image_store_failed",
+        "image_integrity_failed",
+        "candidate_integrity_invalid",
+        "independent_review_required",
+        "evidence_mismatch",
+        "nutrition_budget_failed",
+        "publication_pause_required",
+        "publication_epoch_mismatch",
+        "external_dispatch_unverified",
+        "migration_unverified",
+        "attempt_already_used",
+        "replan_limit_exceeded",
+        "deadline_unverified",
+        "deadline_exceeded",
+        "budget_unconfigured",
+        "budget_exceeded",
+        "quota_exceeded",
+        "duplicate_request_same_input",
+        "duplicate_request_different_input",
+        "commit_outcome_unknown",
+        "discard_outcome_unknown",
+        "prepare_outcome_unknown",
+        "read_failed",
+        "transaction_aborted",
+        "source_changed",
+        "og_image_preparation_failed",
+        "service_unavailable",
+        "analysis_provider_unconfigured",
+        "replacement_cooldown",
+        "replacement_guard_unavailable",
+        "replacement_recovery_required",
+        "rescue_authorization_required",
+        "rescue_authorization_conflict",
+        "rescue_window_expired",
+        "rescue_case_closed",
+        "rescue_reconciliation_required",
+        "rescue_source_unverified"
+      ]
+    },
+    "ControlRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_uuid",
+        "operation",
+        "input_hash",
+        "outcome",
+        "stage",
+        "reason",
+        "discard_input"
+      ],
+      "properties": {
+        "request_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "operation": {
+          "enum": [
+            "candidate_prepare",
+            "candidate_discard",
+            "replacement_resume"
+          ]
+        },
+        "input_hash": {
+          "$ref": "#/$defs/IH"
+        },
+        "outcome": {
+          "enum": [
+            "processing",
+            "applied",
+            "rejected",
+            "unknown"
+          ]
+        },
+        "stage": {
+          "enum": [
+            "precheck",
+            "reserved",
+            "analysis",
+            "quality",
+            "image_store",
+            "ready",
+            "discard",
+            "discarded",
+            "reconciliation_required",
+            "paused",
+            "completed"
+          ]
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reason"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "discard_input": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiscardInput"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cooldown": {
+          "$ref": "#/$defs/Cooldown"
+        },
+        "original_request_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "quota_claimed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "CommitRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_uuid",
+        "operation",
+        "input_hash",
+        "status",
+        "persistence",
+        "stage",
+        "reason"
+      ],
+      "properties": {
+        "request_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "operation": {
+          "const": "meal_replace"
+        },
+        "input_hash": {
+          "$ref": "#/$defs/IH"
+        },
+        "status": {
+          "enum": [
+            "processing",
+            "succeeded",
+            "failed",
+            "reconciliation_required"
+          ]
+        },
+        "persistence": {
+          "enum": [
+            "not_saved",
+            "saved",
+            "unknown"
+          ]
+        },
+        "stage": {
+          "enum": [
+            "precheck",
+            "reserved",
+            "save_check",
+            "save",
+            "saved",
+            "ogp_preparing",
+            "ogp_failed",
+            "ogp_source_check",
+            "completed",
+            "paused"
+          ]
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reason"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cooldown": {
+          "$ref": "#/$defs/Cooldown"
+        },
+        "saved_at": {
+          "$ref": "#/$defs/Time"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "succeeded"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "persistence": {
+                "const": "saved"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "NutritionCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "precondition_digest",
+        "candidate_analysis_digest",
+        "other_meals_analysis_digests",
+        "other_meals_total_calories",
+        "candidate_total_calories",
+        "total_calories",
+        "min_calories",
+        "max_calories",
+        "checked_at",
+        "evidence_digest"
+      ],
+      "properties": {
+        "precondition_digest": {
+          "$ref": "#/$defs/PC"
+        },
+        "candidate_analysis_digest": {
+          "$ref": "#/$defs/AD"
+        },
+        "other_meals_analysis_digests": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AD"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "other_meals_total_calories": {
+          "type": "number",
+          "minimum": 0
+        },
+        "candidate_total_calories": {
+          "type": "number",
+          "minimum": 0
+        },
+        "total_calories": {
+          "type": "number",
+          "minimum": 1800,
+          "maximum": 2000
+        },
+        "min_calories": {
+          "const": 1800
+        },
+        "max_calories": {
+          "const": 2000
+        },
+        "checked_at": {
+          "$ref": "#/$defs/Time"
+        },
+        "evidence_digest": {
+          "$ref": "#/$defs/SHA"
+        }
+      }
+    },
+    "PrepareInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "request_uuid",
+        "expected",
+        "precondition_digest",
+        "input_image_sha256",
+        "original_mime",
+        "normalized_comment",
+        "reason",
+        "publication_hold",
+        "rescue",
+        "attempt_ordinal"
+      ],
+      "properties": {
+        "contract_version": {
+          "const": "mina-rescue-v1"
+        },
+        "request_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "expected": {
+          "$ref": "#/$defs/Expected"
+        },
+        "precondition_digest": {
+          "$ref": "#/$defs/PC"
+        },
+        "input_image_sha256": {
+          "$ref": "#/$defs/SHA"
+        },
+        "original_mime": {
+          "enum": [
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+          ]
+        },
+        "normalized_comment": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "reason": {
+          "const": "menu_replan_after_quality_hold"
+        },
+        "publication_hold": {
+          "$ref": "#/$defs/Hold"
+        },
+        "rescue": {
+          "$ref": "#/$defs/RescueRef"
+        },
+        "attempt_ordinal": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2
+        }
+      }
+    },
+    "DiscardInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "request_uuid",
+        "prepare_uuid",
+        "candidate_version",
+        "analysis_digest",
+        "expected_control_revision",
+        "reason",
+        "review_evidence_digest",
+        "review",
+        "rescue"
+      ],
+      "properties": {
+        "contract_version": {
+          "const": "mina-rescue-v1"
+        },
+        "request_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "prepare_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "candidate_version": {
+          "$ref": "#/$defs/CV"
+        },
+        "analysis_digest": {
+          "$ref": "#/$defs/AD"
+        },
+        "expected_control_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reason": {
+          "enum": [
+            "independent_review_failed",
+            "nutrition_budget_failed",
+            "operator_declined"
+          ]
+        },
+        "review_evidence_digest": {
+          "$ref": "#/$defs/SHA"
+        },
+        "review": {
+          "$ref": "#/$defs/DiscardReview"
+        },
+        "rescue": {
+          "$ref": "#/$defs/RescueRef"
+        }
+      }
+    },
+    "CommitInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "request_uuid",
+        "prepare_uuid",
+        "candidate_version",
+        "analysis_digest",
+        "input_image_sha256",
+        "expected_control_revision",
+        "expected",
+        "precondition_digest",
+        "publication_hold",
+        "review_evidence_digest",
+        "drive_evidence_digest",
+        "nutrition_check",
+        "review",
+        "drive_check",
+        "rescue"
+      ],
+      "properties": {
+        "contract_version": {
+          "const": "mina-rescue-v1"
+        },
+        "request_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "prepare_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "candidate_version": {
+          "$ref": "#/$defs/CV"
+        },
+        "analysis_digest": {
+          "$ref": "#/$defs/AD"
+        },
+        "input_image_sha256": {
+          "$ref": "#/$defs/SHA"
+        },
+        "expected_control_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "expected": {
+          "$ref": "#/$defs/Expected"
+        },
+        "precondition_digest": {
+          "$ref": "#/$defs/PC"
+        },
+        "publication_hold": {
+          "$ref": "#/$defs/Hold"
+        },
+        "review_evidence_digest": {
+          "$ref": "#/$defs/SHA"
+        },
+        "drive_evidence_digest": {
+          "$ref": "#/$defs/SHA"
+        },
+        "nutrition_check": {
+          "$ref": "#/$defs/NutritionCheck"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "drive_check": {
+          "$ref": "#/$defs/DriveCheck"
+        },
+        "rescue": {
+          "$ref": "#/$defs/RescueRef"
+        }
+      }
+    },
+    "Hidden": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "error"
+      ],
+      "properties": {
+        "error": {
+          "const": "Not found"
+        }
+      }
+    },
+    "Ogp": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "revision",
+        "image_sha256",
+        "source_result_version",
+        "image_url",
+        "expires_at"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "ready",
+            "preparing",
+            "failed",
+            "missing",
+            "pending"
+          ]
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "image_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SHA"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_result_version": {
+          "$ref": "#/$defs/RV"
+        },
+        "image_url": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "DailyOgp": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "revision",
+        "image_sha256",
+        "image_url",
+        "expires_at",
+        "source_state_version"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "ready",
+            "preparing",
+            "failed",
+            "missing",
+            "pending"
+          ]
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "image_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SHA"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "image_url": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_state_version": {
+          "$ref": "#/$defs/SV"
+        }
+      }
+    },
+    "X": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "intent_url",
+        "fixed_text",
+        "publish_text"
+      ],
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "intent_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "fixed_text": {
+          "type": "string"
+        },
+        "publish_text": {
+          "type": "string"
+        }
+      }
+    },
+    "MealResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "normalized_comment",
+        "image_sha256",
+        "stored_image_sha256",
+        "analysis",
+        "meal",
+        "quality",
+        "share",
+        "x",
+        "result_version",
+        "ogp"
+      ],
+      "properties": {
+        "normalized_comment": {
+          "type": "string"
+        },
+        "image_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SHA"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "stored_image_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SHA"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "analysis": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "foods",
+            "summary",
+            "is_ambiguous"
+          ],
+          "properties": {
+            "foods": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Food"
+              },
+              "minItems": 1,
+              "maxItems": 20
+            },
+            "summary": {
+              "$ref": "#/$defs/Summary"
+            },
+            "is_ambiguous": {
+              "type": "boolean"
+            }
+          }
+        },
+        "meal": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "meal_type",
+            "logged_at"
+          ],
+          "properties": {
+            "meal_type": {
+              "$ref": "#/$defs/Slot"
+            },
+            "logged_at": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Time"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "share": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "url"
+              ],
+              "properties": {
+                "url": {
+                  "$ref": "#/$defs/ShareURL"
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "x": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/X"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "result_version": {
+          "$ref": "#/$defs/RV"
+        },
+        "ogp": {
+          "$ref": "#/$defs/Ogp"
+        }
+      }
+    },
+    "DailyResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "normalized_comment",
+        "date",
+        "meal_count",
+        "summary",
+        "share",
+        "x",
+        "result_version",
+        "source_state_version",
+        "ogp"
+      ],
+      "properties": {
+        "normalized_comment": {
+          "type": "string"
+        },
+        "date": {
+          "$ref": "#/$defs/Date"
+        },
+        "meal_count": {
+          "const": 3
+        },
+        "summary": {
+          "$ref": "#/$defs/Summary"
+        },
+        "share": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "url"
+          ],
+          "properties": {
+            "url": {
+              "$ref": "#/$defs/ShareURL"
+            }
+          }
+        },
+        "x": {
+          "$ref": "#/$defs/X"
+        },
+        "result_version": {
+          "$ref": "#/$defs/RV"
+        },
+        "source_state_version": {
+          "$ref": "#/$defs/SV"
+        },
+        "ogp": {
+          "$ref": "#/$defs/DailyOgp"
+        }
+      }
+    },
+    "PreconditionMeal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expected",
+        "precondition_digest",
+        "analysis",
+        "analysis_digest",
+        "image_sha256",
+        "stored_image_sha256",
+        "share_status"
+      ],
+      "properties": {
+        "expected": {
+          "$ref": "#/$defs/Expected"
+        },
+        "precondition_digest": {
+          "$ref": "#/$defs/PC"
+        },
+        "analysis": {
+          "$ref": "#/$defs/Analysis"
+        },
+        "analysis_digest": {
+          "$ref": "#/$defs/AD"
+        },
+        "image_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SHA"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "stored_image_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SHA"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "share_status": {
+          "enum": [
+            "active",
+            "inactive",
+            "expired"
+          ]
+        }
+      }
+    },
+    "PreconditionResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "date",
+        "state_version",
+        "meals",
+        "summary",
+        "daily_share",
+        "policy",
+        "freshness",
+        "rescue_case"
+      ],
+      "properties": {
+        "contract_version": {
+          "const": "mina-rescue-v1"
+        },
+        "date": {
+          "$ref": "#/$defs/Date"
+        },
+        "state_version": {
+          "$ref": "#/$defs/SV"
+        },
+        "meals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PreconditionMeal"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "summary": {
+          "$ref": "#/$defs/Summary"
+        },
+        "daily_share": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "result_version",
+                "share_url",
+                "status"
+              ],
+              "properties": {
+                "result_version": {
+                  "$ref": "#/$defs/RV"
+                },
+                "share_url": {
+                  "$ref": "#/$defs/ShareURL"
+                },
+                "status": {
+                  "enum": [
+                    "active",
+                    "inactive",
+                    "expired"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "policy": {
+          "$ref": "#/$defs/Policy"
+        },
+        "freshness": {
+          "$ref": "#/$defs/Freshness"
+        },
+        "circuit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Circuit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rescue_case": {
+          "$ref": "#/$defs/Case"
+        }
+      }
+    },
+    "CandidateResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "request",
+        "candidate",
+        "freshness",
+        "reason",
+        "rescue_case"
+      ],
+      "properties": {
+        "contract_version": {
+          "const": "mina-rescue-v1"
+        },
+        "request": {
+          "$ref": "#/$defs/ControlRequest"
+        },
+        "candidate": {
+          "$ref": "#/$defs/Candidate"
+        },
+        "freshness": {
+          "$ref": "#/$defs/Freshness"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reason"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cooldown": {
+          "$ref": "#/$defs/Cooldown"
+        },
+        "resume_stage_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rescue_case": {
+          "$ref": "#/$defs/Case"
+        }
+      }
+    },
+    "ControlLookupResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "request",
+        "candidate",
+        "freshness",
+        "reason",
+        "rescue_case"
+      ],
+      "properties": {
+        "contract_version": {
+          "const": "mina-rescue-v1"
+        },
+        "request": {
+          "$ref": "#/$defs/ControlRequest"
+        },
+        "candidate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Candidate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "freshness": {
+          "$ref": "#/$defs/Freshness"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reason"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cooldown": {
+          "$ref": "#/$defs/Cooldown"
+        },
+        "resume_stage_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rescue_case": {
+          "$ref": "#/$defs/Case"
+        }
+      }
+    },
+    "CommitResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "request",
+        "reason",
+        "result_status",
+        "result_hold_reason",
+        "current_state_version",
+        "result",
+        "current_result",
+        "affected_daily_result",
+        "current_daily_result",
+        "freshness",
+        "rescue_case"
+      ],
+      "properties": {
+        "contract_version": {
+          "const": "mina-rescue-v1"
+        },
+        "request": {
+          "$ref": "#/$defs/CommitRequest"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reason"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "result_status": {
+          "enum": [
+            "unchanged",
+            "modified",
+            "deleted",
+            "unresolved"
+          ]
+        },
+        "result_hold_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "current_state_version": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SV"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "result": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MealResult"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "current_result": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MealResult"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "affected_daily_result": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DailyResult"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "current_daily_result": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DailyResult"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "freshness": {
+          "$ref": "#/$defs/Freshness"
+        },
+        "cooldown": {
+          "$ref": "#/$defs/Cooldown"
+        },
+        "resume_stage_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rescue_case": {
+          "$ref": "#/$defs/Case"
+        }
+      }
+    },
+    "Error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "error",
+        "reason",
+        "read_outcome",
+        "request",
+        "candidate",
+        "complete",
+        "checked_at",
+        "rescue_case"
+      ],
+      "properties": {
+        "contract_version": {
+          "const": "mina-rescue-v1"
+        },
+        "error": {
+          "type": "string"
+        },
+        "reason": {
+          "$ref": "#/$defs/Reason"
+        },
+        "read_outcome": {
+          "enum": [
+            "rejected",
+            "unknown"
+          ]
+        },
+        "request": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ControlRequest"
+            },
+            {
+              "$ref": "#/$defs/CommitRequest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "candidate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Candidate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complete": {
+          "const": false
+        },
+        "checked_at": {
+          "$ref": "#/$defs/Time"
+        },
+        "cooldown": {
+          "$ref": "#/$defs/Cooldown"
+        },
+        "resume_stage_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rescue_case": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Case"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "AnyResponse": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Hidden"
+        },
+        {
+          "$ref": "#/$defs/CaseResponse"
+        },
+        {
+          "$ref": "#/$defs/CandidateResponse"
+        },
+        {
+          "$ref": "#/$defs/ControlLookupResponse"
+        },
+        {
+          "$ref": "#/$defs/CommitResponse"
+        },
+        {
+          "$ref": "#/$defs/ResumeResponse"
+        },
+        {
+          "$ref": "#/$defs/PreconditionResponse"
+        },
+        {
+          "$ref": "#/$defs/Error"
+        }
+      ]
+    },
+    "PreconditionQuery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "date"
+      ],
+      "properties": {
+        "date": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "CandidateLookup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prepare_uuid"
+      ],
+      "properties": {
+        "prepare_uuid": {
+          "$ref": "#/$defs/UUID"
+        }
+      }
+    },
+    "ControlLookup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_uuid",
+        "operation"
+      ],
+      "properties": {
+        "request_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "operation": {
+          "enum": [
+            "candidate_prepare",
+            "candidate_discard"
+          ]
+        }
+      }
+    },
+    "CommitLookup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_uuid",
+        "operation"
+      ],
+      "properties": {
+        "request_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "operation": {
+          "const": "meal_replace"
+        }
+      }
+    },
+    "Review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_version",
+        "analysis_digest",
+        "original_sha256",
+        "stored_sha256",
+        "reviewer_role",
+        "review_method",
+        "reviewed_at",
+        "verdict"
+      ],
+      "properties": {
+        "candidate_version": {
+          "$ref": "#/$defs/CV"
+        },
+        "analysis_digest": {
+          "$ref": "#/$defs/AD"
+        },
+        "original_sha256": {
+          "$ref": "#/$defs/SHA"
+        },
+        "stored_sha256": {
+          "$ref": "#/$defs/SHA"
+        },
+        "reviewer_role": {
+          "const": "independent_reviewer"
+        },
+        "review_method": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "reviewed_at": {
+          "$ref": "#/$defs/Time"
+        },
+        "verdict": {
+          "const": "pass"
+        }
+      }
+    },
+    "DriveCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_version",
+        "original_sha256",
+        "original_download_sha256",
+        "previous_original_sha256",
+        "previous_download_sha256",
+        "checked_at",
+        "verdict"
+      ],
+      "properties": {
+        "candidate_version": {
+          "$ref": "#/$defs/CV"
+        },
+        "original_sha256": {
+          "$ref": "#/$defs/SHA"
+        },
+        "original_download_sha256": {
+          "$ref": "#/$defs/SHA"
+        },
+        "previous_original_sha256": {
+          "$ref": "#/$defs/SHA"
+        },
+        "previous_download_sha256": {
+          "$ref": "#/$defs/SHA"
+        },
+        "checked_at": {
+          "$ref": "#/$defs/Time"
+        },
+        "verdict": {
+          "const": "pass"
+        }
+      }
+    },
+    "BinaryHeaders": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "Content-Type",
+        "Content-Length",
+        "Content-Digest",
+        "X-Mina-Candidate-Version",
+        "X-Mina-Image-SHA256",
+        "X-Mina-Complete",
+        "X-Mina-Checked-At",
+        "X-Mina-Valid-Until",
+        "Cache-Control"
+      ],
+      "properties": {
+        "Content-Type": {
+          "enum": [
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+          ]
+        },
+        "Content-Length": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*$"
+        },
+        "Content-Digest": {
+          "type": "string",
+          "pattern": "^sha-256=:[A-Za-z0-9+/]{43}=:$"
+        },
+        "X-Mina-Candidate-Version": {
+          "$ref": "#/$defs/CV"
+        },
+        "X-Mina-Image-SHA256": {
+          "$ref": "#/$defs/SHA"
+        },
+        "X-Mina-Complete": {
+          "const": "true"
+        },
+        "X-Mina-Checked-At": {
+          "$ref": "#/$defs/Time"
+        },
+        "X-Mina-Valid-Until": {
+          "$ref": "#/$defs/Time"
+        },
+        "Cache-Control": {
+          "const": "no-store"
+        }
+      }
+    },
+    "DiscardReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_version",
+        "analysis_digest",
+        "original_sha256",
+        "stored_sha256",
+        "reviewer_role",
+        "reviewed_at",
+        "verdict",
+        "observations"
+      ],
+      "properties": {
+        "candidate_version": {
+          "$ref": "#/$defs/CV"
+        },
+        "analysis_digest": {
+          "$ref": "#/$defs/AD"
+        },
+        "original_sha256": {
+          "$ref": "#/$defs/SHA"
+        },
+        "stored_sha256": {
+          "$ref": "#/$defs/SHA"
+        },
+        "reviewer_role": {
+          "enum": [
+            "independent_reviewer",
+            "operator"
+          ]
+        },
+        "reviewed_at": {
+          "$ref": "#/$defs/Time"
+        },
+        "verdict": {
+          "enum": [
+            "fail",
+            "declined"
+          ]
+        },
+        "observations": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "image_analysis_mismatch",
+              "nutrition_budget_failed",
+              "operator_declined"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 3
+        }
+      }
+    },
+    "Cooldown": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope",
+        "retry_at",
+        "trigger",
+        "mutation_started",
+        "recovery_required"
+      ],
+      "properties": {
+        "scope": {
+          "const": "mina_saved_meal_replacement"
+        },
+        "retry_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "trigger": {
+          "enum": [
+            "request_rate",
+            "external_failures",
+            "probe_pending"
+          ]
+        },
+        "mutation_started": {
+          "const": false
+        },
+        "recovery_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Circuit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "generation",
+        "retry_at",
+        "recovery_required",
+        "trigger"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "closed",
+            "open",
+            "half_open"
+          ]
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "retry_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "recovery_required": {
+          "type": "boolean"
+        },
+        "trigger": {
+          "anyOf": [
+            {
+              "enum": [
+                "request_rate",
+                "external_failures",
+                "probe_pending"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "ResumeInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_uuid",
+        "original_request_uuid",
+        "expected_stage_version",
+        "expected_input_sha256",
+        "policy_version",
+        "budget_policy_digest",
+        "publication_hold",
+        "rescue",
+        "contract_version"
+      ],
+      "properties": {
+        "request_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "original_request_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "expected_stage_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expected_input_sha256": {
+          "$ref": "#/$defs/SHA"
+        },
+        "policy_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "budget_policy_digest": {
+          "$ref": "#/$defs/SHA"
+        },
+        "publication_hold": {
+          "$ref": "#/$defs/Hold"
+        },
+        "rescue": {
+          "$ref": "#/$defs/RescueRef"
+        },
+        "contract_version": {
+          "const": "mina-rescue-v1"
+        }
+      }
+    },
+    "ResumeResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "request",
+        "candidate",
+        "freshness",
+        "reason",
+        "rescue_case"
+      ],
+      "properties": {
+        "contract_version": {
+          "const": "mina-rescue-v1"
+        },
+        "request": {
+          "$ref": "#/$defs/ControlRequest"
+        },
+        "candidate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Candidate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "freshness": {
+          "$ref": "#/$defs/Freshness"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reason"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cooldown": {
+          "$ref": "#/$defs/Cooldown"
+        },
+        "resume_stage_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rescue_case": {
+          "$ref": "#/$defs/Case"
+        }
+      }
+    },
+    "RescueRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_uuid",
+        "authorization_digest",
+        "expected_authorization_revision"
+      ],
+      "properties": {
+        "case_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "authorization_digest": {
+          "$ref": "#/$defs/SHA"
+        },
+        "expected_authorization_revision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "OrdinalSet": {
+      "enum": [
+        [],
+        [
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    "RescueBasis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_date",
+        "target_slot",
+        "initial_expected",
+        "original_image_sha256",
+        "source_ledger_digest",
+        "cost_history_digest",
+        "original_first_replan_started_at",
+        "original_preparation_deadline_at",
+        "original_hard_deadline_at",
+        "baseline_consumed_ordinals",
+        "source_requests_terminal",
+        "hold_epoch",
+        "pause_receipt_digest",
+        "policy_version",
+        "budget_policy_digest",
+        "cost_approval_digest",
+        "operator_approval_digest",
+        "not_after"
+      ],
+      "properties": {
+        "target_date": {
+          "const": "2026-10-24"
+        },
+        "target_slot": {
+          "const": "breakfast"
+        },
+        "initial_expected": {
+          "$ref": "#/$defs/Expected"
+        },
+        "original_image_sha256": {
+          "$ref": "#/$defs/SHA"
+        },
+        "source_ledger_digest": {
+          "$ref": "#/$defs/SHA"
+        },
+        "cost_history_digest": {
+          "$ref": "#/$defs/SHA"
+        },
+        "original_first_replan_started_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "original_preparation_deadline_at": {
+          "$ref": "#/$defs/Time"
+        },
+        "original_hard_deadline_at": {
+          "$ref": "#/$defs/Time"
+        },
+        "baseline_consumed_ordinals": {
+          "$ref": "#/$defs/OrdinalSet"
+        },
+        "source_requests_terminal": {
+          "const": true
+        },
+        "hold_epoch": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pause_receipt_digest": {
+          "$ref": "#/$defs/SHA"
+        },
+        "policy_version": {
+          "const": "mina_gemini_waived_20261023_v1"
+        },
+        "budget_policy_digest": {
+          "const": "244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b"
+        },
+        "cost_approval_digest": {
+          "const": "8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083"
+        },
+        "operator_approval_digest": {
+          "$ref": "#/$defs/SHA"
+        },
+        "not_after": {
+          "$ref": "#/$defs/Time"
+        }
+      }
+    },
+    "GrantIssueInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "case_uuid",
+        "basis",
+        "planned_prepare_uuid",
+        "attempt_ordinal"
+      ],
+      "properties": {
+        "contract_version": {
+          "const": "mina-rescue-v1"
+        },
+        "case_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "basis": {
+          "$ref": "#/$defs/RescueBasis"
+        },
+        "planned_prepare_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "attempt_ordinal": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2
+        }
+      }
+    },
+    "GrantRevokeInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "rescue",
+        "reason",
+        "operator_approval_digest"
+      ],
+      "properties": {
+        "contract_version": {
+          "const": "mina-rescue-v1"
+        },
+        "rescue": {
+          "$ref": "#/$defs/RescueRef"
+        },
+        "reason": {
+          "const": "operator_cancelled"
+        },
+        "operator_approval_digest": {
+          "$ref": "#/$defs/SHA"
+        }
+      }
+    },
+    "Case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_uuid",
+        "authorization_digest",
+        "authorization_revision",
+        "basis",
+        "state",
+        "first_activated_at",
+        "hard_deadline_at",
+        "used_ordinals",
+        "saved_commit_uuid",
+        "saved_at",
+        "ogp_finish_deadline_at",
+        "created_at",
+        "planned_prepare_uuid",
+        "attempt_ordinal"
+      ],
+      "properties": {
+        "case_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "authorization_digest": {
+          "$ref": "#/$defs/SHA"
+        },
+        "authorization_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "basis": {
+          "$ref": "#/$defs/RescueBasis"
+        },
+        "state": {
+          "enum": [
+            "active",
+            "reconciliation_required",
+            "completed",
+            "rejected",
+            "revoked",
+            "expired"
+          ]
+        },
+        "first_activated_at": {
+          "$ref": "#/$defs/Time"
+        },
+        "hard_deadline_at": {
+          "$ref": "#/$defs/Time"
+        },
+        "used_ordinals": {
+          "$ref": "#/$defs/OrdinalSet"
+        },
+        "saved_commit_uuid": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UUID"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "saved_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ogp_finish_deadline_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "created_at": {
+          "$ref": "#/$defs/Time"
+        },
+        "planned_prepare_uuid": {
+          "$ref": "#/$defs/UUID"
+        },
+        "attempt_ordinal": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "completed"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "saved_commit_uuid": {
+                "$ref": "#/$defs/UUID"
+              },
+              "saved_at": {
+                "$ref": "#/$defs/Time"
+              },
+              "ogp_finish_deadline_at": {
+                "$ref": "#/$defs/Time"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "saved_commit_uuid": {
+                "type": "null"
+              },
+              "saved_at": {
+                "type": "null"
+              },
+              "ogp_finish_deadline_at": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "CaseResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "case",
+        "freshness"
+      ],
+      "properties": {
+        "contract_version": {
+          "const": "mina-rescue-v1"
+        },
+        "case": {
+          "$ref": "#/$defs/Case"
+        },
+        "freshness": {
+          "$ref": "#/$defs/Freshness"
+        }
+      }
+    }
+  }
+}

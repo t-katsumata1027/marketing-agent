@@ -128,7 +128,9 @@ class RuntimeSchemaTests(unittest.TestCase):
         evidence,_=load_contract_resources()
         buffer=BytesIO()
         with tarfile.open(fileobj=buffer,mode='w') as archive:
-            for entry in (evidence['runtime_schema'],*evidence['frozen_history'].values()):
+            from src.mina.rescue_contract import SCHEMA_SHA
+            for entry in (evidence['runtime_schema'],*evidence['frozen_history'].values(),
+                          {'path':'src/mina/contracts/rescue_v1/mina-rescue-v1.schema.json','sha256':SCHEMA_SHA}):
                 name=entry['path']
                 if name==missing:continue
                 raw=(Path(__file__).resolve().parents[2]/name).read_bytes()

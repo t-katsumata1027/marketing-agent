@@ -76,10 +76,14 @@ class ReplacementReadClient:
         if decoder is not None and not callable(decoder):
             raise ReplacementReadFailure('replacement_contract_unavailable')
 
+    def route(self, path):
+        """通常契約の経路。別契約は明示した専用clientでだけ差し替える。"""
+        return path
+
     def _get(self, path, accept, headers=None):
         if self.decoder is None:
             raise ReplacementReadFailure('replacement_contract_unavailable')
-        request = Request(self.base+path, method='GET', headers={
+        request = Request(self.base+self.route(path), method='GET', headers={
             'Authorization':'Bearer '+self.token, 'Accept':accept, 'Cache-Control':'no-store', **(headers or {})})
         return self.opener(request, timeout=15)
 
@@ -187,18 +191,21 @@ class ReplacementClient(ReplacementReadClient):
         super().__init__(*args,**kwargs)
         self.write_authorized=write_authorized
 
-    def send(self,operation,key,body,content_type,prepare_uuid=None):
+    def authorize_write(self, operation, body):
         import os
         if (not self.write_authorized or os.getenv('MINA_MEAL_REPLACEMENT_ENABLED','false').lower()!='true'
                 or os.getenv('MINA_LIVE_WRITES','false').lower()!='true' or self.decoder is None):
             raise ReplacementReadFailure('replacement_write_disabled')
+
+    def send(self,operation,key,body,content_type,prepare_uuid=None):
+        self.authorize_write(operation,body)
         MealClient.request_key(key)
         if operation=='candidate_prepare':path='/api/internal/mina/meal-replacement-candidates'
         elif operation=='candidate_discard':path='/api/internal/mina/meal-replacement-candidates/'+MealClient.request_key(prepare_uuid)+'/discard'
         elif operation=='meal_replace':path='/api/internal/mina/meal-replacements'
         elif operation=='replacement_resume':path='/api/internal/mina/meal-replacement-resumes'
         else:raise ReplacementReadFailure('replacement_operation_invalid')
-        request=Request(self.base+path,data=body,method='POST',headers={'Authorization':'Bearer '+self.token,
+        request=Request(self.base+self.route(path),data=body,method='POST',headers={'Authorization':'Bearer '+self.token,
             'Cache-Control':'no-store','Accept':'application/json','Content-Type':content_type,'Idempotency-Key':key})
         response=None
         try:

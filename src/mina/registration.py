@@ -39,9 +39,13 @@ def assert_day_state(state, target, completed, now):
 
 
 def register_day(store, draft, saved, directory, meal_client, ai, host, capture=capture_ogp, capture_round=None,
-                 allow_correction=False, replacement_rounds=None):
+                 allow_correction=False, replacement_rounds=None, collection_slots=None):
     """3食と日次を点検する。履歴・旧予約が未照合なら承認候補へ進めない。"""
     target = draft['target_date']
+    if collection_slots is not None:
+        from .rescue_collection import _scope
+        if tuple(collection_slots) != ('lunch','dinner') or target != '2026-10-24' or _scope.get() is None:
+            raise ValueError('rescue_collection_scope_required')
     if capture_round is not None:
         MealClient.request_key(capture_round)
     day = date.fromisoformat(target)
@@ -161,6 +165,9 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
     outputs = {}
     check_state()
     for slot in MEAL_SLOTS:
+        if collection_slots is not None and slot not in collection_slots:
+            if slot not in completed: raise ValueError("rescue_saved_breakfast_missing")
+            continue
         checking_slot = slot
         meal, info, raw = draft['meals'][slot], saved['images'][slot], images[slot]
         logged = slot_time(day, slot).isoformat()
@@ -229,6 +236,10 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
                             'result_sha256': normalized['result_sha256'], 'result_version': response['result']['result_version'],
                             'stored_image_sha256': response['result']['stored_image_sha256'],
                             'ogp_revision': normalized['ogp']['revision'], 'ogp_source_version': normalized['source_version']}}
+    if collection_slots is not None:
+        # 保存済み朝食の保留を解除せず、昼夕点検の結果だけを返す。日次生成・公開なし。
+        check_state()
+        return outputs
     total = sum(value['nutrition']['calories'] for value in outputs.values())
     if not 1800 <= total <= 2000:
         raise QualityHold('実解析の3食合計が1800〜2000kcalから外れています','meal_review:daily',('daily_energy_out_of_range',))
