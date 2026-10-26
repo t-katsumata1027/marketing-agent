@@ -18,7 +18,7 @@ from .runtime import import_manifest
 from .request_ledger import RequestLedger
 
 TARGET='2026-10-27'
-END=datetime(2026,10,26,23,30,tzinfo=JST)
+END=datetime(2026,10,27,1,0,tzinfo=JST)
 JOB_ROOT=Path('/var/lib/mina-agent/codex-jobs')
 _scope=ContextVar('one_correction_recovery',default=None)
 
@@ -39,7 +39,7 @@ def correction_proposal(journal,target,slot,inputs,propose):
 
 def resume_correction(store,directory,approval_path,history_path,root,commit,host,ai,meal,
                       clock=lambda:datetime.now(UTC),capture=capture_ogp):
-    """旧23時の許可は変更せず、この追加許可の23:30だけを各工程に適用する。"""
+    """旧23時の許可は変更せず、この追加許可の翌01:00だけを各工程に適用する。"""
     def deadline():
         if not datetime(2026,10,26,21,30,tzinfo=JST)<=instant(clock())<END:raise PreparationDeadline('correction_recovery_deadline')
     deadline();release_commit(root,commit)
