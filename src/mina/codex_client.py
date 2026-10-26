@@ -86,12 +86,17 @@ class CodexClient(OpenAIClient):
             state_path.write_text(json.dumps({"state": value, "reason": reason}), encoding="utf-8")
 
         started=time.monotonic()
-        def diagnostic(returncode=None):
+        def diagnostic(returncode=None,stdout='',stderr=''):
             # 原文・prompt・資格は保存せず、固定項目で元CLI実行へ辿れるようにする。
+            text=(stdout+'\n'+stderr).lower()
+            allowed=('invalid_json_schema','invalid_request_error','unsupported_parameter','rate_limit_exceeded',
+                     'insufficient_quota','model_not_found','context_length_exceeded','server_error','connection_error')
             (root/'diagnostic.json').write_text(json.dumps({'job':root.name,'exit_code':returncode,
                 'result_exists':(root/'result.json').is_file(),'elapsed_ms':round((time.monotonic()-started)*1000,3),
                 'schema_sha256':hashlib.sha256(json.dumps(schema,sort_keys=True).encode()).hexdigest(),
                 'input_image_sha256':[hashlib.sha256(raw).hexdigest() for raw in images],
+                'provider_error_codes':[code for code in allowed if code in text],
+                'stdout_sha256':hashlib.sha256(stdout.encode()).hexdigest(),'stderr_sha256':hashlib.sha256(stderr.encode()).hexdigest(),
                 'usage_status':'unmeasured'}),encoding='utf-8')
 
         state("started")
@@ -131,7 +136,7 @@ class CodexClient(OpenAIClient):
                 diagnostic()
                 state("failed", "start_failed")
                 raise CodexFailure("codex_start_failed",'io_failed') from None
-            diagnostic(process.returncode if type(process.returncode) is int else None)
+            diagnostic(process.returncode if type(process.returncode) is int else None,stdout,stderr)
             if process.returncode != 0 or not result_path.is_file():
                 # stdout/stderrにはCLIの内部状態が含まれるためチャットやログへ出さない。
                 reason = self.failure_reason(stdout + stderr)

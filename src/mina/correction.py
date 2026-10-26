@@ -28,7 +28,8 @@ def correct_meal_once(journal,requests,client,ai,check_state,target,slot,meal,im
                 raise ValueError('訂正案の栄養値が不正です')
         nutrition({api:sum(food[name] for food in foods) for name,api in SUMMARY_FIELDS.items()})
         return value
-    proposal=journal.run(target,'correction_plan:'+slot,inputs,propose)
+    from .correction_recovery import correction_proposal
+    proposal=correction_proposal(journal,target,slot,inputs,propose)
     key_record=journal.run(target,'correction_key:'+slot,{'proposal':proposal,'source_version':original['result']['result_version']},
         lambda:{'key':str(uuid.uuid4()),'expected_state_version':check_state()})
     payload={'contract_version':'mina-write-v1','reason':'codex_secondary_review','share_url':original['result']['share']['url'],
