@@ -32,3 +32,19 @@ bundle SHAは3a4a5f99459b44d798a6f2d4220a23fb1c49fec53077dacb2dda7af7ff7ff558。
 日跨ぎ依存復旧、読取backoff、生存owner競合、死んだ読取owner復帰、外部不明停止、公開hold競合と解除、候補原子保存、通知前中断、実RuntimeのBuffer読取失敗からの復帰、CLI有限再試行/品質保留/費用境界/期限を検証する。最終固定commit・CI・Linux実owner検証・独立Goを揃えてからAgentを反映する。
 
 本体コード、既存食事・画像・X承認、Instagram公開権限の既存スイッチ、救済OFFは変更しない。旧未知記録は保持する。具体的な固定版と配置後実績は検証完了後に追記する。
+
+## 最終検証と本番反映
+
+固定実装fde12d64a63fc94683e1ecac272d5c60f675243c、Draft PR #18。CI40359655087はMina702件中651成功/51skip、一般32成功。秘密環境を引き継がない別checkoutをサブPCへ作り、実mina-agent UIDで54件を8.292秒で成功。Linuxのboot ID/PID/開始tickの実所有証明、別プロセスの生存→終了、読取owner回復、公開hold解除、実RuntimeのBuffer読取失敗からの復帰、実Replacement/Rescueの共通費用unknown保持を含む。
+
+実装不参加Codexの最終コードレビューGo。最終対象30件はWindowsで29成功・Linux実PID1skip、Linux側で当該試験成功。画像8枚も生成不参加のCodexが全SHA/長さ・実視認でGo。初回レビューの通知復帰・費用予約内のretry・読取境界・hold競合の4指摘は対応済み。
+
+配置operatorは独立Go後に実行。Type=oneshotのactivating/deactivatingもbusyとして、prepare/IGprepare/notify/backup/offsiteの5処理を初回・停止後・rename直前・rollback待機で確認する。6状態の停止判定を隔離検証し、実行中の処理をkillして切り替えることはしない。
+
+10/27 01:35 JSTに本番へ反映。旧40表の全行は切替時不変、新しいinstagram_preparations/eventsの2空表だけを追加した。退避は/var/lib/mina-agent/deployment-review-recovery-fde12d64、旧コードは/opt/marketing-agent-rollback-review-fde12d64。配置後も既存39非health表の既存行を保持し、operation_eventsは起動2件の追記だけ、新2表は0行。3サービス/既存5timer、実プロセスの固定commit、救済OFF/UTM/通常置換の保持、切替後巡回失敗0、SQLite integrity_check=okを確認した。
+
+Instagram実プロセスではPREPARE/APPROVAL/NOTIFY/PUBLISHが既存どおりtrue、固定commit=fde12d64を確認。これは準備追従が有効である証跡であり、未承認候補を公開する許可ではない。10/27のInstagram4候補とX4候補は本人がすべて承認済み。Instagram承認依頼4件sent、8配信URLを再取得して全SHA・寸法一致、4候補の現在API/原本/本文整合を確認。Instagram投稿要求は0で、実公開はまだ行っていない。時刻は通常どおり朝07:30・昼12:15・夕19:15・日次21:30 JST。
+
+今回の恒久化は、依存復旧への追従と、副作用のない通常CLI処理の有限な再試行・証跡保全である。過去CLI異常終了の下位原因は、元stderrが残っていないため未確定。認証/上限/タイムアウト、品質保留、全試行失敗、外部書込み不明は引き続き保留し、再発ゼロや任意の障害からの無制限回復は保証しない。
+
+実証跡はinvestigations/instagram-continuity-20261027のINITIAL_STATE.json、RENDER_MANIFEST.json、LINUX_ACCEPTANCE.json、POSTDEPLOY.json、FINAL_INSTAGRAM_VERIFICATION.json、RUNTIME_FLAGS.jsonを参照。

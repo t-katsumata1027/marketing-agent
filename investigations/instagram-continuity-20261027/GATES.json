@@ -1,0 +1,23 @@
+{
+  "source_commit": "fde12d64a63fc94683e1ecac272d5c60f675243c",
+  "ci_run": 40359655087,
+  "ci_success": true,
+  "mina_passed": 651,
+  "mina_skipped": 51,
+  "general_passed": 32,
+  "linux_tests_passed": 54,
+  "independent_review": "Go",
+  "independent_images_verified": 8,
+  "candidate_count": 4,
+  "discord_notices_sent": 4,
+  "all_instagram_and_x_approved_by_user": true,
+  "instagram_publication_attempts": 0,
+  "paid_ai_calls_by_this_task": 0,
+  "logeats_body_changed": false,
+  "migration_empty_tables": [
+    "instagram_preparations",
+    "instagram_preparation_events"
+  ],
+  "oneshot_status_cases_verified": 6,
+  "operator_sha256": "3766401ea45774b8b6c7d695d3d88826b7976bebfeb599a9c553bb3e13076e68"
+}
