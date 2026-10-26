@@ -25,6 +25,10 @@ _scope=ContextVar('one_lunch_corrected_review',default=None)
 def review_once(journal,target,step,inputs,operation):
     """通常点検は無変更。許可された昼訂正後だけ元unknownを残し別採用する。"""
     scope=_scope.get()
+    if scope is None:
+        from .ogp_finish_recovery import cached_lunch_review
+        cached=cached_lunch_review(target,step,inputs)
+        if cached is not None:return cached
     if scope is None or target!=TARGET or step!=STEP:return journal.run(target,step,inputs,operation)
     scope['check']()
     if fingerprint(inputs)!=scope['digest']:raise ValueError('review_recovery_input_changed')
