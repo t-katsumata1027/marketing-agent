@@ -1,5 +1,9 @@
 # サブPCでの開発
 
+## 2026年10月27日00:38・昼訂正後の限定点検を配置、夕OGP点検で停止
+
+固定4c9f4a9967ab062c74ba1b0ba5d6d3fd92b0eb32、CI40350775553/独立Go後に配置。退避/var/lib/mina-agent/deployment-review-recovery-4c9f4a99、旧コード/opt/marketing-agent-rollback-review-4c9f4a99。旧38表切替不変、既存行保持、3サービス/5timer/新巡回正常・救済OFF保持。専用unitはmina-lunch-review-recovery-20261027.service、許可ID5b75e9b8-0fc1-4b83-844f-c3dd160f24ff、期限01:00。昼点検合格・夕登録/訂正保存と栄養点検合格後、夕ogp_review CLI unknownで新claim held。3食は保存済み、日次/候補0。同unit再送・claim解除はしない。独立Codexの夕OGP読取診断は合格だが採用/追加実行は別承認待ち。
+
 ## 2026年10月27日00:10・追加訂正版を配置、昼訂正後CLI点検で保留
 
 固定04876c9ad82ec5e13a83afbade10e580b6f860b8、CI40346199584/独立Go後に配置。退避は/var/lib/mina-agent/deployment-review-recovery-04876c9a、旧コードは/opt/marketing-agent-rollback-review-04876c9a。既存37表切替不変、救済OFF・実3サービス/5timer/新巡回正常。限定unitはmina-correction-recovery-20261027.service、許可ID12f2d130-aae8-4894-bd5e-485a7b7c8837、期限01:00。元GET補助項目照合停止は課金前に補修し同IDの旧artifactを退避保持した。実処理は朝昼の訂正保存後、昼訂正後点検CLIでunknown/claim heldとなって停止。unit再起動や別IDでの自動再送は禁止。詳細はMINA_LUNCH_REVIEW_RECOVERY_PLAN_20261027.md。
