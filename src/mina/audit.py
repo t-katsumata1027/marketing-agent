@@ -73,6 +73,12 @@ def safe_failure(error):
     if type(status) is int and 100 <= status <= 599:
         details['http_status'] = status
     ahead=getattr(error,'clock_ahead_ms',None)
+    job=getattr(error,'cli_job_id',None)
+    if isinstance(job,str) and re.fullmatch('[0-9a-f]{32}',job):details['cli_job_id']=job
+    exit_code=getattr(error,'cli_exit_code',None)
+    if type(exit_code) is int and -255<=exit_code<=255:details['cli_exit_code']=exit_code
+    result_exists=getattr(error,'cli_result_exists',None)
+    if type(result_exists) is bool:details['cli_result_exists']=result_exists
     if type(ahead) in (int,float) and math.isfinite(ahead) and abs(ahead)<=1e12:
         details['clock_ahead_ms']=ahead
     return reason, details
@@ -82,14 +88,18 @@ def checked_details(details):
     """未定義の項目を捨てず拒否し、秘密の混入を構造で防ぐ。"""
     numbers={'elapsed_ms','clock_ahead_ms','attempt','next_at','requested_at','received_at','expected','observed'}
     hashes={'input_sha256','image_sha256','result_sha256','step_sha256','policy_sha256','source_commit'}
-    bools={'matched','write_started','saved','retryable'}
+    bools={'matched','write_started','saved','retryable','cli_result_exists'}
     enums={'operation':{'channel_organizations','channel_list','post_create','post_lookup','meal_register','meal_correction','daily_share'},
            'persistence':{'saved','not_saved','unknown'},'phase':{'prepared','dispatching','response_received','complete','held'},
            'before':{'approved','dispatching','changes_requested','published','outcome_unknown','started','held'},
            'after':{'approved','dispatching','changes_requested','published','outcome_unknown','complete','held','expired'}}
     result={}
     for key,value in (details or {}).items():
-        if key in numbers and type(value) in (int,float) and math.isfinite(value) and abs(value)<=1e12:
+        if key=='cli_job_id' and isinstance(value,str) and re.fullmatch('[0-9a-f]{32}',value):
+            result[key]=value
+        elif key=='cli_exit_code' and type(value) is int and -255<=value<=255:
+            result[key]=value
+        elif key in numbers and type(value) in (int,float) and math.isfinite(value) and abs(value)<=1e12:
             result[key]=value
         elif key in hashes and isinstance(value,str) and re.fullmatch(r'[0-9a-f]{40}' if key=='source_commit' else r'[0-9a-f]{64}',value):
             result[key]=value

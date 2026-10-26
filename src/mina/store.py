@@ -107,11 +107,12 @@ class Store:
         """差し替えで旧承認を失効し、送信開始後の変更を拒否する。"""
         return self.save_many([candidate], allowed_host, now)[0]
 
-    def save_many(self, candidates, allowed_host: str, now: datetime, expected_digests=None):
+    def save_many(self, candidates, allowed_host: str, now: datetime, expected_digests=None,guard=None):
         """全枠を一つのトランザクションで反映する。"""
         for candidate in candidates:
             candidate.validate(allowed_host, now)
         with self.transaction() as db:
+            if guard is not None:guard(db)
             revisions = []
             for candidate in candidates:
                 require_clear(db, candidate.target_date)
@@ -142,6 +143,7 @@ class Store:
                     json.dumps(asdict(candidate), ensure_ascii=False, allow_nan=False), candidate.digest, candidate.scheduled_at.timestamp()))
                 db.execute("UPDATE notices SET state='obsolete' WHERE target_date=? AND slot=? AND state='pending'", (candidate.target_date, candidate.slot))
                 revisions.append(revision)
+            if guard is not None:guard(db)
             return revisions
 
     def issue_cards(self, target_date: str, now: datetime, slots=None) -> list[dict]:

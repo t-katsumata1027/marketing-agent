@@ -6,6 +6,8 @@ import shutil
 import signal
 import subprocess
 import uuid
+import time
+import hashlib
 from pathlib import Path
 
 from .generation import IMAGE_STYLE, OpenAIClient
@@ -83,6 +85,15 @@ class CodexClient(OpenAIClient):
         def state(value, reason=None):
             state_path.write_text(json.dumps({"state": value, "reason": reason}), encoding="utf-8")
 
+        started=time.monotonic()
+        def diagnostic(returncode=None):
+            # 原文・prompt・資格は保存せず、固定項目で元CLI実行へ辿れるようにする。
+            (root/'diagnostic.json').write_text(json.dumps({'job':root.name,'exit_code':returncode,
+                'result_exists':(root/'result.json').is_file(),'elapsed_ms':round((time.monotonic()-started)*1000,3),
+                'schema_sha256':hashlib.sha256(json.dumps(schema,sort_keys=True).encode()).hexdigest(),
+                'input_image_sha256':[hashlib.sha256(raw).hexdigest() for raw in images],
+                'usage_status':'unmeasured'}),encoding='utf-8')
+
         state("started")
         try:
             schema_path, result_path = root / "schema.json", root / "result.json"
@@ -112,17 +123,24 @@ class CodexClient(OpenAIClient):
                 stdout, stderr = process.communicate(guard + "\n" + prompt, timeout=timeout)
             except subprocess.TimeoutExpired:
                 self.stop_process(process)
+                diagnostic(process.returncode if type(process.returncode) is int else None)
                 state("outcome_unknown", "timeout")
                 # CLI内部の生成結果を照合するまで、同じ工程を自動再実行しない。
                 raise CodexFailure("codex_execution_timeout",'timeout') from None
             except OSError:
+                diagnostic()
                 state("failed", "start_failed")
                 raise CodexFailure("codex_start_failed",'io_failed') from None
+            diagnostic(process.returncode if type(process.returncode) is int else None)
             if process.returncode != 0 or not result_path.is_file():
                 # stdout/stderrにはCLIの内部状態が含まれるためチャットやログへ出さない。
                 reason = self.failure_reason(stdout + stderr)
                 state("failed", reason)
-                raise CodexFailure("codex_" + reason + "_failed",reason)
+                error=CodexFailure("codex_" + reason + "_failed",reason)
+                error.cli_job_id=root.name
+                error.cli_exit_code=process.returncode if type(process.returncode) is int else None
+                error.cli_result_exists=result_path.is_file()
+                raise error
             try:
                 result = json.loads(result_path.read_text(encoding="utf-8-sig"))
                 if not isinstance(result, dict):
@@ -136,7 +154,12 @@ class CodexClient(OpenAIClient):
                 result["image_bytes"] = image_path.read_bytes()
             state("complete")
             return result
-        except Exception:
+        except Exception as error:
+            exit_code=getattr(locals().get('process'),'returncode',None)
+            error.cli_job_id=root.name
+            error.cli_exit_code=exit_code if type(exit_code) is int else None
+            error.cli_result_exists=(root/'result.json').is_file()
+            if not (root/'diagnostic.json').is_file():diagnostic(error.cli_exit_code)
             if json.loads(state_path.read_text(encoding="utf-8"))["state"] == "started":
                 state("outcome_unknown", "output_unverified")
             raise
