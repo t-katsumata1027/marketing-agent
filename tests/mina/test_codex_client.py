@@ -72,6 +72,14 @@ class CodexClientTest(unittest.TestCase):
                         self.assertTrue((self.directory/safe['cli_job_id']/'diagnostic.json').is_file())
                     else:self.fail('failure expected')
 
+    def test_only_fixed_provider_codes_and_hashes_are_retained(self):
+        process=Mock(returncode=1);process.communicate.return_value=('','private-key invalid_json_schema arbitrary-secret')
+        with patch('src.mina.codex_client.subprocess.Popen',return_value=process):
+            with self.assertRaises(RuntimeError):CodexClient().execute('private-prompt',{'type':'object'})
+        diagnostic=next(self.directory.glob('*/diagnostic.json')).read_text()
+        self.assertEqual(json.loads(diagnostic)['provider_error_codes'],['invalid_json_schema'])
+        for secret in ('private-key','arbitrary-secret','private-prompt'):self.assertNotIn(secret,diagnostic)
+
     def test_timeout_terminates_process_and_preserves_working_directory(self):
         process = Mock(returncode=1)
         process.communicate.side_effect = subprocess.TimeoutExpired("codex-test", 1)
