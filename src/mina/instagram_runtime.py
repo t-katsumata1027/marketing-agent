@@ -58,6 +58,7 @@ class InstagramRuntime:
         return self.api or InstagramBufferClient(self.store)
 
     def state(self, target):
+        if getattr(self,'preparation_guard',None):self.preparation_guard()
         return await_checked_at((self.meal or meal_client()).day_state(target), max_ahead=5)
 
     def render(self, target):
@@ -74,6 +75,10 @@ class InstagramRuntime:
         bundle, manifest, destination = self.render(target)
         channel = instagram_channel(self.buffer())
         drive = DriveClient.from_env()
+        if getattr(self,'preparation_guard',None):
+            from .daily_pipeline import DeadlineClient
+            drive=DeadlineClient(drive,self.preparation_guard)
+            drive.before_media_write=getattr(self,'preparation_begin_write',None)
         candidates = []
         for slot in SLOTS:
             assets = [host_asset(a, drive, self.store, allow_public=allow_public) for a in manifest['assets'][slot]]
@@ -85,13 +90,18 @@ class InstagramRuntime:
         save_json(destination / 'candidates.json', [asdict(c) for c in candidates])
         return candidates
 
-    def prepare(self, target, allow_public=False):
+    def _prepare(self, target, allow_public=False):
         if slot_time(date.fromisoformat(target), 'breakfast') <= datetime.now(UTC):
             raise ValueError('4枠が未来の対象日を指定してください')
         candidates = self.artwork(target, allow_public)
-        for c in candidates:
-            self.store.save(c, datetime.now(UTC), HOSTS)
+        for c in candidates:self.verify(c)
+        if getattr(self,'preparation_begin_write',None):self.preparation_begin_write()
+        self.store.save_many(candidates, datetime.now(UTC), HOSTS,guard=getattr(self,'preparation_guard',None))
         return candidates
+
+    def prepare(self,target,allow_public=False):
+        from .instagram_preparation import prepare
+        return prepare(self,target,allow_public)
 
     def accept(self, target, allow_public=False):
         """既存日の実データでも非公開下書きだけを作り、二つの形式を受入検証する。"""
@@ -179,10 +189,12 @@ class InstagramRuntime:
         return self.store.send_notices(DiscordClient(os.getenv('DISCORD_BOT_TOKEN', ''), os.getenv('DISCORD_ALLOWED_CHANNEL_ID', '')))
 
     def tick(self):
+        from .instagram_preparation import catch_up
+        preparation=catch_up(self)
         from .instagram_publisher import reconcile_known
         reconciled = reconcile_known(self.store, scheduled=True, client_factory=self.buffer)
         if os.getenv('MINA_INSTAGRAM_PUBLISH_ENABLED', 'false').lower() != 'true':
-            return {'publishing_enabled': False, 'reconciled': reconciled, 'notices_sent': self.send_notices()}
+            return {'publishing_enabled': False, 'reconciled': reconciled, 'preparation':preparation,'notices_sent': self.send_notices()}
         row = self.store.claim_due(datetime.now(UTC))
         if row:
             try:
@@ -190,7 +202,7 @@ class InstagramRuntime:
             except Exception:
                 # 機密を含み得るAPI応答・例外原文を常駐ログへ出さない。
                 pass
-        return {'processed': bool(row), 'reconciled': reconciled, 'notices_sent': self.send_notices()}
+        return {'processed': bool(row), 'reconciled': reconciled, 'preparation':preparation,'notices_sent': self.send_notices()}
 
     def daemon(self):
         self.store.hold_interrupted()

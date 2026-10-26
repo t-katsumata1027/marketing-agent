@@ -17,13 +17,13 @@ from .instagram_domain import media_url
 HOSTS = ('drive.google.com',)
 
 
-def upload_image(drive, raw, name):
+def upload_image(drive, raw, name, parent=None):
     """食事原本用の保存名制約を変えず、SNS合成画像だけを別名で保存する。"""
     require_live()
     if (not raw.startswith(b'\xff\xd8\xff') or len(raw) > 4 * 1024 * 1024 or
             not re.fullmatch(r'mina-instagram-[0-9a-f]{64}\.jpg', name)):
         raise ValueError('Instagram完成画像の保存形式が不正です')
-    parent = drive.metadata(drive.folder_id, 'id,mimeType,trashed,capabilities(canAddChildren)')
+    parent = parent if parent is not None else drive.metadata(drive.folder_id, 'id,mimeType,trashed,capabilities(canAddChildren)')
     if (parent.get('mimeType') != 'application/vnd.google-apps.folder' or parent.get('trashed') is not False
             or parent.get('capabilities', {}).get('canAddChildren') is not True):
         raise ValueError('Instagram画像の保存先を確認できません')
@@ -78,15 +78,23 @@ def host_asset(asset, drive, store, allow_public=False, verify=verify_public):
         previous = db.execute('SELECT * FROM instagram_media WHERE sha256=?', (asset['sha256'],)).fetchone()
         if previous and previous['state'] != 'verified':
             raise ValueError('既存の画像保存・権限付与の成否照合が必要です')
-        if not previous:
-            db.execute("INSERT INTO instagram_media(sha256,state) VALUES(?,'attempting')", (asset['sha256'],))
     if previous:
         # 匿名HTTP読取の間は共有SQLiteの書込ロックを保持しない。
         hosted = json.loads(previous['asset_json'])
         verify(hosted)
         return {**asset, 'url': hosted['url']}
     name = 'mina-instagram-' + asset['sha256'] + '.jpg'
-    uploaded = upload_image(drive, raw, name)
+    # 保存先・OAuthの読取失敗を、不明な画像保存として記録しない。
+    parent=drive.metadata(drive.folder_id,'id,mimeType,trashed,capabilities(canAddChildren)')
+    if (parent.get('mimeType')!='application/vnd.google-apps.folder' or parent.get('trashed') is not False
+            or parent.get('capabilities',{}).get('canAddChildren') is not True):raise ValueError('Instagram保存先を確認できません')
+    drive._authorization()
+    begin=getattr(drive,'before_media_write',None)
+    if begin:begin()
+    with store.transaction() as db:
+        if db.execute('SELECT 1 FROM instagram_media WHERE sha256=?',(asset['sha256'],)).fetchone():raise ValueError('Instagram画像を別処理が保存しています')
+        db.execute("INSERT INTO instagram_media(sha256,state) VALUES(?,'attempting')",(asset['sha256'],))
+    uploaded = upload_image(drive, raw, name,parent=parent)
     file_id = uploaded['id']
     with store.transaction() as db:
         db.execute("UPDATE instagram_media SET state='uploaded',file_id=? WHERE sha256=?", (file_id, asset['sha256']))
