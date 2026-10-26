@@ -10,7 +10,7 @@ from .domain import Candidate,JST,instant
 from .m1_contract import validate_state,completed_request,verify_source
 from .ogp import capture_ogp
 from .preparation import fingerprint
-from .preparation_status import PreparationDeadline
+from .preparation_status import PreparationDeadline,QualityHold
 from .readiness import read_json,release_commit,check_evidence,build_candidates
 from .request_ledger import RequestLedger
 
@@ -31,6 +31,7 @@ def review_once(journal,target,step,inputs,operation):
     new=STEP+':recovery:'+scope['id']
     result=journal.run(target,new,{'original_digest':scope['digest'],'approval_sha256':scope['sha'],'inputs':inputs},operation)
     scope['check']()
+    if result!={'status':'publishable','reason_codes':[]}:raise QualityHold('追加点検の品質保留を保持します',new,result.get('reason_codes',()))
     return journal.run(target,STEP+':adoption:'+scope['id'],
         {'original_digest':scope['digest'],'review_sha256':fingerprint(result),'approval_sha256':scope['sha']},lambda:result)
 
@@ -96,6 +97,14 @@ def resume_review(store,directory,approval_path,history_path,root,commit,host,ai
                 or {(r['slot'],r['operation'],r['phase']) for r in requests.values()}!={(s,o,'complete') for s in ('breakfast','lunch') for o in ('meal_register','meal_correction')}
                 or len(requests)!=4):raise ValueError('review_recovery_baseline_changed')
     ledger=RequestLedger(store)
+    old_receipts={job:receipts}
+    for parent in parents.values():
+        document=json.loads(parent['approval_json'])
+        for field in ('cli_job','parent_review_job','failed_job'):
+            if not document.get(field):continue
+            p=Path(document[field])
+            if p.is_symlink() or p.parent!=JOB_ROOT or not p.is_dir():raise ValueError('review_recovery_parent_job_changed')
+            old_receipts[p]={f.name:hashlib.sha256(f.read_bytes()).hexdigest() for f in p.iterdir() if f.is_file() and not f.is_symlink()}
     for request in requests.values():ledger.restore(request['request_key'])
     for slot in ('breakfast','lunch'):
         response=json.loads(rows['meal_correction:'+slot]['result']);binding=json.loads(rows['correction_key:'+slot]['result'])
@@ -114,7 +123,8 @@ def resume_review(store,directory,approval_path,history_path,root,commit,host,ai
         if fingerprint(read_json(approval_path))!=approval_sha:raise ValueError('review_recovery_permission_changed')
         for p,sha in artifacts.items():
             if p.is_symlink() or hashlib.sha256(p.read_bytes()).hexdigest()!=sha:raise ValueError('review_recovery_artifact_changed')
-        if job.is_symlink() or {p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in job.iterdir() if p.is_file() and not p.is_symlink()}!=receipts:raise ValueError('review_recovery_job_changed')
+        for p,snapshot in old_receipts.items():
+            if p.is_symlink() or {f.name:hashlib.sha256(f.read_bytes()).hexdigest() for f in p.iterdir() if f.is_file() and not f.is_symlink()}!=snapshot:raise ValueError('review_recovery_job_changed')
     files()
     with store.transaction() as db:
         deadline()

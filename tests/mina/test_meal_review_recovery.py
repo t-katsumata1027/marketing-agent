@@ -90,6 +90,9 @@ class MealReviewRecoveryTests(unittest.TestCase):
         self.ai.review_meal=lambda *a:{'status':'hold','reason_codes':['nutrition_semantic_mismatch']}
         with self.assertRaises(ValueError):self.invoke()
         self.assertEqual(self.meal.calls,self.before)
+        with self.c.store.transaction() as db:
+            self.assertIsNone(db.execute("SELECT 1 FROM preparation_steps WHERE step LIKE '%:adoption:%' AND step LIKE 'meal_review:%'").fetchone())
+            self.assertEqual(db.execute('SELECT state FROM preparation_steps WHERE step=?',(STEP,)).fetchone()[0],'outcome_unknown')
 
     def test_late_result_preserved_without_adoption_or_post(self):
         def late(*args):self.c.now[0]=END;return {'status':'publishable','reason_codes':[]}
