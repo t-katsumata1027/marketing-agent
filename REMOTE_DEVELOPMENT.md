@@ -1,5 +1,9 @@
 # サブPCでの開発
 
+## 2026年10月27日00:58・4候補の承認依頼完了
+
+稼働00b1f898056171ae125eeea18f85edfcfa61aa01、固定CI40353535008成功・独立Go。退避/var/lib/mina-agent/deployment-review-recovery-00b1f898、旧コード/opt/marketing-agent-rollback-review-00b1f898。専用unit mina-ogp-finish-recovery-20261027.serviceはsuccess/inactive、許可ID8e82d473-4050-4d49-af9d-2481016f37eeのclaim complete。夕/日次のroot独立点検receiptは/var/lib/mina-agent/ogp-finish-recovery-20261027/receipts、旧unknown/親4heldは保持。4候補approval_pending・Discord4件sent。追加3食書込み0/日次1、救済OFF維持。期限01:00は延長せず、完了済unitを再実行しない。
+
 ## 2026年10月27日00:38・昼訂正後の限定点検を配置、夕OGP点検で停止
 
 固定4c9f4a9967ab062c74ba1b0ba5d6d3fd92b0eb32、CI40350775553/独立Go後に配置。退避/var/lib/mina-agent/deployment-review-recovery-4c9f4a99、旧コード/opt/marketing-agent-rollback-review-4c9f4a99。旧38表切替不変、既存行保持、3サービス/5timer/新巡回正常・救済OFF保持。専用unitはmina-lunch-review-recovery-20261027.service、許可ID5b75e9b8-0fc1-4b83-844f-c3dd160f24ff、期限01:00。昼点検合格・夕登録/訂正保存と栄養点検合格後、夕ogp_review CLI unknownで新claim held。3食は保存済み、日次/候補0。同unit再送・claim解除はしない。独立Codexの夕OGP読取診断は合格だが採用/追加実行は別承認待ち。

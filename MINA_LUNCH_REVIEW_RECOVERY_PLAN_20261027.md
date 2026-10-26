@@ -40,3 +40,17 @@
 先行する読取診断として、実装不参加Codexが保存済み夕画像SHA9ca06094...とOGPプレビューSHA43f5427a...を実視認し、publishableと評価した。料理構成、全器の余白、696/P29/F23/C102の表示と正本の丸め一致、判読性を確認した。これは既存通常点検と同じプレビュー実バイトの評価であり、未取得の元配信OGPバイトまで新たに視認したとは扱わない。本番採用artifactではなく、元unknown/承認/台帳の更新は0。
 
 夕食・日次OGPの残点検をこのチャットの独立Codex実画像点検へ切り替え、保存済み3食を書き換えず日次POST1と4候補配信まで進める新しい本人承認を非同期で依頼した。回答前の本番採用・追加送信は行わない。期限は01:00を維持する。CLI経由の安定性が恒久修復したという報告ではない。
+
+## 00:58最終結果：4候補完成、Discord4件送信完了
+
+本人が「独立Codexの実画像点検で完成させる」と明示承認。固定00b1f898056171ae125eeea18f85edfcfa61aa01、CI40353535008（Mina672件中621成功/51skip、一般32成功）、独立7通し試験とIndependentOgpの正常/別requestSHA/hold/期限/非root所有5試験、operator/driverレビューGo後に00:54配置した。切替時39表不変、既存行保持、救済OFF、実3サービス/5timer/切替後巡回正常。
+
+専用許可8e82d473-4050-4d49-af9d-2481016f37eeの新claimを一意に作成。旧49工程、旧6要求、親4heldと元unknownを保持。保存済み3食を最新PATCH UUID・現在sv/rv・原画像/保存画像SHAで照合し、朝昼夕の再登録・再訂正・再生成・Drive uploadは0。新規要求は日次POST1だけでsaved/complete。
+
+夕食request SHA b35531c6ff25c5f0422cad94560f8519bc98e038f7fcf711132e2ea4b7c7b0d3、日次request SHA 80d868a887b74f65474cbcfb885e99d35ad1856c7b31515f7bb80712a53223de。実装不参加Codexが夕の2画像と日次の4画像を実視認し、順序付き全SHA・料理構成・表示栄養の丸め・文字判読性を確認してpublishable。日次の目標2000/60/56/314と実績1961.6/87.6/66.1/275.9、達成98/146/118/88%は本番state GETとも一致した。root所有/非group-world書込/同request・全画像SHAのreceiptをtemp書込/fsync→os.linkの原子的公開で一度保存し、期限内だけ採用した。原OGP配信バイトのSHA照合と独立視認したプレビュー実バイトのSHAは区別している。
+
+00:58の本番最終GETはHTTP200/no-store、3食のAPI品質pass、朝538.6/昼727/夕696=1961.6kcal。4候補すべてapproval_pending、現在sv/rv・保存画像SHA・候補digest一致、Discord承認依頼4件sentを確認した。予約時刻はJSTで朝07:30、昼12:15、夕19:15、日次21:30。本人の投稿承認はまだで、実X公開は行っていない。
+
+最後の読取監査でも旧49工程・親4claim行が完全不変、旧6要求は不変フィールド保持、新規要求はdaily_share1件だけ、専用claim completeを確認。実Instagram固有操作・Log-Eats本体コード変更は0。限定復旧は完了したが、繰り返したCLI異常終了の下位原因/恒久安定化は未解決として保持する。
+
+実証跡はinvestigations/interrupted-review-20261027/FINAL_LIVE_CHECK.json、FINAL_PRESERVATION_AUDIT.json、OGP_FINISH_POSTDEPLOY.json、FINAL_TARGET_STATE.jsonlを参照。
