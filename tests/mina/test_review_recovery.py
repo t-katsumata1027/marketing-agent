@@ -170,3 +170,91 @@ class ReviewRecoveryTests(unittest.TestCase):
         self.assertEqual([(m,s) for m,s,k in meal.calls],[('POST','breakfast'),('PATCH','breakfast'),('POST','lunch'),('POST','dinner'),('POST','daily')])
         self.assertEqual(self.original_unknown(),'outcome_unknown')
         with self.store.transaction() as db:self.assertEqual(db.execute('SELECT count(*) FROM candidates').fetchone()[0],4)
+
+
+class RepairReviewTests(unittest.TestCase):
+    def setUp(self):
+        self.c=ReviewRecoveryTests();self.c.setUp();self.addCleanup(self.c.doCleanups)
+        c=self.c;c.ai.review_image.return_value={'status':'hold','reason_codes':['image_analysis_mismatch']}
+        with self.assertRaises(ValueError):c.invoke()
+        with c.store.transaction() as db:
+            self.parent=dict(db.execute('SELECT * FROM interrupted_review_recoveries').fetchone())
+            digest=db.execute("SELECT digest FROM preparation_steps WHERE step LIKE 'image_review:lunch:interrupted:%'").fetchone()[0]
+        job=c.jobroot/'completed';job.mkdir()
+        (job/'state.json').write_text(json.dumps({'state':'complete','reason':None}))
+        (job/'result.json').write_text(json.dumps({'status':'hold','reason_codes':['image_analysis_mismatch'],'findings':[
+            {'code':'dish_cropped','region':'right','food_index':-1,'expected':None,'observed':None,'unit':'none'}]}))
+        (job/'diagnostic.json').write_text(json.dumps({'exit_code':0,'input_image_sha256':[c.approval['image_sha256']]}))
+        c.approval.update(recovery_id='22222222-2222-4222-8222-222222222222',scope='one_lunch_image_repair_then_four_candidates',
+            parent_recovery_id=KEY,parent_hold_digest=digest,parent_review_job=str(job));c.save_approval()
+        c.ai.reset_mock(side_effect=True);c.ai.review_image.return_value=PASS
+        c.ai.image.side_effect=[b'\xff\xd8\xffrepaired-lunch',b'\xff\xd8\xffdinner']
+
+    def invoke(self):
+        from src.mina.review_recovery import repair_review
+        c=self.c
+        return repair_review(c.store,c.root/'daily',c.approval_path,c.history,c.root,COMMIT,'logeats.test',c.ai,c.drive,c.meal,clock=lambda:c.now[0])
+
+    def test_repair_preserves_parent_and_original_image_then_delivers_four(self):
+        c=self.c;old=c.lunch.read_bytes();self.assertEqual(self.invoke()['post_count'],4)
+        self.assertEqual(c.ai.image.call_count,2);self.assertEqual(c.ai.review_image.call_count,2);self.assertEqual(c.lunch.read_bytes(),old)
+        self.assertEqual(c.original_unknown(),'outcome_unknown')
+        with c.store.transaction() as db:
+            self.assertEqual(dict(db.execute('SELECT * FROM interrupted_review_recoveries').fetchone()),self.parent)
+            self.assertEqual(db.execute('SELECT state FROM interrupted_image_repairs').fetchone()[0],'complete')
+        with self.assertRaisesRegex(ValueError,'already_claimed'):self.invoke()
+        self.assertEqual(c.ai.image.call_count,2)
+
+    def test_repeated_quality_hold_stops_before_dinner_and_registration(self):
+        c=self.c;c.ai.review_image.return_value={'status':'hold','reason_codes':['image_analysis_mismatch']}
+        with self.assertRaises(ValueError):self.invoke()
+        self.assertEqual(c.ai.image.call_count,1);c.register.assert_not_called()
+        c.approval['recovery_id']='33333333-3333-4333-8333-333333333333';c.save_approval()
+        with self.assertRaisesRegex(ValueError,'already_claimed'):self.invoke()
+        self.assertEqual(c.ai.image.call_count,1)
+
+    def test_same_sha_is_rejected(self):
+        c=self.c;c.ai.image.side_effect=None;c.ai.image.return_value=c.lunch.read_bytes()
+        with self.assertRaisesRegex(ValueError,'same_image'):self.invoke()
+        self.assertEqual(c.ai.image.call_count,1);c.register.assert_not_called()
+
+    def test_parent_mutation_during_generation_is_rejected(self):
+        c=self.c
+        def mutate(*_):
+            with c.store.transaction() as db:db.execute("UPDATE interrupted_review_recoveries SET state='complete'")
+            return b'\xff\xd8\xffchanged'
+        c.ai.image.side_effect=mutate
+        with self.assertRaisesRegex(ValueError,'parent_changed'):self.invoke()
+        c.ai.review_image.assert_not_called();c.register.assert_not_called()
+
+    def test_late_generation_is_retained_without_starting_review(self):
+        c=self.c
+        def late(*_):c.now[0]=END;return b'\xff\xd8\xfflate'
+        c.ai.image.side_effect=late
+        with self.assertRaisesRegex(ValueError,'deadline'):self.invoke()
+        c.ai.review_image.assert_not_called()
+        with c.store.transaction() as db:
+            self.assertEqual(db.execute("SELECT state FROM preparation_steps WHERE step LIKE 'image:lunch:%'").fetchone()[0],'complete')
+
+    def test_wrong_parent_verdict_or_job_is_rejected_before_generation(self):
+        c=self.c;c.approval['parent_hold_digest']='0'*64;c.save_approval()
+        with self.assertRaisesRegex(ValueError,'parent_verdict'):self.invoke()
+        c.ai.image.assert_not_called()
+
+    def test_repaired_image_passes_real_drive_registration_and_correction(self):
+        from nightly_fakes import NightlyAI,NightlyDrive,NightlyMeal
+        from src.mina.review_recovery import repair_review
+        c=self.c
+        for p in c.patches[2:]:p.stop()
+        ai=NightlyAI('corrected',c.now);ai.plan={'meals':c.draft['meals'],'daily_comment':c.draft['daily_comment']}
+        drive=NightlyDrive();meal=NightlyMeal('corrected',c.now,'logeats.test')
+        def capture(url,host):return {'meta':{'og:image':url+'/og-image','image_sha256':'e'*64},'digest':'d'*64,'review_image':b'\xff\xd8\xffpreview'}
+        with patch('src.mina.registration.datetime',wraps=datetime) as api_time:
+            api_time.now.side_effect=lambda *a:c.now[0]
+            result=repair_review(c.store,c.root/'daily',c.approval_path,c.history,c.root,COMMIT,
+                'logeats.test',ai,drive,meal,clock=lambda:c.now[0],capture=capture)
+        self.assertEqual(result['post_count'],4);self.assertEqual(ai.images,2);self.assertEqual(len(drive.uploads),3)
+        self.assertNotEqual(meal.meals['lunch']['image_sha256'],c.approval['image_sha256'])
+        self.assertEqual(hashlib.sha256(c.lunch.read_bytes()).hexdigest(),c.approval['image_sha256'])
+        self.assertEqual(len(meal.calls),5)
+        with c.store.transaction() as db:self.assertEqual(dict(db.execute('SELECT * FROM interrupted_review_recoveries').fetchone()),self.parent)
