@@ -16,8 +16,8 @@ from .preparation_status import PreparationDeadline,QualityHold
 class DeadlineClient:
     """各外部工程の開始時に期限を確認する。期限後の追加登録を防ぐ。"""
 
-    def __init__(self, client, check):
-        self.client, self.check = client, check
+    def __init__(self, client, check, allow_retry=False):
+        self.client, self.check, self.allow_retry = client, check, allow_retry
 
     def __getattr__(self, name):
         value = getattr(self.client, name)
@@ -25,7 +25,11 @@ class DeadlineClient:
             return value
         def invoke(*args, **kwargs):
             self.check()
-            return value(*args, **kwargs)
+            from .external_guard import guard,normal_retry
+            token=guard.set(self.check)
+            permitted=normal_retry.set(self.allow_retry)
+            try:return value(*args, **kwargs)
+            finally:normal_retry.reset(permitted);guard.reset(token)
         return invoke
 
 
@@ -79,7 +83,8 @@ def prepare_day(store, directory, history, evidence_path, commit, root, host, ai
         def within_deadline():
             if instant(clock()) >= deadline:
                 raise PreparationDeadline('準備期限を超過しました')
-        ai, drive, meal = (DeadlineClient(client, within_deadline) for client in (ai, drive, meal))
+        ai=DeadlineClient(ai,within_deadline,allow_retry=not same_day)
+        drive,meal=(DeadlineClient(client,within_deadline) for client in (drive,meal))
         journal = PreparationJournal(store)
         draft_path = directory / 'draft.json'
         journal.run(target, 'daily_draft', {'history': evidence, 'commit': commit},

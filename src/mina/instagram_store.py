@@ -1,6 +1,6 @@
 """Instagramだけの承認・公開台帳。Xの候補や承認行を変更しない。"""
 
-from contextlib import contextmanager
+from contextlib import contextmanager,nullcontext
 from dataclasses import asdict
 from datetime import datetime
 import hashlib
@@ -55,11 +55,11 @@ class InstagramStore:
         finally:
             db.close()
 
-    def save(self, candidate, now, hosts):
+    def save(self, candidate, now, hosts, connection=None):
         if 'recovery' in candidate.source:
             raise ValueError('復旧候補は未送信の旧版照合が必要です')
         candidate.validate(now, hosts)
-        with self.transaction() as db:
+        with (self.transaction() if connection is None else nullcontext(connection)) as db:
             require_clear(db, candidate.target_date)
             previous = db.execute('SELECT * FROM instagram_candidates WHERE target_date=? AND slot=?',
                                   (candidate.target_date, candidate.slot)).fetchone()
@@ -81,6 +81,16 @@ class InstagramStore:
             db.execute("UPDATE instagram_notices SET state='obsolete' WHERE target_date=? AND slot=? AND state='pending'",
                        (candidate.target_date, candidate.slot))
             return revision
+
+    def save_many(self,candidates,now,hosts,guard=None):
+        """4枠の全検査後に同じtransactionへ保存し、一部だけの承認候補を残さない。"""
+        from .domain import SLOTS
+        if len(candidates)!=4 or {c.slot for c in candidates}!=set(SLOTS) or len({c.target_date for c in candidates})!=1:raise ValueError('instagram_four_candidates_required')
+        for c in candidates:c.validate(now,hosts)
+        with self.transaction() as db:
+            if guard:guard(db)
+            for c in candidates:self.save(c,now,hosts,connection=db)
+            if guard:guard(db)
 
     def rows(self, target=None):
         with self.transaction() as db:

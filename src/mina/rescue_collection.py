@@ -156,7 +156,9 @@ class GuardedPort:
             key = str(uuid.uuid4())
             kind = 'collection_review' if name.startswith('review') else ('collection_structured' if name=='structured' else ('collection_register' if name in ('register','json_write') else 'collection_read'))
             self.policy.reserve(TARGET,key,kind)
-            try: result = method(*args, **kwargs)
+            try:
+                from .external_guard import managed_call
+                result=managed_call(lambda:method(*args,**kwargs))
             except BaseException:
                 self.policy.called(key,False)
                 raise

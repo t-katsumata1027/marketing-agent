@@ -1,4 +1,5 @@
 """限定救済の明示入口。通常daemonへ自動接続せず、本番操作の別承認を維持する。"""
+from .external_guard import managed_call
 import hashlib
 import json
 import os
@@ -150,7 +151,7 @@ class RescueFlow:
                 return json.loads(previous['value']),previous['finished_at']
             db.execute("INSERT INTO rescue_calls VALUES(?,?,'started',?,NULL,NULL)",(key,'collection_review',digest(evidence)))
         self.policy.reserve(TARGET,key,'collection_review')
-        try: value=operation()
+        try: value=managed_call(operation)
         except BaseException:
             self.policy.called(key,False);raise
         self.policy.called(key,True);finished=stamp(self.clock())
@@ -387,7 +388,7 @@ class RescueFlow:
                 return bytes(previous['value']) if previous['encoding']=='bytes' else json.loads(previous['value'])
             db.execute("INSERT INTO rescue_calls VALUES(?,?,'started',NULL,NULL,NULL)",(key,kind))
         self.policy.reserve(TARGET,key,kind)
-        try: value=operation()
+        try: value=managed_call(operation)
         except BaseException:
             self.policy.called(key,False);raise
         raw=value if isinstance(value,bytes) else canonical(value)
@@ -661,7 +662,7 @@ class RescueFlow:
                 return json.loads(old['value'])
             db.execute("INSERT INTO rescue_calls VALUES(?,?,'started',NULL,NULL,NULL)",(full,kind))
         self.policy.reserve(TARGET,full,kind)
-        try: value=operation()
+        try: value=managed_call(operation)
         except BaseException:
             self.policy.called(full,False);raise
         self.policy.called(full,True)

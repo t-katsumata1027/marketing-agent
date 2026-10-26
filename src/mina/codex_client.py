@@ -8,6 +8,7 @@ import subprocess
 import uuid
 import time
 import hashlib
+import re
 from pathlib import Path
 
 from .generation import IMAGE_STYLE, OpenAIClient
@@ -42,11 +43,12 @@ class CodexClient(OpenAIClient):
     def failure_reason(text):
         """CLI原文を表示せず、既知の失敗分類だけを返す。"""
         for name, patterns in (("usage_limit", ("usage_limit", "usage limit", "rate limit", "rate_limit")),
-                               ("authentication", ("not logged in", "unauthorized", "authentication", "401")),
+                               ("authentication", ("not logged in", "unauthorized", "authentication")),
                                ("sandbox", ("bwrap", "landlock", "sandbox error")),
                                ("configuration", ("unrecognized", "unknown variant", "invalid value"))):
             if any(pattern in text.lower() for pattern in patterns):
                 return name
+        if re.search(r'\b(?:http(?:/\d(?:\.\d)?)?\s*|status(?:\s+code)?\s*[:= ]\s*)401\b',text,re.I):return 'authentication'
         return "execution"
 
     @staticmethod
@@ -181,7 +183,8 @@ class CodexClient(OpenAIClient):
                     texts.append(part["text"])
                 elif part["type"] == "input_image":
                     images.append(base64.b64decode(part["image_url"].split(",", 1)[1], validate=True))
-        return self.execute(instructions + "\n" + "\n".join(texts), schema, images)
+        from .review_retry import execute_review
+        return execute_review(self,instructions + "\n" + "\n".join(texts),schema,images,name)
 
     def image(self, description):
         from .generation import object_schema

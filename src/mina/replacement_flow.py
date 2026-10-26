@@ -1,4 +1,5 @@
 """保存済み専用のP/D/C調停。通常登録へfallbackせず、未解決はGETで照合する。"""
+from .external_guard import managed_call
 import hashlib
 import json
 import uuid
@@ -87,7 +88,7 @@ class ReplacementFlow:
                 return bytes(old['value']) if old['encoding']=='bytes' else json.loads(old['value'])
         self.policy.reserve(e['target_date'],key,kind)
         with self.store.transaction() as db:db.execute("INSERT INTO replacement_external_calls VALUES(?,?,?,'started',NULL,NULL,NULL)",(key,e['target_date'],kind))
-        try:value=operation()
+        try:value=managed_call(operation)
         except BaseException:
             self.policy.called(key,False);raise
         encoding='bytes' if isinstance(value,bytes) else 'json';raw=value if encoding=='bytes' else canonical(value)
