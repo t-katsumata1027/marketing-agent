@@ -58,6 +58,24 @@ class CorrectionRecoveryTests(unittest.TestCase):
             for table,parent in self.parents.items():self.assertEqual(dict(db.execute('SELECT * FROM '+table).fetchone()),parent)
             self.assertEqual(db.execute('SELECT count(*) FROM candidates').fetchone()[0],4)
 
+    def test_real_state_aliases_preserve_result_comparison(self):
+        previous=self.meal.day_state
+        def state(target):
+            value=previous(target)
+            for m in value['meals']:
+                m.update(meal_type=m['meal']['meal_type'],logged_at=m['meal']['logged_at'],share_url=m['share']['url'])
+            return value
+        self.meal.day_state=state
+        self.assertEqual(self.invoke()['post_count'],4)
+
+    def test_inconsistent_state_alias_stops_before_new_model_or_patch(self):
+        previous=self.meal.day_state;calls=list(self.meal.calls)
+        def state(target):
+            value=previous(target);value['meals'][0]['meal_type']='dinner';return value
+        self.meal.day_state=state
+        with self.assertRaisesRegex(ValueError,'state_alias_changed'):self.invoke()
+        self.assertEqual(self.meal.calls,calls)
+
     def test_expiry_before_start_has_no_new_model_or_patch(self):
         self.c.now[0]=END;calls=list(self.meal.calls)
         with self.assertRaisesRegex(ValueError,'deadline'):self.invoke()

@@ -73,7 +73,11 @@ def resume_correction(store,directory,approval_path,history_path,root,commit,hos
     if (state['state_version']!=approval['state_version'] or state['meal_count']!=1
             or state['meals'][0]['meal']['meal_type']!='breakfast' or state.get('daily_share')):
         raise ValueError('correction_recovery_state_changed')
-    current=state['meals'][0]
+    current=dict(state['meals'][0])
+    # 日GETの互換補助値は正本内の値と一致した場合だけ比較対象から外す。
+    aliases={'meal_type':current['meal']['meal_type'],'logged_at':current['meal']['logged_at'],'share_url':current['share']['url']}
+    for field,value in aliases.items():
+        if field in current and current.pop(field)!=value:raise ValueError('correction_recovery_state_alias_changed')
     if any(current.get(k)!=approval[k] for k in ('result_version','image_sha256','stored_image_sha256')):
         raise ValueError('correction_recovery_result_changed')
     lookup=meal.request_state(approval['saved_request_uuid'],'meal_register')
