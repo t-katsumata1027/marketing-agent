@@ -74,3 +74,15 @@ CLI診断は固定providerエラーコードとstdout/stderrのSHAを追加し�
 2026-10-27 01:00 JSTまでの新たな追加許可を提案する。既存23:00/23:30の許可を変更・再有効化しない。新しい専用deadlineを新固定版と新artifactへ束縛し、限定差分の境界試験・独立レビュー・CI・安全配置後にだけ実行する。元訂正unknown/親2claim/使用量履歴はそのまま保持する。
 
 範囲と回数は承認済み案と同じ：朝食訂正案の再取得1回とPATCH1回、保存済み朝食/3画像の再利用、未保存昼夕/日次の通常登録・必要訂正・独立点検・実合計1800〜2000kcal・OGP確認、合格後のDiscord4候補まで。朝食再登録・画像再生成・新しい提案/POSTの反復・実X公開・Instagram固有操作・本体変更は含まない。期限内に成立しなければ停止し、次の期限を勝手に設定しない。
+
+## 10/27 00:17追記：追加枠で本番反映・朝昼保存、昼訂正後点検のCLI停止
+
+本人が01:00枠を承認し、06e9cccdで期限だけを固定、独立12試験/日跨ぎ通しGo、CI40345100014成功後00:04に配置した。初期要求照会の現在正本照合で停止し、この時点の新AI/PATCH/専用claim作成は0。読取調査で日GETだけの互換補助3項目meal_type/logged_at/share_urlが正式result全体比較に混入していたことを確認した。
+
+04876c9aで3補助をnested meal/shareと一致検査した場合だけ比較から除外し、正式resultの全体比較を保持した。実形状通しと補助不一致拒否を加え、CI40346199584はMina607成功/51skip・一般32成功、独立14試験とoperator/driver Go。00:10に配置、旧37表の切替不変、既存行保持、救済OFF、全サービス/5timer/切替後巡回正常を確認した。同ID12f2d130-aae8-4894-bd5e-485a7b7c8837のcommitだけ更新し、旧許可・driverを退避保持。元親の許可・held・unknown・画像・準備期限を変更していない。
+
+朝食の追加提案1回/PATCH1回は成功し、訂正後独立点検/OGP独立点検合格。昼食通常POST1、栄養不一致に対する通常提案1/PATCH1、訂正後OGP取得まで成功。昼訂正後のmeal_review:lunch:correctedでCLI92c49faf637c4fde98237fbbb3eaa3f4が3.698秒・exit1/resultなしとなり停止した。元工程unknown、追加claim heldを保持。夕食/日次/候補0、実X公開/Instagram固有操作/本体コード変更0。
+
+00:15本番GETは200/no-store、朝538.6/昼727kcalの保存済み2食。朝は独立合格、昼はAPI品質passだが独立未確定。診断のauthentication分類は確定根因ではなく、ログイン成功・access期限10/27 19:00 JST・providerコード空を確認した。stderr本文は記録がなく、裸401部分一致による誤分類も否定できない。過去/今回の未知費用を0へ戻していない。
+
+再点検の自動再送は行わず、昼訂正後点検だけ新工程で1回採用し残りを進める限定案を作成。実装不参加Codexの計画Go条件を反映済みだが、本人追加承認前に実装/新点検を開始しない。詳細はMINA_LUNCH_REVIEW_RECOVERY_PLAN_20261027.md、実績はinvestigations/interrupted-review-20261027/CORRECTION_EXECUTION_RESULT.jsonおよびCORRECTION_SAVED_STATE.jsonl。

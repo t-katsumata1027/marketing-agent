@@ -1,5 +1,9 @@
 # サブPCでの開発
 
+## 2026年10月27日00:10・追加訂正版を配置、昼訂正後CLI点検で保留
+
+固定04876c9ad82ec5e13a83afbade10e580b6f860b8、CI40346199584/独立Go後に配置。退避は/var/lib/mina-agent/deployment-review-recovery-04876c9a、旧コードは/opt/marketing-agent-rollback-review-04876c9a。既存37表切替不変、救済OFF・実3サービス/5timer/新巡回正常。限定unitはmina-correction-recovery-20261027.service、許可ID12f2d130-aae8-4894-bd5e-485a7b7c8837、期限01:00。元GET補助項目照合停止は課金前に補修し同IDの旧artifactを退避保持した。実処理は朝昼の訂正保存後、昼訂正後点検CLIでunknown/claim heldとなって停止。unit再起動や別IDでの自動再送は禁止。詳細はMINA_LUNCH_REVIEW_RECOVERY_PLAN_20261027.md。
+
 ## 2026年10月26日22:09・中断点検の限定復旧版を配置、昼画像品質保留
 
 本人承認に基づき60fa906aを配置。最終CI/独立Go、既存35表全行保持、3サービス/既存5timer正常、救済OFF保持。10/27昼食の再点検1回はCLI正常終了したが右端の器見切れで品質保留。旧unknown/新hold/費用不明を保持し、夕生成・Drive・登録・4候補へ進んでいない。追加の昼画像生成は未承認。詳細はMINA_INTERRUPTED_REVIEW_RECOVERY_20261027.md。
