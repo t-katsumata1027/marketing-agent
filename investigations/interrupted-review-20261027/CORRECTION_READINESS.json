@@ -1,0 +1,23 @@
+{
+  "code_commit": "147b8e9ed95d073bce76d552bddbf1f74294b43e",
+  "deployed": false,
+  "production_runtime_commit": "9dfffc17f80c5271b1da66fc0c4ad1c980599476",
+  "ci_run": 40341638487,
+  "ci_conclusion": "success",
+  "mina_listed": 656,
+  "mina_skipped": 51,
+  "mina_passed": 605,
+  "general_passed": 32,
+  "independent_tests_passed": 63,
+  "independent_verdict": "Go: code and isolation only",
+  "release_files": 320,
+  "release_activation_allowed": false,
+  "approved_execution_deadline": "2026-10-26T23:30:00+09:00",
+  "deadline_status": "expired_before_all_gates_satisfied",
+  "actual_new_ai_calls": 0,
+  "actual_new_patches": 0,
+  "meals_registered_by_this_stage": 0,
+  "body_changed": false,
+  "next_deadline_proposal": "2026-10-27T01:00:00+09:00",
+  "next_deadline_approved": false
+}

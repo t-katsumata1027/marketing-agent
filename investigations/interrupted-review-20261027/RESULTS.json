@@ -1,0 +1,28 @@
+{
+  "code_commit": "60fa906a44a3dd7fd5be3e3513865cd708401430",
+  "ci_run": 40327744238,
+  "ci_passed": 585,
+  "ci_skipped": 51,
+  "general_tests_passed": 32,
+  "independent_review": "Go:35 tests passed",
+  "deployment": "success",
+  "old_rows_retained": true,
+  "old_tables": 35,
+  "execution": "quality_hold",
+  "new_review_calls": 1,
+  "new_images": 0,
+  "drive_uploads": 0,
+  "meal_writes": 0,
+  "x_candidates": 0,
+  "new_review_job": "eadda10e947843d4b96aae95aef2306e",
+  "observations": [
+    "dish_cropped:right"
+  ],
+  "old_unknown_preserved": true,
+  "parent_claim": "held",
+  "new_lunch_generation_approved": false,
+  "deadline": "2026-10-26T23:00:00+09:00",
+  "body_changed": false,
+  "x_posts_published_by_recovery": 0,
+  "instagram_specific_operations": 0
+}

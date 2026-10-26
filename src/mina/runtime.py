@@ -10,7 +10,7 @@ from .domain import ACCOUNT, Candidate, JST, SLOTS, instant
 from .store import Store
 
 
-def import_manifest(store: Store, path: Path, host: str, now: datetime, expected_digests=None, excluded_slots=()):
+def import_manifest(store: Store, path: Path, host: str, now: datetime, expected_digests=None, excluded_slots=(), guard=None):
     """独立レビュー済み成果物を取り込み、元の版を保存する。"""
     payload = json.loads(path.read_text(encoding="utf-8-sig"))
     if excluded_slots:
@@ -40,7 +40,8 @@ def import_manifest(store: Store, path: Path, host: str, now: datetime, expected
         comments.append(c.comment)
         weekly.append(c.comment)
     # 全件を検証後に原子的に反映し、一部だけの差し替えを防ぐ。
-    store.save_many(candidates, host, now, expected_digests=expected_digests)
+    if guard is None:store.save_many(candidates, host, now, expected_digests=expected_digests)
+    else:store.save_many(candidates, host, now, expected_digests=expected_digests,guard=guard)
     return target
 
 

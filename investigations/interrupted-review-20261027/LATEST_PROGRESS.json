@@ -1,0 +1,210 @@
+{
+  "checked_at": "2026-10-26T13:42:15.069611+00:00",
+  "unit": [
+    "Result=exit-code",
+    "ExecMainStatus=1",
+    "ActiveState=failed"
+  ],
+  "preparation": [
+    {
+      "state": "held:interrupted_review"
+    }
+  ],
+  "preparation_progress": [
+    {
+      "step": "correction_plan:breakfast",
+      "status": "reconciliation_required",
+      "reasons": "[\"unconfirmed\"]"
+    }
+  ],
+  "interrupted_review_recoveries": [
+    {
+      "state": "held"
+    }
+  ],
+  "interrupted_image_repairs": [
+    {
+      "state": "held"
+    }
+  ],
+  "candidates": [],
+  "notices": [
+    {
+      "slot": "all",
+      "state": "sent",
+      "kind": "delay"
+    },
+    {
+      "slot": "all",
+      "state": "sent",
+      "kind": "preparation_hold"
+    },
+    {
+      "slot": "all",
+      "state": "sent",
+      "kind": "preparation_hold"
+    },
+    {
+      "slot": "all",
+      "state": "sent",
+      "kind": "preparation_hold"
+    }
+  ],
+  "mina_requests": [
+    {
+      "slot": "breakfast",
+      "operation": "meal_register",
+      "phase": "complete"
+    }
+  ],
+  "steps": [
+    {
+      "step": "daily_draft",
+      "state": "complete"
+    },
+    {
+      "step": "menu_nutrition:8d3a95a20e45fc0b7fb636b6593e6df701b6d7cfd6d290b6f8754cbed5f7706b",
+      "state": "complete"
+    },
+    {
+      "step": "image:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "image_review:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "image:lunch",
+      "state": "complete"
+    },
+    {
+      "step": "image_review:lunch",
+      "state": "outcome_unknown"
+    },
+    {
+      "step": "image_review:lunch:interrupted:805b0f10-f67b-4695-b726-61343434bb60",
+      "state": "complete"
+    },
+    {
+      "step": "image:lunch:7630224f-2582-49a1-98dc-4d3705564753",
+      "state": "complete"
+    },
+    {
+      "step": "image_review:lunch:7630224f-2582-49a1-98dc-4d3705564753",
+      "state": "complete"
+    },
+    {
+      "step": "review_adoption:lunch:7630224f-2582-49a1-98dc-4d3705564753",
+      "state": "complete"
+    },
+    {
+      "step": "image:dinner",
+      "state": "complete"
+    },
+    {
+      "step": "image_review:dinner",
+      "state": "complete"
+    },
+    {
+      "step": "drive_upload:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "drive_upload:lunch",
+      "state": "complete"
+    },
+    {
+      "step": "drive_upload:dinner",
+      "state": "complete"
+    },
+    {
+      "step": "meal_request_key:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "meal_register:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "ogp_capture:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "meal_review:breakfast",
+      "state": "complete"
+    },
+    {
+      "step": "correction_plan:breakfast",
+      "state": "outcome_unknown"
+    }
+  ],
+  "recent_events": [
+    {
+      "stage": "notification",
+      "slot": null,
+      "event": "completed",
+      "reason": "none",
+      "details": "{\"elapsed_ms\": 886.118, \"source_commit\": \"9dfffc17f80c5271b1da66fc0c4ad1c980599476\"}"
+    },
+    {
+      "stage": "notification",
+      "slot": null,
+      "event": "started",
+      "reason": "none",
+      "details": "{\"source_commit\": \"9dfffc17f80c5271b1da66fc0c4ad1c980599476\"}"
+    },
+    {
+      "stage": "correction_plan",
+      "slot": "breakfast",
+      "event": "stopped",
+      "reason": "execution",
+      "details": "{\"frames\": [\"src/mina/preparation.py:run:51\", \"src/mina/correction.py:propose:22\", \"src/mina/daily_pipeline.py:invoke:28\", \"src/mina/codex_client.py:structured:179\", \"src/mina/codex_client.py:execute:143\"], \"cli_job_id\": \"2277caf8eeb747d4b8b0ad7933e64462\", \"cli_exit_code\": 1, \"cli_result_exists\": false, \"source_commit\": \"9dfffc17f80c5271b1da66fc0c4ad1c980599476\"}"
+    },
+    {
+      "stage": "correction_plan",
+      "slot": "breakfast",
+      "event": "failed",
+      "reason": "execution",
+      "details": "{\"frames\": [\"src/mina/preparation.py:run:51\", \"src/mina/correction.py:propose:22\", \"src/mina/daily_pipeline.py:invoke:28\", \"src/mina/codex_client.py:structured:179\", \"src/mina/codex_client.py:execute:143\"], \"cli_job_id\": \"2277caf8eeb747d4b8b0ad7933e64462\", \"cli_exit_code\": 1, \"cli_result_exists\": false, \"source_commit\": \"9dfffc17f80c5271b1da66fc0c4ad1c980599476\"}"
+    },
+    {
+      "stage": "correction_plan",
+      "slot": "breakfast",
+      "event": "started",
+      "reason": "none",
+      "details": "{\"step_sha256\": \"96397531e9a8b1322b5baae4dd147d8b898b4fdd4aafcf5f887461628f469740\", \"source_commit\": \"9dfffc17f80c5271b1da66fc0c4ad1c980599476\"}"
+    }
+  ],
+  "unit_output": [
+    {
+      "state": "held",
+      "reason": "clock_ahead",
+      "details": {
+        "frames": [
+          "src/mina/review_recovery.py:repair_review:226",
+          "src/mina/review_recovery.py:resume_review:59",
+          "src/mina/clients.py:day_state:224",
+          "src/mina/clients.py:await_checked_at:55"
+        ],
+        "clock_ahead_ms": 1024.627
+      }
+    },
+    {
+      "state": "held",
+      "reason": "execution",
+      "details": {
+        "frames": [
+          "src/mina/preparation.py:run:51",
+          "src/mina/correction.py:propose:22",
+          "src/mina/daily_pipeline.py:invoke:28",
+          "src/mina/codex_client.py:structured:179",
+          "src/mina/codex_client.py:execute:143"
+        ],
+        "cli_job_id": "2277caf8eeb747d4b8b0ad7933e64462",
+        "cli_exit_code": 1,
+        "cli_result_exists": false
+      }
+    }
+  ]
+}

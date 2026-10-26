@@ -1,5 +1,22 @@
 # サブPCでの開発
 
+## 2026年10月27日00:58・4候補の承認依頼完了
+
+稼働00b1f898056171ae125eeea18f85edfcfa61aa01、固定CI40353535008成功・独立Go。退避/var/lib/mina-agent/deployment-review-recovery-00b1f898、旧コード/opt/marketing-agent-rollback-review-00b1f898。専用unit mina-ogp-finish-recovery-20261027.serviceはsuccess/inactive、許可ID8e82d473-4050-4d49-af9d-2481016f37eeのclaim complete。夕/日次のroot独立点検receiptは/var/lib/mina-agent/ogp-finish-recovery-20261027/receipts、旧unknown/親4heldは保持。4候補approval_pending・Discord4件sent。追加3食書込み0/日次1、救済OFF維持。期限01:00は延長せず、完了済unitを再実行しない。
+
+## 2026年10月27日00:38・昼訂正後の限定点検を配置、夕OGP点検で停止
+
+固定4c9f4a9967ab062c74ba1b0ba5d6d3fd92b0eb32、CI40350775553/独立Go後に配置。退避/var/lib/mina-agent/deployment-review-recovery-4c9f4a99、旧コード/opt/marketing-agent-rollback-review-4c9f4a99。旧38表切替不変、既存行保持、3サービス/5timer/新巡回正常・救済OFF保持。専用unitはmina-lunch-review-recovery-20261027.service、許可ID5b75e9b8-0fc1-4b83-844f-c3dd160f24ff、期限01:00。昼点検合格・夕登録/訂正保存と栄養点検合格後、夕ogp_review CLI unknownで新claim held。3食は保存済み、日次/候補0。同unit再送・claim解除はしない。独立Codexの夕OGP読取診断は合格だが採用/追加実行は別承認待ち。
+
+## 2026年10月27日00:10・追加訂正版を配置、昼訂正後CLI点検で保留
+
+固定04876c9ad82ec5e13a83afbade10e580b6f860b8、CI40346199584/独立Go後に配置。退避は/var/lib/mina-agent/deployment-review-recovery-04876c9a、旧コードは/opt/marketing-agent-rollback-review-04876c9a。既存37表切替不変、救済OFF・実3サービス/5timer/新巡回正常。限定unitはmina-correction-recovery-20261027.service、許可ID12f2d130-aae8-4894-bd5e-485a7b7c8837、期限01:00。元GET補助項目照合停止は課金前に補修し同IDの旧artifactを退避保持した。実処理は朝昼の訂正保存後、昼訂正後点検CLIでunknown/claim heldとなって停止。unit再起動や別IDでの自動再送は禁止。詳細はMINA_LUNCH_REVIEW_RECOVERY_PLAN_20261027.md。
+
+## 2026年10月26日22:09・中断点検の限定復旧版を配置、昼画像品質保留
+
+本人承認に基づき60fa906aを配置。最終CI/独立Go、既存35表全行保持、3サービス/既存5timer正常、救済OFF保持。10/27昼食の再点検1回はCLI正常終了したが右端の器見切れで品質保留。旧unknown/新hold/費用不明を保持し、夕生成・Drive・登録・4候補へ進んでいない。追加の昼画像生成は未承認。詳細はMINA_INTERRUPTED_REVIEW_RECOVERY_20261027.md。
+
+
 ## 2026年10月24日13:39・当日限定救済Agentを本番配置、救済OFF
 
 本人の条件付き承認に基づき、最終CI40049695981と本体固定5001250の専用Preview40059175879成功を確認してAgent5dbc45bを配置。既存27表全行不変・追加7空台帳、実3サービス子プロセスで救済false、UTM/通常置換true保持。起動監査2件のみ追記、巡回失敗0、既存5timer active。食事登録/置換・実課金・投稿・Log-Eats本体変更は0。本体PR151本番導入、救済ON、当日L/Rは別承認。退避/var/lib/mina-agent/deployment-rescue-off-5dbc45b、旧コード/opt/marketing-agent-rollback-rescue-5dbc45b。詳細はMINA_RESCUE_AGENT_DEPLOYMENT_20261024.md。下記の未配置記述は以前の時点の記録。

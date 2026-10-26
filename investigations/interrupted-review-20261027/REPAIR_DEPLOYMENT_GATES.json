@@ -1,0 +1,8 @@
+{
+  "ci": {
+    "conclusion": "success",
+    "headSha": "9dfffc17f80c5271b1da66fc0c4ad1c980599476"
+  },
+  "bundle_sha256": "15599a7fce570946a4e591a73a1350f04c45d61eae66f38e406410c7ad061f25",
+  "operator_sha256": "74ce6739f37f77edf2a0e7c8dfe1556cfc123d1404cfc85fa41800d82144a830"
+}

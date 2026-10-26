@@ -48,6 +48,37 @@ class CodexClientTest(unittest.TestCase):
         raw = state.read_text(encoding="utf-8")
         self.assertEqual(json.loads(raw)["reason"], "usage_limit")
         self.assertNotIn("private-key", raw)
+        from src.mina.audit import safe_failure,checked_details
+        diagnostic=json.loads((state.parent/'diagnostic.json').read_text())
+        self.assertEqual(diagnostic['exit_code'],1);self.assertFalse(diagnostic['result_exists'])
+        self.assertNotIn('private-key',json.dumps(diagnostic))
+
+    def test_all_failed_output_paths_keep_auditable_job_reference(self):
+        from src.mina.audit import safe_failure,checked_details
+        for kind in ('start','timeout','invalid'):
+            with self.subTest(kind=kind):
+                def launch(command,**kwargs):
+                    if kind=='start':raise OSError('private-secret')
+                    path=Path(command[command.index('--output-last-message')+1])
+                    process=Mock(returncode=0)
+                    if kind=='timeout':process.communicate.side_effect=subprocess.TimeoutExpired('cli',1)
+                    else:path.write_text('invalid-json');process.communicate.return_value=('','')
+                    return process
+                with patch('src.mina.codex_client.subprocess.Popen',side_effect=launch),patch.object(CodexClient,'stop_process'):
+                    try:CodexClient().execute('入力秘密',{'type':'object'},timeout=1)
+                    except Exception as error:
+                        reason,details=safe_failure(error);safe=json.loads(checked_details(details))
+                        self.assertRegex(safe['cli_job_id'],'^[0-9a-f]{32}$');self.assertIn('cli_result_exists',safe)
+                        self.assertTrue((self.directory/safe['cli_job_id']/'diagnostic.json').is_file())
+                    else:self.fail('failure expected')
+
+    def test_only_fixed_provider_codes_and_hashes_are_retained(self):
+        process=Mock(returncode=1);process.communicate.return_value=('','private-key invalid_json_schema arbitrary-secret')
+        with patch('src.mina.codex_client.subprocess.Popen',return_value=process):
+            with self.assertRaises(RuntimeError):CodexClient().execute('private-prompt',{'type':'object'})
+        diagnostic=next(self.directory.glob('*/diagnostic.json')).read_text()
+        self.assertEqual(json.loads(diagnostic)['provider_error_codes'],['invalid_json_schema'])
+        for secret in ('private-key','arbitrary-secret','private-prompt'):self.assertNotIn(secret,diagnostic)
 
     def test_timeout_terminates_process_and_preserves_working_directory(self):
         process = Mock(returncode=1)
