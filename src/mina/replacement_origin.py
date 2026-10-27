@@ -9,6 +9,8 @@ from .preparation import fingerprint
 def native_quality_hold(db,target,slot,binding,steps):
     """通常点検のcomplete+holdを、現在正本と同じ入力の事実として読む。書換えはしない。"""
     from .generation import meal_review_policy_sha256
+    from .replacement_contract import Contract
+    from jsonschema.exceptions import ValidationError
     from .m1_contract import validate_write
     from .domain import slot_time,date
     from .readiness import read_json
@@ -37,20 +39,34 @@ def native_quality_hold(db,target,slot,binding,steps):
     if not 0<len(raw)<=4194304 or len(raw)!=image['size'] or hashlib.sha256(raw).hexdigest()!=image['sha256']:
         raise ValueError('migration_unverified')
     response=json.loads(saved_step['result']);captured=json.loads(capture['result'])
-    validate_write(response,slot,target,context['host'],operation='meal_correction' if corrected else 'meal_register',
-                   logged_at=slot_time(date.fromisoformat(target),slot).isoformat(),input_comment=draft['meals'][slot]['comment'])
+    try:
+        validate_write(response,slot,target,context['host'],operation='meal_correction' if corrected else 'meal_register',
+                       logged_at=slot_time(date.fromisoformat(target),slot).isoformat(),input_comment=draft['meals'][slot]['comment'])
+    except ValueError:raise ValueError('replacement_quality_hold_required') from None
     own=next((m for m in binding['preconditions']['meals'] if m['expected']['target_slot']==slot),None)
     result=response['result']
+    descriptor=own['analysis'] if own else None
+    try:descriptor_digest=Contract(lambda:None).analysis(descriptor)
+    except (ValidationError,ValueError,KeyError,TypeError):raise ValueError('replacement_quality_hold_required') from None
+    # 保存済みdescriptorのprovenanceはM1とは異なる。nullをfalseへ補完せず、共有する実食品・栄養・品質を照合する。
+    def foods(value):
+        return [{k:f.get(k) for k in ('name','amount','calories','protein','fat','carbs')} for f in value['foods']]
     if (not own or own['expected']['target_result_version']!=result['result_version']
             or own['expected']['target_share_url']!=result['share']['url']
             or own['image_sha256']!=image['sha256'] or result['image_sha256']!=image['sha256']
-            or own['stored_image_sha256']!=result['stored_image_sha256'] or own['analysis']!=result['analysis']):
+            or own['stored_image_sha256']!=result['stored_image_sha256']
+            or descriptor_digest!=own['analysis_digest'] or descriptor['analysis_source']!='stored_canonical'
+            or descriptor['is_ambiguous'] not in (None,False) or result['analysis'].get('is_ambiguous') is not False
+            or foods(descriptor)!=foods(result['analysis']) or descriptor['summary']!=result['analysis']['summary']
+            or descriptor['quality']!=result['quality']):
         raise ValueError('replacement_quality_hold_required')
     expected={'image_sha256':image['sha256'],'meal':draft['meals'][slot],'response':response,
               'ogp_digest':captured['digest'],'policy_sha256':meal_review_policy_sha256()}
     if review['digest']!=fingerprint(expected):raise ValueError('replacement_quality_hold_required')
     return {'format':'native-complete-hold-v1','step':review['step'],'input_digest':review['digest'],
-            'result_version':result['result_version'],'image_sha256':image['sha256'],'verdict_digest':fingerprint(verdict)}
+            'result_version':result['result_version'],'image_sha256':image['sha256'],'verdict_digest':fingerprint(verdict),
+            'stored_descriptor_digest':descriptor_digest,'stored_descriptor_ambiguity':descriptor['is_ambiguous'],
+            'm1_ambiguity':result['analysis']['is_ambiguous']}
 
 
 def originals(db, target, slot, binding):
