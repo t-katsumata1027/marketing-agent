@@ -116,7 +116,8 @@ class InstagramPreparationTests(unittest.TestCase):
         destination=Path(self.store.path).parent/'rendered';destination.mkdir()
         runtime.render=Mock(return_value=(bundle,manifest,destination));runtime.verify=Mock()
         host=Mock(side_effect=lambda asset,*a,**k:(runtime.preparation_begin_write() or asset))
-        with patch('src.mina.instagram_runtime.instagram_channel',side_effect=TimeoutError()),patch('src.mina.instagram_runtime.host_asset',host):
+        with patch('src.mina.instagram_runtime.instagram_channel',side_effect=TimeoutError()),patch('src.mina.instagram_runtime.host_asset',host),patch('src.mina.instagram_runtime.datetime') as dt:
+            dt.now.return_value=NOW
             with self.assertRaises(TimeoutError):prepare(runtime,TARGET,True,clock=lambda:self.now[0])
         self.assertEqual(self.row()['state'],'waiting_source');host.assert_not_called()
         self.now[0]+=timedelta(seconds=61)
