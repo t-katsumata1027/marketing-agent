@@ -32,7 +32,8 @@ def tracked(method):
                 'replacement_hold_changed','replacement_budget_policy_changed','replacement_call_lookup_only',
                 'external_dispatch_unverified','external_dispatch_present','external_inventory_incomplete','external_inventory_stale',
                 'budget_unconfigured','budget_exceeded','replacement_no_request_to_reconcile',
-                'replacement_preflight_busy','replacement_preflight_not_pristine','replacement_source_incomplete'}
+                'replacement_preflight_busy','replacement_preflight_not_pristine','replacement_source_incomplete',
+                'replacement_quality_hold_required'}
             reason=str(error) if str(error) in reasons else 'unconfirmed'
             with self.store.transaction() as db:
                 e=db.execute('SELECT stage,slot FROM replacement_episodes WHERE target_date=?',(target,)).fetchone()
@@ -40,7 +41,7 @@ def tracked(method):
                            (target,method.__name__,e['stage'] if e else 'precheck',reason,stamp(self.clock())))
                 db.execute('UPDATE replacement_episodes SET reason=? WHERE target_date=?',(reason,target))
             if reason in ('external_dispatch_present','external_dispatch_unverified','external_inventory_incomplete',
-                          'external_inventory_stale','replacement_source_incomplete','replacement_preflight_busy'):
+                          'external_inventory_stale','replacement_source_incomplete','replacement_preflight_busy','replacement_quality_hold_required'):
                 raise PreflightFailure(reason) from None
             raise
     return invoke
@@ -239,7 +240,7 @@ class ReplacementFlow:
         e=self.episode(target);self.checkpoint(e)
         if e['stage'] not in ('held','discarded','rejected'):raise ValueError('replacement_lookup_required')
         with self.store.transaction() as db:
-            if db.execute("UPDATE replacement_episodes SET stage='generating' WHERE target_date=? AND stage=?",(target,e['stage'])).rowcount!=1:raise ValueError('replacement_concurrent_operation')
+            if db.execute("UPDATE replacement_episodes SET stage='reserving_attempt' WHERE target_date=? AND stage=?",(target,e['stage'])).rowcount!=1:raise ValueError('replacement_concurrent_operation')
         old=json.loads(e['old_source'])
         fresh=self.contract.preconditions(self.client.preconditions(target),target)
         if digest_source(fresh)!=digest_source(old):raise ValueError('replacement_source_changed')

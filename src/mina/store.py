@@ -415,7 +415,7 @@ class Store:
         step=previous if prefix==stage or parents.get(prefix)==stage else stage
         reason,details=safe_failure(error)
         if reason in ('external_dispatch_present','external_dispatch_unverified','external_inventory_incomplete','external_inventory_stale',
-                      'replacement_source_incomplete','replacement_preflight_busy'):
+                      'replacement_source_incomplete','replacement_preflight_busy','replacement_quality_hold_required'):
             pieces=step.split(':')
             step='replacement_preflight:'+pieces[1] if len(pieces)>1 else 'replacement_preflight'
         from .x_text import PostLengthError

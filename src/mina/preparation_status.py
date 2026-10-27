@@ -26,7 +26,8 @@ REASONS = {'post_text_too_long':'固定文・共有URLを含むX本文が280上�
            'external_inventory_incomplete':'外部予約の全状態・全ページを取得できない',
            'external_inventory_stale':'外部予約の照合証跡が有効時間を超過',
            'replacement_source_incomplete':'保存済み3食が揃わず置換を開始できない',
-           'replacement_preflight_busy':'同じ公開停止の確認処理が実行中'}
+           'replacement_preflight_busy':'同じ公開停止の確認処理が実行中',
+           'replacement_quality_hold_required':'置換移行元の品質保留記録の形式・版を照合できない'}
 
 
 class QualityHold(ValueError):

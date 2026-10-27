@@ -28,7 +28,10 @@ class ReplacementCoordinator:
 
     def resume(self,target):
         # 再起動時にbeginや送信を繰り返さない。終端照会後の未送信工程だけを続行する。
-        if self.flow.episode(target)['stage']=='checking':self.flow.resume_checking(target)
+        e=self.flow.episode(target)
+        if e['stage']=='checking':self.flow.resume_checking(target)
+        elif all(e.get(k) is None for k in ('prepare_uuid','discard_uuid','commit_uuid')):
+            return {'target_date':target,'state':'held:replacement','stage':e['stage'],'reason':e['reason']}
         else:self.flow.reconcile(target)
         return self.advance(target)
 
@@ -147,7 +150,8 @@ def maintain(store,clock,*,factory=None):
                 coordinator.refresh_approvals(target,coordinator.rebuild.verify_readonly)
                 outcome={'state':'approval_checked'}
             elif now.timestamp()>=e['deadline']:
-                if e['stage']!='checking':coordinator.flow.reconcile(target)
+                no_request=all(k in e and e[k] is None for k in ('prepare_uuid','discard_uuid','commit_uuid'))
+                if e['stage']!='checking' and not no_request:coordinator.flow.reconcile(target)
                 outcome={'state':'held:deadline'}
             else:outcome=coordinator.resume(target)
             if outcome.get('state')=='approval_pending':store.preparation_done(target)
@@ -156,7 +160,7 @@ def maintain(store,clock,*,factory=None):
             # 認証、UUID、原文を表示せず、保護台帳の既存工程記録から調査する。
             reason=getattr(error,'audit_reason',None)
             fixed={'external_dispatch_present','external_dispatch_unverified','external_inventory_incomplete','external_inventory_stale',
-                   'replacement_source_incomplete','replacement_preflight_busy'}
+                   'replacement_source_incomplete','replacement_preflight_busy','replacement_quality_hold_required'}
             if reason in fixed:store.record_preparation_failure(target,'registration',error,clock())
             else:store.audit.emit('creation',target,None,None,'reconciliation','held','outcome_unknown',now=clock())
             outcomes.append({'target_date':target,'state':'held:replacement_lookup'})

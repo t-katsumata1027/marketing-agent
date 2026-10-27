@@ -37,7 +37,7 @@ REASONS = frozenset(('none','unclassified','validation_failed','post_text_too_lo
  'image_analysis_mismatch','nutrition_semantic_mismatch','context_mismatch','share_ogp_mismatch',
  'experiential_claim','health_claim','copy_repetition','daily_energy_out_of_range','recovered','legacy_hold',
  'external_dispatch_present','external_dispatch_unverified','external_inventory_incomplete','external_inventory_stale',
- 'replacement_source_incomplete','replacement_preflight_busy'))
+ 'replacement_source_incomplete','replacement_preflight_busy','replacement_quality_hold_required'))
 EVENTS = frozenset(('started','completed','failed','held','stopped','retry_wait','recovered','observed'))
 
 
