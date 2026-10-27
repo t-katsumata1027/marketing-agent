@@ -1,5 +1,9 @@
 # みな運用の実装・サブPC配置状況
 
+## 2026年10月27日・v3 Agent統合を実装、隔離受入・独立レビュー中、本番未反映
+
+本人A承認によりv3専用adapter/所有台帳/原本封印/他2食receipt/個別RPC/Drive/日次/source verifierを実装した。Schema実SHA baf76695は同一、本体隔離参照は858e2bbbへ更新。実M1原本→native昼hold→実operator→P/2画像/実Drive→C→Flow.finish/新日次→4X4IG8画像→全source照合の通しと、case期限後/OFFの新版判断後RO照合を確認。OAuth秘密はDBへ残さずprocessing/not_savedは終端にしない。旧UUID・期限を保持して完成後のstageだけ通常の読取承認照合へ渡す。局所49件成功、初回全体試験の配布fixture不足は補修済み。最終CI/独立Goは確認中。本番a34005ef・救済OFFを維持し、配置/実課金/登録/置換/Discord・SNS送信0。本体専用Previewと本番OGP24hex取得元は停止条件。詳細はMINA_SCOPED_RESCUE_IMPLEMENTATION_20261028.md。
+
 ## 2026年10月27日・救済v3の固定契約受領、受入資料を準備
 
 提供側PR157 head06f43311、Schema実SHA baf76695c55298cd97fe8b24fc488c3c164585c11ae735986da380c4e52397abを取得・照合した。v3は承認対象日（発行時当日/翌日）/朝昼夕、1case1候補、D後再発行不可。合成構造fixture20件成功・外部呼出0であり、実HTTP/runtime受入ではない。本体CI40504573273はfoundation成功・専用実HTTP継続中、未配備との引継ぎ。MINA_RESCUE_V3_ACCEPTANCE_PREPARATION_20261028.mdへadapter/台帳/Drive/日次/source verifierの差分と承認A/B/Cを整理。独立Codexが固定Schema/提供側実装と20fixtureを再照合し準備範囲Go。今回runtime/配置/有効化/食事/課金/投稿変更0。追加実装承認待ち。

@@ -169,11 +169,13 @@ def request_report(response, request_key, operation):
 def verify_source(candidate, client, host, capture, now=None, clock=None, timer=time.monotonic):
     """公開直前に日全体・UUID正本・OGP実体を再照合する。照会だけを行う。"""
     binding = candidate.approval_source
-    if isinstance(binding,dict) and binding.get('contract_version') in ('mina-replace-v1','mina-rescue-v1'):
+    if isinstance(binding,dict) and binding.get('contract_version') in ('mina-replace-v1','mina-rescue-v1','mina-rescue-v3'):
         from .replacement_source import verify_source as verify_replacement_source
         return verify_replacement_source(candidate,client,host,capture,now=now,clock=clock,timer=timer)
     if not isinstance(binding, dict):
         raise ValueError('M1の承認元証跡がありません')
+    if binding.get('contract_version') not in (None,'mina-write-v1'):
+        raise ValueError('replacement_source_contract_unknown')
     # nowは固定時刻の試験用。実運用はGET完了後に時計を読み直す。
     clock = clock or ((lambda: now) if now is not None else (lambda: datetime.now(UTC)))
     started_monotonic = timer()

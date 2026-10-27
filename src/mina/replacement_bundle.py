@@ -80,7 +80,7 @@ def maybe_release(db,target,now):
     db.execute("UPDATE publication_holds SET state='released',reason='new_bundle_approved' WHERE target_date=?",(target,))
     db.execute("UPDATE replacement_bundles SET state='released' WHERE target_date=?",(target,))
 
-def stage(store,target,owner,epoch,source_digest,x_candidates,ig_candidates,host,hosts,now,proof,required_channels=('x','instagram')):
+def stage(store,target,owner,epoch,source_digest,x_candidates,ig_candidates,host,hosts,now,proof,required_channels=('x','instagram'),checkpoint=None):
     """検証済み候補だけを通常型で保持し、送信履歴のあるrouteを再利用しない。"""
     from dataclasses import asdict
     from .replacement_client import timestamp
@@ -99,6 +99,7 @@ def stage(store,target,owner,epoch,source_digest,x_candidates,ig_candidates,host
     all_candidates=[('x',c) for c in x_candidates]+[('instagram',c) for c in ig_candidates]
     if len({(ch,c.slot) for ch,c in all_candidates})!=len(all_candidates):raise ValueError('replacement_bundle_duplicate')
     with store.transaction() as db:
+        if checkpoint is not None:checkpoint(db)
         initialize(db);h=db.execute('SELECT * FROM publication_holds WHERE target_date=?',(target,)).fetchone()
         if not h or (h['owner'],h['epoch'],h['state'])!=(owner,epoch,'saved_pending_review'):raise ValueError('replacement_hold_changed')
         if db.execute('SELECT 1 FROM replacement_bundles WHERE target_date=?',(target,)).fetchone():raise ValueError('replacement_bundle_already_staged')
@@ -117,6 +118,7 @@ def stage(store,target,owner,epoch,source_digest,x_candidates,ig_candidates,host
             db.execute('INSERT INTO replacement_bundle_members VALUES(?,?,?,?,?)',(target,ch,c.slot,rev,c.digest));members.append((ch,c.slot,rev,c.digest))
         members.sort()
         db.execute('INSERT INTO replacement_bundles VALUES(?,?,?,?,?,?,?,?)',(target,owner,epoch,digest(members),source_digest,json.dumps(members),json.dumps(proof),'approval_pending'))
+        if checkpoint is not None:checkpoint(db)
 
 def refresh(store,target,source_digest,proof,now):
     """承認が遅れた場合も、新たな正本照合証跡がないまま停止解除しない。"""

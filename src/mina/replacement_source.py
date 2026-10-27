@@ -26,7 +26,17 @@ def verify_source(candidate,client,host,capture,now=None,clock=None,timer=time.m
         from .rescue_contract import RescueContract,RescueClient
         contract=RescueContract(clock)
         reader=RescueClient(client.base,client.token,decoder=contract.decode,clock=clock)
+    elif b.get('contract_version')=='mina-rescue-v3':
+        from .scoped_rescue_contract import ScopedRescueContract,ScopedRescueClient
+        contract=ScopedRescueContract(clock)
+        reader=ScopedRescueClient(client.base,client.token,decoder=contract.decode,clock=clock)
+    elif b.get('contract_version') not in (None,'mina-replace-v1'):
+        raise ValueError('replacement_source_contract_unknown')
     response=reader.request(b['request_key'],'meal_replace');r=response['request']
+    if b.get('contract_version')=='mina-rescue-v3' and (response['rescue_case']['basis']['target_date']!=candidate.target_date
+            or candidate.slot!='daily' and response['rescue_case']['basis']['target_slot']!=candidate.slot
+            or response['rescue_case']['state']!='completed' or response['rescue_case']['saved_commit_uuid']!=b['request_key']):
+        raise ValueError('replacement_source_changed')
     if (r['request_uuid']!=b['request_key'] or r['persistence']!='saved' or r['status']!='succeeded'
             or r['input_hash']!=b['input_hash'] or response['result_status']!='unchanged'
             or response['current_state_version']!=b['state_version']):raise ValueError('replacement_source_changed')

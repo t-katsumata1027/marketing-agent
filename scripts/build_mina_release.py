@@ -13,12 +13,14 @@ sys.path.insert(0, str(ROOT))
 from src.mina.readiness import release_commit
 from src.mina.replacement_contract import load_contract_resources
 from src.mina.rescue_contract import resources as rescue_resources, SCHEMA_SHA as RESCUE_SCHEMA_SHA
+from src.mina.scoped_rescue_contract import ScopedRescueContract,SCHEMA_SHA as SCOPED_SCHEMA_SHA
 
 
 def verify_archive_contract(archive, evidence):
     """配布tarにも正式契約と凍結履歴が同じ実バイトで入っていることを確認する。"""
     for entry in (evidence['runtime_schema'],*evidence['frozen_history'].values(),
-                  {'path':'src/mina/contracts/rescue_v1/mina-rescue-v1.schema.json','sha256':RESCUE_SCHEMA_SHA}):
+                  {'path':'src/mina/contracts/rescue_v1/mina-rescue-v1.schema.json','sha256':RESCUE_SCHEMA_SHA},
+                  {'path':'src/mina/contracts/rescue_v3/mina-rescue-v3.schema.json','sha256':SCOPED_SCHEMA_SHA}):
         try:
             member=archive.getmember(entry['path'])
             if not member.isfile():
@@ -44,6 +46,7 @@ def build(output, commit):
     release_commit(ROOT, commit)
     contract_evidence,_ = load_contract_resources(ROOT/'src/mina/contracts')
     rescue_resources()
+    ScopedRescueContract(lambda:None)
     names = git('ls-tree', '-r', '--name-only', commit).decode().splitlines()
     selected = [name for name in names if (
         name.startswith(('src/mina/', 'deploy/', 'tests/mina/', 'tests/contract_bridge/', 'assets/instagram/'))
@@ -76,6 +79,7 @@ def build(output, commit):
                 'logeats_document_reference': '2bc563843646e594e443f5cec8428caa554b6bbf',
                 'meal_replacement_contract':contract_evidence,
                 'same_day_rescue_contract':{'schema_sha256':RESCUE_SCHEMA_SHA,'activation_allowed':False},
+                'scoped_rescue_contract':{'schema_sha256':SCOPED_SCHEMA_SHA,'activation_allowed':False},
                 'activation_allowed': False, 'files': selected, 'artifacts': artifacts}
     (output / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     return {'source_commit': commit, 'file_count': len(selected), 'activation_allowed': False}

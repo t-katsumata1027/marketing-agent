@@ -6,7 +6,7 @@ from .replacement_contract import stamp
 from .preparation import fingerprint
 from .ogp import verify_image_reference
 
-def review_posts(store,client,ai,capture,target,commit_key,commit_response,draft,images,host,clock):
+def review_posts(store,client,ai,capture,target,commit_key,commit_response,draft,images,host,clock,*,daily_request_key=None):
     started=clock();state=client.day_state(target);version=validate_state(state,target,clock())
     response=commit_response;request=response['request']
     if (request['request_uuid']!=commit_key or request['persistence']!='saved' or request['status']!='succeeded'
@@ -18,14 +18,16 @@ def review_posts(store,client,ai,capture,target,commit_key,commit_response,draft
     for slot in SLOTS:
         result=results.get(slot)
         if not isinstance(result,dict):raise ValueError('replacement_daily_share_required')
-        if slot==affected or slot=='daily' and response['affected_daily_result'] is not None:
+        if slot==affected or slot=='daily' and daily_request_key is None and response['affected_daily_result'] is not None:
             r=response['current_daily_result'] if slot=='daily' else response['current_result']
             if not r or any(result.get(k)!=r.get(k) for k in r):raise ValueError('replacement_source_changed')
             result=r
             source={'contract_version':response.get('contract_version','mina-replace-v1'),'request_key':commit_key,'operation':'meal_replace','input_hash':request['input_hash']}
         else:
             with store.transaction() as db:
-                row=db.execute("SELECT request_key,operation FROM mina_requests WHERE target_date=? AND slot=? AND phase='complete' ORDER BY CASE operation WHEN 'meal_correction' THEN 0 ELSE 1 END LIMIT 1",(target,slot)).fetchone()
+                if slot=='daily' and daily_request_key:
+                    row=db.execute("SELECT request_key,operation FROM mina_requests WHERE target_date=? AND slot='daily' AND operation='daily_share' AND phase='complete' AND request_key=?",(target,daily_request_key)).fetchone()
+                else:row=db.execute("SELECT request_key,operation FROM mina_requests WHERE target_date=? AND slot=? AND phase='complete' ORDER BY CASE operation WHEN 'meal_correction' THEN 0 ELSE 1 END,rowid DESC LIMIT 1",(target,slot)).fetchone()
             if not row:raise ValueError('replacement_original_request_missing')
             lookup=client.request_state(row['request_key'],row['operation']);completed_request(lookup,row['request_key'],row['operation'],lookup['current_result'])
             if any(result.get(k)!=lookup['current_result'].get(k) for k in lookup['current_result']):raise ValueError('replacement_source_changed')

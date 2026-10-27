@@ -53,7 +53,15 @@ class PreparationPorts:
         if hashlib.sha256(previous).hexdigest()!=old['sha256']:raise ValueError('replacement_old_image_changed')
         prior=self.drive_client.verify(old['drive']['id'],previous,c['prepared_preconditions']['target_date']+'-'+slot+'.jpg')
         # UUID別の新名と排他的作成で旧原本を上書きしない。
-        name=c['prepare_uuid']+'.jpg';uploaded=self.drive_client.upload(raw,name);verified=self.drive_client.verify(uploaded['id'],raw,name)
+        target=c['prepared_preconditions']['target_date']
+        name=f"{target}-{slot}-replacement-{c['prepare_uuid']}.jpg"
+        uploaded=self.drive_client.upload_replacement(raw,target,slot,c['prepare_uuid'])
+        if uploaded['id']==old['drive']['id']:raise ValueError('replacement_drive_original_overwrite')
+        verified=self.drive_client.verify(uploaded['id'],raw,name)
+        properties=self.drive_client.metadata(uploaded['id'],'id,appProperties').get('appProperties')
+        if properties!={'mina_sha256':hashlib.sha256(raw).hexdigest(),'mina_role':'meal_replacement',
+                'mina_prepare_uuid':c['prepare_uuid'],'mina_target_date':target,'mina_target_slot':slot}:
+            raise ValueError('replacement_drive_owner_changed')
         with (self.directory/(c['prepare_uuid']+'-drive.json')).open('xb') as output:output.write(canonical({'new':verified,'previous':prior}))
         with (self.directory/(c['prepare_uuid']+'.jpg')).open('xb') as output:output.write(raw)
         return {'candidate_version':c['candidate_version'],'original_sha256':c['original']['sha256'],'original_download_sha256':verified['sha256'],

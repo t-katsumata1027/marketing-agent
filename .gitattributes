@@ -17,3 +17,4 @@ MINA_REPLACEMENT_INTEGRATION_PLAN_20261018.md -text
 src/mina/contracts/replacement_runtime_20261018/* -text whitespace=cr-at-eol,-blank-at-eof
 src/mina/contracts/rescue_v1/* -text whitespace=cr-at-eol,-blank-at-eof
 investigations/preparation-recovery-20261028/rescue-v3/mina-rescue-v3.schema.json -text
+src/mina/contracts/rescue_v3/* -text whitespace=cr-at-eol,-blank-at-eof
