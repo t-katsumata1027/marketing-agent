@@ -85,3 +85,75 @@ PR19：https://github.com/t-katsumata1027/marketing-agent/pull/19
 下書き削除・追加食事登録・置換・課金処理・公開は行っていない。
 過去の下書き4件の削除と限定復旧に対する本人の追加承認は未受領。
 投稿案の完成・業務復旧は未達であり、コード反映だけを完了として報告しない。
+
+## 本人追加承認後の実行結果と追加の恒久修正
+
+19:49、本人から「明日の投稿案作成に必要な作業について承認します」を受領。
+固定4旧draftの原本と承認を専用台帳へ保存し、同一ID/内容/未公開状態を再照合して限定削除した。
+最初のDELETEは成功ID照合後、個別GETがnullではなくGraphQL not-foundエラーとなった。
+当該要求はunknownとして保存し再DELETEせず、本人channel/組織の全状態・全ページGETによる現在不在の証跡を別に保持した。
+残るprepared3件のみを一度削除し、ACKを直ちに保存、全ページの不在確認後に終端化した。
+最終状態はACK確認済みdeleted3件・元unknown履歴1件・現在不在観測4件。旧draft台帳は保持、再削除0・公開0。
+
+19:55、同じ公開hold/owner/epoch/期限で、operator内だけ収集を許可して実行した。
+夕食のM1登録・通常訂正各1回、訂正後食品/栄養独立点検、OGP点検まで19:57に完了した。
+朝昼の再登録・再訂正は0。正本は朝455/昼628.4/夕716＝1799.4kcal。
+朝夕は独立合格、昼のまいたけ識別保留は維持。1800〜2000条件を0.6kcal緩める等の変更はしていない。
+
+この実行で、旧origin受入がlegacy `held+classification`だけを認め、正常な通常点検の`complete+status:hold`を拒否する不整合を確認した。
+先行試験は収集と合成P受入を別に実行しており、この結合不整合を見落としていた。
+20時までに修正・受入・反映が揃わなかったため、本番P/D/C・置換試行は0のまま停止した。
+旧記録をheldへ書き換えたり、架空の保留工程を追加したり、初回時刻・期限を戻したりしていない。
+
+### 原本受入の最終補修
+
+通常の最新register/correction responseと、現在正本の版/共有URL/原・保存画像SHA/実食品/栄養/品質へ結び付いたnative holdを受け入れる。
+献立・点検policy・OGP入力digestも再計算し、旧結果・異なる画像・訂正後pass・成否不明は拒否する。
+実データRO照合では、M1とpreの食品/summary/品質/rv/URL/2SHAは一致したが、正式preはprovenance/spec/quality内包形式で、
+M1.is_ambiguous=falseに対してstored_canonical descriptorはnullだった。
+正式Schema・食品合算・descriptor digestを先に検証し、共有する食品順序/名称/分量/全栄養とsummary/品質を厳密照合する。
+M1=false、pre=falseまたはnullのみを許し、nullは補完せず両値とdescriptor digestを原本証跡に保存する。
+preの必須amount欠損を補完して通さず、M1でのamount欠落は比較投影上だけnullとして保持する。
+
+実register_day→通常correct_meal_once→訂正後native hold→不足夕食収集→実Flow/Policy→multipart P合成HTTP201/readyの結合試験を追加した。
+正式descriptor形での正例と、食品順・分量・栄養・品質・provenance・曖昧さ・版・画像・OGPの負例を確認。
+実データROによるorigin受入も成功した。これは本番P送信や期限適格性の付与ではない。
+予約前の段階をreserving_attemptとして区別し、UUID無しの失効日を要求照会失敗として繰り返さない。
+
+### 20時以降の通常巡回の補修
+
+追加の反映後検証で、翌日holdがnotify_day→issue_cardsのPublicationHeldとして伝わり、20時以降の巡回全体が失敗していたことを確認した。
+旧5c/新945の両版で発生しており、別日の公開巡回も妨げるため、notify_day境界でこの型だけを捕捉した。
+直接issue_cardsの承認禁止、未確認bundleの拒否、一般のValueError伝播は維持する。
+日保留を解除したり不適合候補を作ったりせず、他日の通知・公開巡回は続行する。
+
+### 最終反映と実確認
+
+- 最終実行版：`a34005efd50afa5b75431f2baee05471ffa8027d`。
+- CI40497133180：Mina733件中682成功/51skip、一般32成功。
+- Linuxの秘密なし実UID隔離試験103件成功、独立のnative9件/通知38件ともGo。
+- 20:37、独立Goのoperatorで配置。切替71表全行保持、DB移行なし。
+- 通常の将来日不足枠収集ON、当日救済OFF。実プロセス環境で照合した。
+  これは前日20時以前の通常処理だけに適用し、10/28の失効済みgeneratingを再開しない。
+- 20:38、3サービス/5timer active、SQLite整合性ok、実巡回mode live・連続失敗0を確認。
+  業務上の10/28作成保留1件は残り、これを正常完了へ丸めていない。
+- 既存業務19表の行不変、M1要求6件complete、旧hold epoch1/held/20時期限、P/D/C0・試行0を確認。
+- 10/27の21:30 X/Instagram dailyはapprovedのまま保持。実公開済みとは報告しない。
+- 20:39、現在の停止理由を`replacement_preflight:lunch / deadline_exceeded`として追記し、旧停止履歴は保持した。
+- backup：`/var/lib/mina-agent/deployment-review-recovery-a34005ef`。
+  切戻しコード：`/opt/marketing-agent-rollback-review-a34005ef`。業務DBは巻き戻さない。
+
+本番で将来日の実P/D/Cが成功したことは、まだ確認していない。
+10/28投稿案はX/Instagramとも0件、昼食保留・合計1799.4・期限失効のため未完成である。
+M1通常解析と独立点検は既承認waivedの操作予約で実施したが、料金実測はしていない。費用0とは扱わない。
+
+## Log-Eats側の調査準備
+
+担当の最新引継ぎ（PR154/155、3ea42672、救済v2配備済み/OFF）とSchema実SHA45155853...を確認した。
+v2は日付指定可能だがRescueBasis.target_slotがbreakfast固定のため、今回の昼食へ流用しない。
+具体的な調査・限定救済計画依頼はLOGEATS_LUNCH_RESCUE_REQUEST_20261028.mdへ作成し、独立の計画Goを取得した。
+本人の明示依頼に基づき20:48頃、担当チャットへ詳細調査依頼を送信した。回答・新契約は待機中。Agent側計画はMINA_LUNCH_RESCUE_AGENT_PLAN_20261028.mdへ作成し、独立Codexの条件付き計画Goを取得した（同PLAN_REVIEW文書参照）。本体の変更・有効化・新case発行・期限例外・実置換は行っていない。
+
+担当側は本人から別チャットで受けた追加指示に基づき、日付・食事枠を指定できる契約へ改修中と報告した。こちらから本体改修を承認していない。
+Agentの旧救済台帳・公開前source verifier・Drive保存名・日次本文の再利用不整合を計画へ反映した。
+Drive保存名は実Clientを使う合成入力で拒否を再現し、外部呼出0（DRIVE_FILENAME_REPRO.json）。今回新たなコード配置・実課金・食事API書込・投稿は行っていない。

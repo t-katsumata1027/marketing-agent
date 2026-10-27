@@ -1,0 +1,2 @@
+{"checked_at": "2026-10-27T10:57:16.137357+00:00", "state": "held", "reason": "validation_failed", "details": {"frames": ["src/mina/replacement_flow.py:_complete_preflight:191", "src/mina/replacement_flow.py:invoke:23", "src/mina/replacement_flow.py:next_candidate:250", "src/mina/replacement_policy.py:attempt:100", "src/mina/replacement_origin.py:originals:26"]}}
+

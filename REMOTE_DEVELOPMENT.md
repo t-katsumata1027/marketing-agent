@@ -1,5 +1,9 @@
 # サブPCでの開発
 
+## 2026年10月27日20:37・native保留と通知巡回の最終補修
+
+最終a34005ef、CI40497133180・Linux103・独立Go。切替71表同一/DB移行なし、既存業務19表保持、3service/5timer active、実巡回live/失敗0。通常の将来日不足枠収集ON・当日救済OFFを実processで照合。退避は/var/lib/mina-agent/deployment-review-recovery-a34005ef、旧コードは/opt/marketing-agent-rollback-review-a34005ef。28日はM1朝昼夕保存/朝夕点検済、昼画像保留・実1799.4kcal・旧20時失効を保持し、PDC/試行/候補0。救済v2の朝食制約を迂回せず、昼救済の担当調査依頼は送信済み、回答・新契約待ち。MINA_PREPARATION_RECOVERY_20261028.md最終追記を参照。
+
 ## 2026年10月27日19:45・将来日UUID前確認の再開を配置、収集OFF
 
 固定5c19f4d9・CI40490523987・Linux90件・独立Go。コード切替時61表同一、DB移行なし、既存業務52表保持、3サービス/5timer active。MINA_REPLACEMENT_COLLECTION_ENABLED=falseと当日救済OFFを実プロセスで確認。退避は/var/lib/mina-agent/deployment-review-recovery-5c19f4d9、旧コードは/opt/marketing-agent-rollback-review-5c19f4d9。10/28の朝昼M1要求4件を保持、夕未登録・候補未完成。外部の日時不明IG draft4件削除は本人承認待ちで、収集有効化・追加食事/置換/公開は未実行。MINA_PREPARATION_RECOVERY_20261028.mdを参照。
