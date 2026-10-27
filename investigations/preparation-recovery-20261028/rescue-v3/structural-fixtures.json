@@ -1,0 +1,1117 @@
+{
+  "scope": "構造Schemaのみ。合成承認値は実行不可。時刻鮮度・digest一致・他食重複・管理権限・実HTTP・DB・公開排他・実画像は未受入。",
+  "body_commit": "06f43311a7fc8efa0c15cd29960cd3944ecca05c",
+  "schema_sha256": "baf76695c55298cd97fe8b24fc488c3c164585c11ae735986da380c4e52397ab",
+  "cases": [
+    {
+      "name": "他食点検の正式24桁OGP",
+      "definition": "OtherMealReview",
+      "valid": true,
+      "value": {
+        "target_slot": "breakfast",
+        "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "ogp_input_digest": "dddddddddddddddddddddddd",
+        "reviewer_role": "independent_reviewer",
+        "verdict": "pass",
+        "quality_status": "pass",
+        "review_policy_version": "synthetic-review-v1",
+        "reviewed_at": "2026-10-28T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "任意digest付き構造",
+      "definition": "OtherMealReview",
+      "valid": true,
+      "value": {
+        "target_slot": "breakfast",
+        "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "ogp_input_digest": "dddddddddddddddddddddddd",
+        "reviewer_role": "independent_reviewer",
+        "verdict": "pass",
+        "quality_status": "pass",
+        "review_policy_version": "synthetic-review-v1",
+        "reviewed_at": "2026-10-28T00:00:00.000Z",
+        "evidence_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      }
+    },
+    {
+      "name": "誤った64桁OGP拒否",
+      "definition": "OtherMealReview",
+      "valid": false,
+      "value": {
+        "target_slot": "breakfast",
+        "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "ogp_input_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "reviewer_role": "independent_reviewer",
+        "verdict": "pass",
+        "quality_status": "pass",
+        "review_policy_version": "synthetic-review-v1",
+        "reviewed_at": "2026-10-28T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "空policy拒否",
+      "definition": "OtherMealReview",
+      "valid": false,
+      "value": {
+        "target_slot": "breakfast",
+        "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "ogp_input_digest": "dddddddddddddddddddddddd",
+        "reviewer_role": "independent_reviewer",
+        "verdict": "pass",
+        "quality_status": "pass",
+        "review_policy_version": "",
+        "reviewed_at": "2026-10-28T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "生成者の点検拒否",
+      "definition": "OtherMealReview",
+      "valid": false,
+      "value": {
+        "target_slot": "breakfast",
+        "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "ogp_input_digest": "dddddddddddddddddddddddd",
+        "reviewer_role": "generator",
+        "verdict": "pass",
+        "quality_status": "pass",
+        "review_policy_version": "synthetic-review-v1",
+        "reviewed_at": "2026-10-28T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "不確実を合格にしない",
+      "definition": "OtherMealReview",
+      "valid": false,
+      "value": {
+        "target_slot": "breakfast",
+        "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "ogp_input_digest": "dddddddddddddddddddddddd",
+        "reviewer_role": "independent_reviewer",
+        "verdict": "uncertain",
+        "quality_status": "pass",
+        "review_policy_version": "synthetic-review-v1",
+        "reviewed_at": "2026-10-28T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "不正時刻拒否",
+      "definition": "OtherMealReview",
+      "valid": false,
+      "value": {
+        "target_slot": "breakfast",
+        "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "ogp_input_digest": "dddddddddddddddddddddddd",
+        "reviewer_role": "independent_reviewer",
+        "verdict": "pass",
+        "quality_status": "pass",
+        "review_policy_version": "synthetic-review-v1",
+        "reviewed_at": "invalid"
+      }
+    },
+    {
+      "name": "余剰キー拒否",
+      "definition": "OtherMealReview",
+      "valid": false,
+      "value": {
+        "target_slot": "breakfast",
+        "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "ogp_input_digest": "dddddddddddddddddddddddd",
+        "reviewer_role": "independent_reviewer",
+        "verdict": "pass",
+        "quality_status": "pass",
+        "review_policy_version": "synthetic-review-v1",
+        "reviewed_at": "2026-10-28T00:00:00.000Z",
+        "extra": "ignored"
+      }
+    },
+    {
+      "name": "review_policy_version欠損拒否",
+      "definition": "OtherMealReview",
+      "valid": false,
+      "value": {
+        "target_slot": "breakfast",
+        "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "ogp_input_digest": "dddddddddddddddddddddddd",
+        "reviewer_role": "independent_reviewer",
+        "verdict": "pass",
+        "quality_status": "pass",
+        "reviewed_at": "2026-10-28T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "stored_sha256欠損拒否",
+      "definition": "OtherMealReview",
+      "valid": false,
+      "value": {
+        "target_slot": "breakfast",
+        "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "ogp_input_digest": "dddddddddddddddddddddddd",
+        "reviewer_role": "independent_reviewer",
+        "verdict": "pass",
+        "quality_status": "pass",
+        "review_policy_version": "synthetic-review-v1",
+        "reviewed_at": "2026-10-28T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "合成昼食権限の構造",
+      "definition": "GrantIssueInput",
+      "valid": true,
+      "value": {
+        "contract_version": "mina-rescue-v3",
+        "case_uuid": "11111111-1111-4111-8111-111111111111",
+        "basis": {
+          "target_date": "2026-10-28",
+          "target_slot": "lunch",
+          "initial_expected": {
+            "target_date": "2026-10-28",
+            "target_slot": "lunch",
+            "target_share_url": "https://www.log-eats.com/s/rescue0001",
+            "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "original_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "source_ledger_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "cost_history_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_first_replan_started_at": null,
+          "original_preparation_deadline_at": "2026-10-27T11:00:00.000Z",
+          "original_hard_deadline_at": null,
+          "baseline_consumed_ordinals": [],
+          "source_requests_terminal": true,
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy_version": "mina_gemini_waived_20261023_v1",
+          "budget_policy_digest": "244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b",
+          "cost_approval_digest": "8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083",
+          "operator_approval_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "not_after": "2026-10-28T00:15:00.000Z",
+          "exception_kind": "operator_scoped_meal_replacement",
+          "original_context_present": false,
+          "original_stored_image_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "target_analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "review_policy_version": "synthetic-review-v1",
+          "other_meals_reviews": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            }
+          ],
+          "other_meals_expected": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "9e8b62c343271f2d40889258ccf0dfb6de339db4fa010975775957e7652eb213"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "39560e38e6e53a49aed53ab594a88fc0f956a7e6b5717d5bc13baac461b2236a"
+            }
+          ]
+        },
+        "planned_prepare_uuid": "22222222-2222-4222-8222-222222222222",
+        "attempt_ordinal": 1
+      }
+    },
+    {
+      "name": "breakfast指定の構造のみ",
+      "definition": "GrantIssueInput",
+      "valid": true,
+      "value": {
+        "contract_version": "mina-rescue-v3",
+        "case_uuid": "11111111-1111-4111-8111-111111111111",
+        "basis": {
+          "target_date": "2026-10-28",
+          "target_slot": "breakfast",
+          "initial_expected": {
+            "target_date": "2026-10-28",
+            "target_slot": "breakfast",
+            "target_share_url": "https://www.log-eats.com/s/rescue0001",
+            "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "original_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "source_ledger_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "cost_history_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_first_replan_started_at": null,
+          "original_preparation_deadline_at": "2026-10-27T11:00:00.000Z",
+          "original_hard_deadline_at": null,
+          "baseline_consumed_ordinals": [],
+          "source_requests_terminal": true,
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy_version": "mina_gemini_waived_20261023_v1",
+          "budget_policy_digest": "244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b",
+          "cost_approval_digest": "8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083",
+          "operator_approval_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "not_after": "2026-10-28T00:15:00.000Z",
+          "exception_kind": "operator_scoped_meal_replacement",
+          "original_context_present": false,
+          "original_stored_image_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "target_analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "review_policy_version": "synthetic-review-v1",
+          "other_meals_reviews": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            }
+          ],
+          "other_meals_expected": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "9e8b62c343271f2d40889258ccf0dfb6de339db4fa010975775957e7652eb213"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "39560e38e6e53a49aed53ab594a88fc0f956a7e6b5717d5bc13baac461b2236a"
+            }
+          ]
+        },
+        "planned_prepare_uuid": "22222222-2222-4222-8222-222222222222",
+        "attempt_ordinal": 1
+      }
+    },
+    {
+      "name": "dinner指定の構造のみ",
+      "definition": "GrantIssueInput",
+      "valid": true,
+      "value": {
+        "contract_version": "mina-rescue-v3",
+        "case_uuid": "11111111-1111-4111-8111-111111111111",
+        "basis": {
+          "target_date": "2026-10-28",
+          "target_slot": "dinner",
+          "initial_expected": {
+            "target_date": "2026-10-28",
+            "target_slot": "dinner",
+            "target_share_url": "https://www.log-eats.com/s/rescue0001",
+            "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "original_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "source_ledger_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "cost_history_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_first_replan_started_at": null,
+          "original_preparation_deadline_at": "2026-10-27T11:00:00.000Z",
+          "original_hard_deadline_at": null,
+          "baseline_consumed_ordinals": [],
+          "source_requests_terminal": true,
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy_version": "mina_gemini_waived_20261023_v1",
+          "budget_policy_digest": "244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b",
+          "cost_approval_digest": "8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083",
+          "operator_approval_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "not_after": "2026-10-28T00:15:00.000Z",
+          "exception_kind": "operator_scoped_meal_replacement",
+          "original_context_present": false,
+          "original_stored_image_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "target_analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "review_policy_version": "synthetic-review-v1",
+          "other_meals_reviews": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            }
+          ],
+          "other_meals_expected": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "9e8b62c343271f2d40889258ccf0dfb6de339db4fa010975775957e7652eb213"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "39560e38e6e53a49aed53ab594a88fc0f956a7e6b5717d5bc13baac461b2236a"
+            }
+          ]
+        },
+        "planned_prepare_uuid": "22222222-2222-4222-8222-222222222222",
+        "attempt_ordinal": 1
+      }
+    },
+    {
+      "name": "context不在の時刻補完拒否",
+      "definition": "GrantIssueInput",
+      "valid": false,
+      "value": {
+        "contract_version": "mina-rescue-v3",
+        "case_uuid": "11111111-1111-4111-8111-111111111111",
+        "basis": {
+          "target_date": "2026-10-28",
+          "target_slot": "lunch",
+          "initial_expected": {
+            "target_date": "2026-10-28",
+            "target_slot": "lunch",
+            "target_share_url": "https://www.log-eats.com/s/rescue0001",
+            "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "original_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "source_ledger_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "cost_history_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_first_replan_started_at": "2026-10-28T00:00:00.000Z",
+          "original_preparation_deadline_at": "2026-10-27T11:00:00.000Z",
+          "original_hard_deadline_at": null,
+          "baseline_consumed_ordinals": [],
+          "source_requests_terminal": true,
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy_version": "mina_gemini_waived_20261023_v1",
+          "budget_policy_digest": "244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b",
+          "cost_approval_digest": "8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083",
+          "operator_approval_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "not_after": "2026-10-28T00:15:00.000Z",
+          "exception_kind": "operator_scoped_meal_replacement",
+          "original_context_present": false,
+          "original_stored_image_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "target_analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "review_policy_version": "synthetic-review-v1",
+          "other_meals_reviews": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            }
+          ],
+          "other_meals_expected": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "9e8b62c343271f2d40889258ccf0dfb6de339db4fa010975775957e7652eb213"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "39560e38e6e53a49aed53ab594a88fc0f956a7e6b5717d5bc13baac461b2236a"
+            }
+          ]
+        },
+        "planned_prepare_uuid": "22222222-2222-4222-8222-222222222222",
+        "attempt_ordinal": 1
+      }
+    },
+    {
+      "name": "context不在のhard補完拒否",
+      "definition": "GrantIssueInput",
+      "valid": false,
+      "value": {
+        "contract_version": "mina-rescue-v3",
+        "case_uuid": "11111111-1111-4111-8111-111111111111",
+        "basis": {
+          "target_date": "2026-10-28",
+          "target_slot": "lunch",
+          "initial_expected": {
+            "target_date": "2026-10-28",
+            "target_slot": "lunch",
+            "target_share_url": "https://www.log-eats.com/s/rescue0001",
+            "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "original_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "source_ledger_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "cost_history_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_first_replan_started_at": null,
+          "original_preparation_deadline_at": "2026-10-27T11:00:00.000Z",
+          "original_hard_deadline_at": "2026-10-28T00:15:00.000Z",
+          "baseline_consumed_ordinals": [],
+          "source_requests_terminal": true,
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy_version": "mina_gemini_waived_20261023_v1",
+          "budget_policy_digest": "244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b",
+          "cost_approval_digest": "8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083",
+          "operator_approval_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "not_after": "2026-10-28T00:15:00.000Z",
+          "exception_kind": "operator_scoped_meal_replacement",
+          "original_context_present": false,
+          "original_stored_image_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "target_analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "review_policy_version": "synthetic-review-v1",
+          "other_meals_reviews": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            }
+          ],
+          "other_meals_expected": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "9e8b62c343271f2d40889258ccf0dfb6de339db4fa010975775957e7652eb213"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "39560e38e6e53a49aed53ab594a88fc0f956a7e6b5717d5bc13baac461b2236a"
+            }
+          ]
+        },
+        "planned_prepare_uuid": "22222222-2222-4222-8222-222222222222",
+        "attempt_ordinal": 1
+      }
+    },
+    {
+      "name": "日次枠拒否",
+      "definition": "GrantIssueInput",
+      "valid": false,
+      "value": {
+        "contract_version": "mina-rescue-v3",
+        "case_uuid": "11111111-1111-4111-8111-111111111111",
+        "basis": {
+          "target_date": "2026-10-28",
+          "target_slot": "daily",
+          "initial_expected": {
+            "target_date": "2026-10-28",
+            "target_slot": "lunch",
+            "target_share_url": "https://www.log-eats.com/s/rescue0001",
+            "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "original_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "source_ledger_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "cost_history_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_first_replan_started_at": null,
+          "original_preparation_deadline_at": "2026-10-27T11:00:00.000Z",
+          "original_hard_deadline_at": null,
+          "baseline_consumed_ordinals": [],
+          "source_requests_terminal": true,
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy_version": "mina_gemini_waived_20261023_v1",
+          "budget_policy_digest": "244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b",
+          "cost_approval_digest": "8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083",
+          "operator_approval_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "not_after": "2026-10-28T00:15:00.000Z",
+          "exception_kind": "operator_scoped_meal_replacement",
+          "original_context_present": false,
+          "original_stored_image_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "target_analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "review_policy_version": "synthetic-review-v1",
+          "other_meals_reviews": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            }
+          ],
+          "other_meals_expected": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "9e8b62c343271f2d40889258ccf0dfb6de339db4fa010975775957e7652eb213"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "39560e38e6e53a49aed53ab594a88fc0f956a7e6b5717d5bc13baac461b2236a"
+            }
+          ]
+        },
+        "planned_prepare_uuid": "22222222-2222-4222-8222-222222222222",
+        "attempt_ordinal": 1
+      }
+    },
+    {
+      "name": "未終端要求拒否",
+      "definition": "GrantIssueInput",
+      "valid": false,
+      "value": {
+        "contract_version": "mina-rescue-v3",
+        "case_uuid": "11111111-1111-4111-8111-111111111111",
+        "basis": {
+          "target_date": "2026-10-28",
+          "target_slot": "lunch",
+          "initial_expected": {
+            "target_date": "2026-10-28",
+            "target_slot": "lunch",
+            "target_share_url": "https://www.log-eats.com/s/rescue0001",
+            "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "original_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "source_ledger_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "cost_history_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_first_replan_started_at": null,
+          "original_preparation_deadline_at": "2026-10-27T11:00:00.000Z",
+          "original_hard_deadline_at": null,
+          "baseline_consumed_ordinals": [],
+          "source_requests_terminal": false,
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy_version": "mina_gemini_waived_20261023_v1",
+          "budget_policy_digest": "244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b",
+          "cost_approval_digest": "8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083",
+          "operator_approval_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "not_after": "2026-10-28T00:15:00.000Z",
+          "exception_kind": "operator_scoped_meal_replacement",
+          "original_context_present": false,
+          "original_stored_image_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "target_analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "review_policy_version": "synthetic-review-v1",
+          "other_meals_reviews": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            }
+          ],
+          "other_meals_expected": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "9e8b62c343271f2d40889258ccf0dfb6de339db4fa010975775957e7652eb213"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "39560e38e6e53a49aed53ab594a88fc0f956a7e6b5717d5bc13baac461b2236a"
+            }
+          ]
+        },
+        "planned_prepare_uuid": "22222222-2222-4222-8222-222222222222",
+        "attempt_ordinal": 1
+      }
+    },
+    {
+      "name": "旧契約混入拒否",
+      "definition": "GrantIssueInput",
+      "valid": false,
+      "value": {
+        "contract_version": "mina-rescue-v1",
+        "case_uuid": "11111111-1111-4111-8111-111111111111",
+        "basis": {
+          "target_date": "2026-10-28",
+          "target_slot": "lunch",
+          "initial_expected": {
+            "target_date": "2026-10-28",
+            "target_slot": "lunch",
+            "target_share_url": "https://www.log-eats.com/s/rescue0001",
+            "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "original_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "source_ledger_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "cost_history_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_first_replan_started_at": null,
+          "original_preparation_deadline_at": "2026-10-27T11:00:00.000Z",
+          "original_hard_deadline_at": null,
+          "baseline_consumed_ordinals": [],
+          "source_requests_terminal": true,
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy_version": "mina_gemini_waived_20261023_v1",
+          "budget_policy_digest": "244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b",
+          "cost_approval_digest": "8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083",
+          "operator_approval_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "not_after": "2026-10-28T00:15:00.000Z",
+          "exception_kind": "operator_scoped_meal_replacement",
+          "original_context_present": false,
+          "original_stored_image_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "target_analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "review_policy_version": "synthetic-review-v1",
+          "other_meals_reviews": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            }
+          ],
+          "other_meals_expected": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "9e8b62c343271f2d40889258ccf0dfb6de339db4fa010975775957e7652eb213"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "39560e38e6e53a49aed53ab594a88fc0f956a7e6b5717d5bc13baac461b2236a"
+            }
+          ]
+        },
+        "planned_prepare_uuid": "22222222-2222-4222-8222-222222222222",
+        "attempt_ordinal": 1
+      }
+    },
+    {
+      "name": "既存contextの実時刻欠損拒否",
+      "definition": "GrantIssueInput",
+      "valid": false,
+      "value": {
+        "contract_version": "mina-rescue-v3",
+        "case_uuid": "11111111-1111-4111-8111-111111111111",
+        "basis": {
+          "target_date": "2026-10-28",
+          "target_slot": "lunch",
+          "initial_expected": {
+            "target_date": "2026-10-28",
+            "target_slot": "lunch",
+            "target_share_url": "https://www.log-eats.com/s/rescue0001",
+            "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "original_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "source_ledger_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "cost_history_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_first_replan_started_at": null,
+          "original_preparation_deadline_at": "2026-10-27T11:00:00.000Z",
+          "original_hard_deadline_at": null,
+          "baseline_consumed_ordinals": [],
+          "source_requests_terminal": true,
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy_version": "mina_gemini_waived_20261023_v1",
+          "budget_policy_digest": "244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b",
+          "cost_approval_digest": "8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083",
+          "operator_approval_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "not_after": "2026-10-28T00:15:00.000Z",
+          "exception_kind": "operator_scoped_meal_replacement",
+          "original_context_present": true,
+          "original_stored_image_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "target_analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "review_policy_version": "synthetic-review-v1",
+          "other_meals_reviews": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            }
+          ],
+          "other_meals_expected": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "9e8b62c343271f2d40889258ccf0dfb6de339db4fa010975775957e7652eb213"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "39560e38e6e53a49aed53ab594a88fc0f956a7e6b5717d5bc13baac461b2236a"
+            }
+          ]
+        },
+        "planned_prepare_uuid": "22222222-2222-4222-8222-222222222222",
+        "attempt_ordinal": 1
+      }
+    },
+    {
+      "name": "第3試行拒否",
+      "definition": "GrantIssueInput",
+      "valid": false,
+      "value": {
+        "contract_version": "mina-rescue-v3",
+        "case_uuid": "11111111-1111-4111-8111-111111111111",
+        "basis": {
+          "target_date": "2026-10-28",
+          "target_slot": "lunch",
+          "initial_expected": {
+            "target_date": "2026-10-28",
+            "target_slot": "lunch",
+            "target_share_url": "https://www.log-eats.com/s/rescue0001",
+            "state_version": "sv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "account_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "day_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "meal_generation": "gn1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "original_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "source_ledger_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "cost_history_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "original_first_replan_started_at": null,
+          "original_preparation_deadline_at": "2026-10-27T11:00:00.000Z",
+          "original_hard_deadline_at": null,
+          "baseline_consumed_ordinals": [],
+          "source_requests_terminal": true,
+          "hold_epoch": 1,
+          "pause_receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy_version": "mina_gemini_waived_20261023_v1",
+          "budget_policy_digest": "244918faac42ea4b91b96116c75b251c9361b9a1389a88503b7ba6aedb07e79b",
+          "cost_approval_digest": "8747bbcffcedfe18baa09e59ea0d25985d3c8472c47bad31e93554cb305d6083",
+          "operator_approval_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "not_after": "2026-10-28T00:15:00.000Z",
+          "exception_kind": "operator_scoped_meal_replacement",
+          "original_context_present": false,
+          "original_stored_image_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "target_analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "review_policy_version": "synthetic-review-v1",
+          "other_meals_reviews": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "reviewer_role": "independent_reviewer",
+              "verdict": "pass",
+              "quality_status": "pass",
+              "review_policy_version": "synthetic-review-v1",
+              "reviewed_at": "2026-10-28T00:00:00.000Z"
+            }
+          ],
+          "other_meals_expected": [
+            {
+              "target_slot": "breakfast",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "9e8b62c343271f2d40889258ccf0dfb6de339db4fa010975775957e7652eb213"
+            },
+            {
+              "target_slot": "dinner",
+              "target_result_version": "rv1_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "stored_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "analysis_digest": "ad1_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "ogp_input_digest": "dddddddddddddddddddddddd",
+              "independent_review_digest": "39560e38e6e53a49aed53ab594a88fc0f956a7e6b5717d5bc13baac461b2236a"
+            }
+          ]
+        },
+        "planned_prepare_uuid": "22222222-2222-4222-8222-222222222222",
+        "attempt_ordinal": 3
+      }
+    }
+  ]
+}

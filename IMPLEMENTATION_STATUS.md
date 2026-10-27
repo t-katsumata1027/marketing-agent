@@ -1,5 +1,9 @@
 # みな運用の実装・サブPC配置状況
 
+## 2026年10月27日・救済v3の固定契約受領、受入資料を準備
+
+提供側PR157 head06f43311、Schema実SHA baf76695c55298cd97fe8b24fc488c3c164585c11ae735986da380c4e52397abを取得・照合した。v3は承認対象日（発行時当日/翌日）/朝昼夕、1case1候補、D後再発行不可。合成構造fixture20件成功・外部呼出0であり、実HTTP/runtime受入ではない。本体CI40504573273はfoundation成功・専用実HTTP継続中、未配備との引継ぎ。MINA_RESCUE_V3_ACCEPTANCE_PREPARATION_20261028.mdへadapter/台帳/Drive/日次/source verifierの差分と承認A/B/Cを整理。独立Codexが固定Schema/提供側実装と20fixtureを再照合し準備範囲Go。今回runtime/配置/有効化/食事/課金/投稿変更0。追加実装承認待ち。
+
 ## 2026年10月27日20:39・3食保存完了、native保留受入と巡回を恒久補修、昼の期限後救済は未完了
 
 本人追加承認で旧draft4件の現在不在を全ページ確認（ACK3/unknown履歴1保持、再DELETE0）、夕M1登録/訂正/食品・OGP独立合格まで完了。朝455/昼628.4/夕716=1799.4、朝昼再登録/再訂正0、昼識別保留は維持。通常complete holdを旧originが拒否し、P前停止・20時失効となった。最終a34005efをCI40497133180（682成功/51skip・一般32成功）、Linux103・独立Go後に20:37配置。正式descriptorとM1の投影・native→合成P結合受入、実データRO照合、UUID前段階と通知例外の分離を実装。切替71表保持・業務19表不変、3service/5timer active、巡回live/失敗0、27日21:30 X/IG承認保持。通常将来日収集ON/当日救済OFF、28日期限は不変・PDC/試行/候補0。本体救済v2は朝食限定のため昼へ流用せず、LogEats担当への調査依頼書を作成/独立計画Go、本人の依頼に基づき担当へ送信済み、回答・新契約待ち。投稿案完成は未達。詳細はMINA_PREPARATION_RECOVERY_20261028.md。
