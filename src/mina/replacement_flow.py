@@ -9,6 +9,13 @@ from .replacement_journal import ReplacementJournal
 from .replacement_client import ImageDescriptor
 from .publication_hold import acquire
 
+class PreflightFailure(ValueError):
+    """外部原文を持たず、確認段階の固定停止理由を監査へ引き渡す。"""
+    audit_stage='reconciliation'
+    def __init__(self,reason):
+        self.audit_reason=reason
+        super().__init__(reason)
+
 def tracked(method):
     """停止した段階と固定理由を追記し、例外の生文・UUIDは監査表示へ出さない。"""
     @wraps(method)
@@ -24,13 +31,17 @@ def tracked(method):
                 'replacement_candidate_input_changed','replacement_candidate_target_changed','replacement_review_invalid',
                 'replacement_hold_changed','replacement_budget_policy_changed','replacement_call_lookup_only',
                 'external_dispatch_unverified','external_dispatch_present','external_inventory_incomplete','external_inventory_stale',
-                'budget_unconfigured','budget_exceeded'}
+                'budget_unconfigured','budget_exceeded','replacement_no_request_to_reconcile',
+                'replacement_preflight_busy','replacement_preflight_not_pristine','replacement_source_incomplete'}
             reason=str(error) if str(error) in reasons else 'unconfirmed'
             with self.store.transaction() as db:
                 e=db.execute('SELECT stage,slot FROM replacement_episodes WHERE target_date=?',(target,)).fetchone()
                 db.execute('INSERT INTO replacement_stop_events(target_date,operation,stage,reason,occurred_at) VALUES(?,?,?,?,?)',
                            (target,method.__name__,e['stage'] if e else 'precheck',reason,stamp(self.clock())))
                 db.execute('UPDATE replacement_episodes SET reason=? WHERE target_date=?',(reason,target))
+            if reason in ('external_dispatch_present','external_dispatch_unverified','external_inventory_incomplete',
+                          'external_inventory_stale','replacement_source_incomplete','replacement_preflight_busy'):
+                raise PreflightFailure(reason) from None
             raise
     return invoke
 
@@ -141,14 +152,30 @@ class ReplacementFlow:
         owner=str(uuid.uuid4());hold=acquire(self.store,target,owner,self.clock())
         if hold['state']!='held':raise ValueError('external_dispatch_unverified')
         e={'target_date':target,'slot':slot,'owner':owner,'epoch':hold['epoch'],'deadline':approval_time(date.fromisoformat(target)).timestamp()}
+        from .instagram_preparation import owner as process_owner
+        identity=process_owner()
         with self.store.transaction() as db:
             db.execute('INSERT INTO replacement_episodes VALUES(?,?,?,?,?,?,?,?,?,?,?)',(target,slot,owner,hold['epoch'],'checking','{}',None,None,None,e['deadline'],None))
+            db.execute('CREATE TABLE IF NOT EXISTS replacement_preflight_owners (target_date TEXT PRIMARY KEY,identity TEXT)')
+            db.execute('INSERT INTO replacement_preflight_owners VALUES(?,?)',(target,identity))
             from .publication_hold import exists
             snapshot={table:[dict(r) for r in db.execute('SELECT * FROM '+table+' WHERE target_date=?',(target,))]
                 for table in ('candidates','instagram_candidates','buffer_publication','instagram_attempts') if exists(db,table)}
             db.execute('INSERT INTO replacement_original_queue VALUES(?,?)',(target,canonical(snapshot).decode()))
+        try:return self._complete_preflight(target,e)
+        finally:
+            with self.store.transaction() as db:
+                db.execute('UPDATE replacement_preflight_owners SET identity=NULL WHERE target_date=? AND identity=?',(target,identity))
+
+    def _complete_preflight(self,target,e):
+        """全外部予約の確認を先に行い、正式3食の成立後だけ候補生成へ進む。"""
         self.external(e)
+        collect=getattr(self,'collect_missing',None)
+        if collect is not None:collect(e)
+        inspect=getattr(self,'inspect_composition',None)
+        if inspect is not None:inspect(target)
         p=self.contract.preconditions(self.client.preconditions(target),target)
+        if collect is not None:collect.verify_preconditions(p)
         if self.ports.previous_image_hashes()!={m['expected']['target_slot']:m['image_sha256'] for m in p['meals']}:
             raise ValueError('replacement_original_source_changed')
         from .replacement_control import observe_circuit,require_available
@@ -162,6 +189,50 @@ class ReplacementFlow:
         with self.store.transaction() as db:
             db.execute("UPDATE replacement_episodes SET stage='held',old_source=? WHERE target_date=?",(canonical(p).decode(),target))
         return self.next_candidate(target)
+
+    @tracked
+    def resume_checking(self,target):
+        """UUID発行前の確認だけを同じholdで再開する。要求不明や生成途中へ流用しない。"""
+        from .instagram_preparation import owner,alive
+        e=self.episode(target);self.checkpoint(e)
+        identity=owner()
+        with self.store.transaction() as db:
+            current=db.execute('SELECT * FROM replacement_episodes WHERE target_date=?',(target,)).fetchone()
+            if not current or dict(current)!=e:raise ValueError('replacement_hold_changed')
+            if (e['stage']!='checking' or e['old_source']!='{}' or not e['reason']
+                    or any(e[k] is not None for k in ('prepare_uuid','discard_uuid','commit_uuid'))):
+                raise ValueError('replacement_preflight_not_pristine')
+            for table in ('meal_replacement_requests','replacement_attempts','replacement_external_calls'):
+                if db.execute('SELECT 1 FROM '+table+' WHERE target_date=?',(target,)).fetchone():
+                    raise ValueError('replacement_preflight_not_pristine')
+            for table in ('replacement_cost_reservations','replacement_waived_calls'):
+                unresolved=list(db.execute("SELECT * FROM "+table+" WHERE target_date=? AND state IN ('reserved','unknown')",(target,)))
+                day=db.execute('SELECT policy_digest FROM replacement_budget_days WHERE target_date=?',(target,)).fetchone()
+                legitimate={
+                    'server-allocation:'+target:('server_allocation',self.policy.policy.get('server_allocation_units'),'reserved'),
+                    'opening-exposure:'+target:('opening_exposure',self.policy.policy.get('opening_exposure_units'),'unknown')}
+                for r in unresolved:
+                    allowed=(table=='replacement_cost_reservations' and not self.policy.waived and day and day[0]==self.policy.policy_digest
+                             and r['call_key'] in legitimate and (r['kind'],r['units'],r['state'])==legitimate[r['call_key']])
+                    if not allowed:raise ValueError('replacement_preflight_not_pristine')
+            if db.execute('SELECT 1 FROM replacement_materials m WHERE NOT EXISTS (SELECT 1 FROM meal_replacement_requests r WHERE r.request_key=m.prepare_uuid)').fetchone():
+                raise ValueError('replacement_preflight_not_pristine')
+            if db.execute("SELECT 1 FROM replacement_wire WHERE json_extract(metadata,'$.expected.target_date')=?",(target,)).fetchone():
+                raise ValueError('replacement_preflight_not_pristine')
+            snapshot=json.loads(db.execute('SELECT snapshot FROM replacement_original_queue WHERE target_date=?',(target,)).fetchone()[0])
+            for table,rows in snapshot.items():
+                if [dict(r) for r in db.execute('SELECT * FROM '+table+' WHERE target_date=?',(target,))]!=rows:
+                    raise ValueError('replacement_original_queue_changed')
+            if db.execute("SELECT 1 FROM mina_requests WHERE target_date=? AND phase<>'complete'",(target,)).fetchone():
+                raise ValueError('replacement_existing_request_unresolved')
+            db.execute('CREATE TABLE IF NOT EXISTS replacement_preflight_owners (target_date TEXT PRIMARY KEY,identity TEXT)')
+            previous=db.execute('SELECT identity FROM replacement_preflight_owners WHERE target_date=?',(target,)).fetchone()
+            if previous and previous[0] and alive(previous[0]):raise ValueError('replacement_preflight_busy')
+            db.execute('INSERT OR REPLACE INTO replacement_preflight_owners VALUES(?,?)',(target,identity))
+        try:return self._complete_preflight(target,e)
+        finally:
+            with self.store.transaction() as db:
+                db.execute('UPDATE replacement_preflight_owners SET identity=NULL WHERE target_date=? AND identity=?',(target,identity))
 
     @tracked
     def next_candidate(self,target):

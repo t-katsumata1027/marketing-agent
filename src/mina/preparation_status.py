@@ -7,7 +7,8 @@ STAGES = {'daily_draft':'献立生成','image':'画像生成','image_review':'�
           'correction_plan':'訂正案作成','meal_correction':'解析訂正','ogp_capture':'共有画像取得',
           'ogp_review':'共有画像点検','daily_share':'日次共有','candidates':'承認候補の照合',
           'draft':'献立生成','images':'画像準備','drive':'画像保存','registration':'登録・共有',
-          'source_state':'登録前の正本照合','source_request':'登録要求の照合','meal_replan':'メニューの再計画','menu_nutrition':'登録前の食品別概算'}
+          'source_state':'登録前の正本照合','source_request':'登録要求の照合','meal_replan':'メニューの再計画','menu_nutrition':'登録前の食品別概算',
+          'replacement_preflight':'自動修復の事前照合'}
 REASONS = {'post_text_too_long':'固定文・共有URLを含むX本文が280上限を超過',
            'image_analysis_mismatch':'食品・分量と解析結果の不一致',
            'nutrition_semantic_mismatch':'分量・栄養値の整合性を確認できない',
@@ -19,7 +20,13 @@ REASONS = {'post_text_too_long':'固定文・共有URLを含むX本文が280上�
            'clock_ahead':'正本APIの応答時刻の先行が待機上限を超過',
            'http_error':'外部APIのHTTPエラー','io_failed':'外部接続またはファイル読取の失敗',
            'timeout':'外部照会の時間切れ','response_invalid':'外部応答の形式不正',
-           'validation_failed':'入力または照合条件の不一致','unclassified':'分類できない工程エラー'}
+           'validation_failed':'入力または照合条件の不一致','unclassified':'分類できない工程エラー',
+           'external_dispatch_present':'外部に対象日または日時不明の投稿・下書きが存在',
+           'external_dispatch_unverified':'外部アカウント・予約状態を照合できない',
+           'external_inventory_incomplete':'外部予約の全状態・全ページを取得できない',
+           'external_inventory_stale':'外部予約の照合証跡が有効時間を超過',
+           'replacement_source_incomplete':'保存済み3食が揃わず置換を開始できない',
+           'replacement_preflight_busy':'同じ公開停止の確認処理が実行中'}
 
 
 class QualityHold(ValueError):

@@ -414,6 +414,10 @@ class Store:
         prefix=previous.split(':')[0]
         step=previous if prefix==stage or parents.get(prefix)==stage else stage
         reason,details=safe_failure(error)
+        if reason in ('external_dispatch_present','external_dispatch_unverified','external_inventory_incomplete','external_inventory_stale',
+                      'replacement_source_incomplete','replacement_preflight_busy'):
+            pieces=step.split(':')
+            step='replacement_preflight:'+pieces[1] if len(pieces)>1 else 'replacement_preflight'
         from .x_text import PostLengthError
         if isinstance(error,PostLengthError):step='candidates:'+error.slot
         if isinstance(error,QualityHold):
@@ -422,7 +426,7 @@ class Store:
             status,reasons='stopped',('deadline_exceeded',)
         else:
             from .clients import OutcomeUnknown
-            status='stopped' if not isinstance(error,OutcomeUnknown) and step.split(':')[0] in ('source_state','source_request') else 'reconciliation_required'
+            status='stopped' if not isinstance(error,OutcomeUnknown) and step.split(':')[0] in ('source_state','source_request','replacement_preflight') else 'reconciliation_required'
             from .preparation_status import REASONS
             reasons=(reason,) if reason in REASONS else ('unconfirmed',)
         event_stage,slot=step_context(step)
