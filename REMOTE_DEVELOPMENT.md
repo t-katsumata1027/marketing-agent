@@ -1,5 +1,9 @@
 # サブPCでの開発
 
+## 2026年10月27日19:45・将来日UUID前確認の再開を配置、収集OFF
+
+固定5c19f4d9・CI40490523987・Linux90件・独立Go。コード切替時61表同一、DB移行なし、既存業務52表保持、3サービス/5timer active。MINA_REPLACEMENT_COLLECTION_ENABLED=falseと当日救済OFFを実プロセスで確認。退避は/var/lib/mina-agent/deployment-review-recovery-5c19f4d9、旧コードは/opt/marketing-agent-rollback-review-5c19f4d9。10/28の朝昼M1要求4件を保持、夕未登録・候補未完成。外部の日時不明IG draft4件削除は本人承認待ちで、収集有効化・追加食事/置換/公開は未実行。MINA_PREPARATION_RECOVERY_20261028.mdを参照。
+
 ## 2026年10月27日01:35・Instagram準備継続と通常CLI有限再試行を配置
 
 稼働fde12d64a63fc94683e1ecac272d5c60f675243c、CI40359655087/秘密なしLinux54/最終独立Go。退避/var/lib/mina-agent/deployment-review-recovery-fde12d64、旧コード/opt/marketing-agent-rollback-review-fde12d64。旧40表行不変、新空instagram_preparations/eventsの2表を追加。3サービス/5timer・実子プロセスのcommit/救済OFF/UTM/通常置換とIGの既存4スイッチtrue保持、新巡回失敗0。IG候補4本人承認済み/Discord4件sent・8公開実体再検証、IG投稿要求0。通常catch_upは20:10〜朝食前、外部不明claimの自動解放なし。CLI retryは通常翌日だけ、managed予算内は従来1回。detailsはMINA_INSTAGRAM_CONTINUITY_20261027.md。

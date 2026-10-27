@@ -58,8 +58,30 @@ https://developers.buffer.com/types/DeletePostSuccess.html
 
 ## 検証状況
 
-新規16件で欠損夕食だけの実register_day、再起動時の外部増分0、元昼保留保持、
+新規18件で欠損夕食だけの実register_day、再起動時の外部増分0、元昼保留保持、
 未知、provider拒否、通常期限、旧初回+15分、対象holdの改変、原本改変、
 稼働中所有、未知費用、UUID前再開のowner/epoch保持を確認した。
-関連既存回帰を含む37件も成功。独立の最終コードレビューと固定版CI・Linux受入は進行中。
-本番配置・下書き削除・追加登録・置換・投稿の実行済みとは扱わない。
+関連既存回帰も成功。Linuxで既存IG境界試験の実行日依存を検出したため、当該試験の時刻だけ固定した。
+旧版bdcf589fのCI/Linux失敗は成功へ読み替えず保持する。これは本番期限を変更する修正ではない。
+
+最終固定版：5c19f4d91cfc3f204a5a47f062b59838fed26420。
+CI40490523987：Mina720件中669成功・51skip、一般32件成功。
+実UID・秘密資格なしのLinux隔離チェックアウト：90件成功、実課金・本番業務操作0。
+別Codexの最終独立レビュー：コード/隔離Go、追加重大残件なし。
+OFF配置operatorも独立Go（SHA 93cdd49a9e29e7b54a89202edc908b45ba4943cea2ac9fb70171201599b4e933）。
+PR19：https://github.com/t-katsumata1027/marketing-agent/pull/19
+
+## 19:46の本番確認
+
+19:45に同固定版を配置した。切替瞬間の既存61表は全行同一、DB移行なし。
+収集機能と当日救済はともにOFF。実プロセス環境、3サービス・5timer active、巡回失敗0、SQLite整合性okを確認した。
+再起動後に変化を許容する監査・巡回・停止通知等とは分け、既存業務52表の行保持を確認した。
+バックアップ：/var/lib/mina-agent/deployment-review-recovery-5c19f4d9。
+切戻しコード：/opt/marketing-agent-rollback-review-5c19f4d9。業務DBを巻き戻さない。
+
+19:46のUUID前読取再確認では4下書きの存在を新コードも検出し、
+`replacement_preflight:lunch / stopped / external_dispatch_present`を正確に記録した。
+元の朝昼M1要求4件はcompleteのまま不変、P/D/C要求0・試行0、X/Instagram候補0。
+下書き削除・追加食事登録・置換・課金処理・公開は行っていない。
+過去の下書き4件の削除と限定復旧に対する本人の追加承認は未受領。
+投稿案の完成・業務復旧は未達であり、コード反映だけを完了として報告しない。
