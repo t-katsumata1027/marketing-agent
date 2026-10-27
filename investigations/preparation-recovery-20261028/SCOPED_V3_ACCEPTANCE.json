@@ -1,0 +1,467 @@
+{
+  "agent_code_commit": "8a160e2952edc42cc06a432489db1bdc5a78ad86",
+  "body_fixture_commit": "858e2bbb4f62a26ec8dc6e0d5310944541d0ec27",
+  "schema_sha256": "baf76695c55298cd97fe8b24fc488c3c164585c11ae735986da380c4e52397ab",
+  "local_selected_tests": {
+    "tests": 49,
+    "passed": 49,
+    "failed": 0,
+    "seconds": 85.371
+  },
+  "independent_tests": {
+    "tests": 43,
+    "passed": 43,
+    "failed": 0,
+    "seconds": 86.537,
+    "verdict": "Go",
+    "scope": "Agentコードと隔離受入のみ",
+    "review_sha256": "c970a86f824d3fb74ee44658d5d46784d84e2d9df01f0de6fb710a9b69835357"
+  },
+  "fixture": {
+    "version": "agent-scoped-rescue-http-v3",
+    "harness_source_sha256": "c19c81914b1eca02f198c531a1aa3f869e76e814c1436c5731ce43446cb1ee81"
+  },
+  "body_source_files": 1146,
+  "body_source_matrix_sha256": "c19c81914b1eca02f198c531a1aa3f869e76e814c1436c5731ce43446cb1ee81",
+  "cases": [
+    {
+      "case": "test_actual_prepare_images_review_commit_and_saved_requery",
+      "calls": {
+        "analysis": 1,
+        "image": 1,
+        "render": 1,
+        "put": 1,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/6c88a79c-28d6-4bbf-97db-19f7a21d12aa": 5,
+        "GET /api/internal/mina/rescue-v3/cases/6c88a79c-28d6-4bbf-97db-19f7a21d12aa/preconditions": 4,
+        "POST /api/internal/mina/rescue-v3/candidates": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/353f8ae0-4b18-452b-941e-139a129ecf85": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/353f8ae0-4b18-452b-941e-139a129ecf85/images/original": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/353f8ae0-4b18-452b-941e-139a129ecf85/images/stored": 1,
+        "POST /api/internal/mina/rescue-v3/commits": 1,
+        "GET /api/internal/mina/rescue-v3/commits/6897eaef-893a-486f-a5ab-56c02081dc96": 1
+      },
+      "history": 1,
+      "requests": 2,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_case_revocation_stops_before_new_generation",
+      "calls": {
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/b3d1e06b-6fb0-44b7-81ba-9ffab0839c43": 1
+      },
+      "history": 0,
+      "requests": 0,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_commit_response_loss_reconciles_sticky_saved",
+      "calls": {
+        "analysis": 1,
+        "image": 1,
+        "render": 1,
+        "put": 1,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/818a103d-1d77-4274-8bc9-5304c2e0d20a": 4,
+        "GET /api/internal/mina/rescue-v3/cases/818a103d-1d77-4274-8bc9-5304c2e0d20a/preconditions": 4,
+        "POST /api/internal/mina/rescue-v3/candidates": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/f5aa9a92-f955-4f1a-895a-680627311f30": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/f5aa9a92-f955-4f1a-895a-680627311f30/images/original": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/f5aa9a92-f955-4f1a-895a-680627311f30/images/stored": 1,
+        "POST /api/internal/mina/rescue-v3/commits": 1,
+        "GET /api/internal/mina/rescue-v3/commits/75d74778-8dae-460a-a4c0-e5d3113855f8": 1
+      },
+      "history": 1,
+      "requests": 2,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_each_rpc_rechecks_deadline_and_preserves_first_call_history",
+      "calls": {
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/f731fc38-88c8-4e33-819c-2093b865a3ed": 1
+      },
+      "history": 0,
+      "requests": 0,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_global_cooldown_stops_without_new_analysis",
+      "calls": {
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/2751d8f0-0016-4a06-b05f-4e8d998bd33f": 1,
+        "GET /api/internal/mina/rescue-v3/cases/2751d8f0-0016-4a06-b05f-4e8d998bd33f/preconditions": 1
+      },
+      "history": 0,
+      "requests": 0,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_independent_fail_discards_and_does_not_offer_second_candidate",
+      "calls": {
+        "analysis": 1,
+        "image": 1,
+        "render": 0,
+        "put": 0,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/31cb96e1-3182-4a96-bbd0-4ef610b2a9f8": 4,
+        "GET /api/internal/mina/rescue-v3/cases/31cb96e1-3182-4a96-bbd0-4ef610b2a9f8/preconditions": 3,
+        "POST /api/internal/mina/rescue-v3/candidates": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/a81dc544-104e-4bb8-81d6-208683a268ca": 2,
+        "GET /api/internal/mina/rescue-v3/candidates/a81dc544-104e-4bb8-81d6-208683a268ca/images/original": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/a81dc544-104e-4bb8-81d6-208683a268ca/images/stored": 1,
+        "POST /api/internal/mina/rescue-v3/candidates/a81dc544-104e-4bb8-81d6-208683a268ca/discard": 1
+      },
+      "history": 0,
+      "requests": 2,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_native_hold_to_real_operator_c_finish_eight_images_and_all_source_verifiers",
+      "calls": {
+        "analysis": 1,
+        "image": 1,
+        "render": 1,
+        "put": 1,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 4,
+        "native_put": 4
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/state": 40,
+        "GET /api/internal/mina/meal-replacement-preconditions": 7,
+        "GET /api/internal/mina/rescue-v3/cases/b7264786-dea1-4550-92da-4ce294023235": 4,
+        "GET /api/internal/mina/rescue-v3/cases/b7264786-dea1-4550-92da-4ce294023235/preconditions": 4,
+        "POST /api/internal/mina/rescue-v3/candidates": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/bf689cfc-d6ce-40a8-8733-83ba7e730e80": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/bf689cfc-d6ce-40a8-8733-83ba7e730e80/images/original": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/bf689cfc-d6ce-40a8-8733-83ba7e730e80/images/stored": 1,
+        "POST /api/internal/mina/rescue-v3/commits": 1,
+        "GET /api/internal/mina/rescue-v3/commits/05940017-1f22-492a-8b05-b9d4b6cde629": 4,
+        "POST /api/internal/mina/daily-share": 1,
+        "GET /api/internal/mina/requests/5911f391-a388-4d97-9c3b-b822c6cd3425": 4,
+        "GET /api/internal/mina/requests/a4abbe7c-b548-4102-bbd2-df94530f5c5d": 3,
+        "GET /api/internal/mina/requests/8d33cfe7-2e6b-4f03-b6fc-2becdd6a6064": 3
+      },
+      "history": 1,
+      "requests": 2,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_no_post_if_two_gets_use_remaining_sixty_seconds",
+      "calls": {
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/f1af358d-a17d-4cf9-a5fb-50a3b26b11db": 2,
+        "GET /api/internal/mina/rescue-v3/cases/f1af358d-a17d-4cf9-a5fb-50a3b26b11db/preconditions": 2
+      },
+      "history": 0,
+      "requests": 0,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_oauth_response_is_memory_only_and_never_in_database",
+      "calls": {
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/77e07704-713f-4cdc-b9d3-ea9e085d2632": 1
+      },
+      "history": 0,
+      "requests": 0,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_old_image_bytes_change_stops_before_generation",
+      "calls": {
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/4c7558d5-c8a7-445a-8765-9fbb39daa43d": 1
+      },
+      "history": 0,
+      "requests": 0,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_old_original_ledger_change_stops_before_generation",
+      "calls": {
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/02c18e14-b966-4fe1-980b-1a28b3df172f": 1
+      },
+      "history": 0,
+      "requests": 0,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_old_p_lookup_keeps_completed_case_and_completed_preparation",
+      "calls": {
+        "analysis": 1,
+        "image": 1,
+        "render": 1,
+        "put": 1,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/62249909-25e7-4388-8247-9effe02bce72": 4,
+        "GET /api/internal/mina/rescue-v3/cases/62249909-25e7-4388-8247-9effe02bce72/preconditions": 4,
+        "POST /api/internal/mina/rescue-v3/candidates": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/ffc0879a-f764-454e-9048-dbd7ff8b70e3": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/ffc0879a-f764-454e-9048-dbd7ff8b70e3/images/original": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/ffc0879a-f764-454e-9048-dbd7ff8b70e3/images/stored": 1,
+        "POST /api/internal/mina/rescue-v3/commits": 1,
+        "GET /api/internal/mina/rescue-v3/requests/ffc0879a-f764-454e-9048-dbd7ff8b70e3": 1,
+        "GET /api/internal/mina/rescue-v3/commits/3c54f1d3-ee76-4705-856c-ce94225f3831": 1
+      },
+      "history": 1,
+      "requests": 2,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_prepare_response_loss_uses_only_original_uuid_get",
+      "calls": {
+        "analysis": 1,
+        "image": 1,
+        "render": 0,
+        "put": 0,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/b543246f-864a-4778-978e-0d1a3dd05c88": 3,
+        "GET /api/internal/mina/rescue-v3/cases/b543246f-864a-4778-978e-0d1a3dd05c88/preconditions": 2,
+        "POST /api/internal/mina/rescue-v3/candidates": 1,
+        "GET /api/internal/mina/rescue-v3/requests/e52ac580-cca0-4778-9435-c5244cf69668": 1
+      },
+      "history": 0,
+      "requests": 1,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_real_ports_drive_and_final_v3_source_reader",
+      "calls": {
+        "analysis": 1,
+        "image": 1,
+        "render": 1,
+        "put": 1,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/318e7a94-4d30-42d4-918b-bc866657c784": 4,
+        "GET /api/internal/mina/rescue-v3/cases/318e7a94-4d30-42d4-918b-bc866657c784/preconditions": 5,
+        "POST /api/internal/mina/rescue-v3/candidates": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/7b8fd0b1-698f-4e4f-9fb8-44877e35ca30": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/7b8fd0b1-698f-4e4f-9fb8-44877e35ca30/images/original": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/7b8fd0b1-698f-4e4f-9fb8-44877e35ca30/images/stored": 1,
+        "POST /api/internal/mina/rescue-v3/commits": 1,
+        "GET /api/internal/mina/rescue-v3/commits/a0163b12-c148-41a9-b7f5-2b181257b7b6": 2
+      },
+      "history": 1,
+      "requests": 2,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_revocation_between_case_and_pre_get_stops_before_ai",
+      "calls": {
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/8025748b-b794-4a50-bc89-96e27797a1eb": 1,
+        "GET /api/internal/mina/rescue-v3/cases/8025748b-b794-4a50-bc89-96e27797a1eb/preconditions": 1
+      },
+      "history": 0,
+      "requests": 0,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_safe_discard_after_expiry_and_flag_off_uses_prepared_revision",
+      "calls": {
+        "analysis": 1,
+        "image": 1,
+        "render": 0,
+        "put": 0,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/7eeb0edd-b769-4cbc-9d39-83cefe0f0b6d": 2,
+        "GET /api/internal/mina/rescue-v3/cases/7eeb0edd-b769-4cbc-9d39-83cefe0f0b6d/preconditions": 2,
+        "POST /api/internal/mina/rescue-v3/candidates": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/778c791b-1255-4868-87fa-267cc8bab9b9": 2,
+        "POST /api/internal/mina/rescue-v3/candidates/778c791b-1255-4868-87fa-267cc8bab9b9/discard": 1
+      },
+      "history": 0,
+      "requests": 2,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_saved_ogp_failure_is_not_replaced_again",
+      "calls": {
+        "analysis": 1,
+        "image": 1,
+        "render": 1,
+        "put": 0,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/488c935e-4ea7-41d1-8018-e83b7ddb0d6f": 5,
+        "GET /api/internal/mina/rescue-v3/cases/488c935e-4ea7-41d1-8018-e83b7ddb0d6f/preconditions": 4,
+        "POST /api/internal/mina/rescue-v3/candidates": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/e006e445-2adc-4564-bf11-5384977b73a8": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/e006e445-2adc-4564-bf11-5384977b73a8/images/original": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/e006e445-2adc-4564-bf11-5384977b73a8/images/stored": 1,
+        "POST /api/internal/mina/rescue-v3/commits": 1
+      },
+      "history": 1,
+      "requests": 2,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_saved_ogp_resume_survives_flag_off_and_new_flow",
+      "calls": {
+        "analysis": 1,
+        "image": 1,
+        "render": 1,
+        "put": 1,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/ed62cbb9-136a-4d00-b3aa-1bf5f74a0608": 5,
+        "GET /api/internal/mina/rescue-v3/cases/ed62cbb9-136a-4d00-b3aa-1bf5f74a0608/preconditions": 7,
+        "POST /api/internal/mina/rescue-v3/candidates": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/a49e2ff2-4c2f-4f2c-838d-e906480ae3c0": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/a49e2ff2-4c2f-4f2c-838d-e906480ae3c0/images/original": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/a49e2ff2-4c2f-4f2c-838d-e906480ae3c0/images/stored": 1,
+        "POST /api/internal/mina/rescue-v3/commits": 1,
+        "GET /api/internal/mina/rescue-v3/commits/46c112a7-5b0b-43a5-b787-56db8ca831aa": 3,
+        "POST /api/internal/mina/rescue-v3/resumes": 1
+      },
+      "history": 1,
+      "requests": 3,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_wide_window_allows_tonight_but_stops_after_first_post_slot",
+      "calls": {
+        "analysis": 0,
+        "image": 0,
+        "render": 0,
+        "put": 0,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {},
+      "history": 0,
+      "requests": 0,
+      "external_network_attempts": 0
+    }
+  ],
+  "external_network_attempts": 0,
+  "production_deployment": false,
+  "production_food_writes": false,
+  "production_charging": false,
+  "production_social_or_discord_send": false,
+  "body_preview_accepted": false,
+  "production_anchor_source_verified": false,
+  "activation_allowed": false
+}

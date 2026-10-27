@@ -55,7 +55,13 @@ Node側は外部fetch/socketを全面拒否し、HTTPは127.0.0.1のみ。Python
 
 単一grant・新解析1・置換履歴1、hold維持、旧期限/UUID不変、外部ネットワーク0を確認した。
 追加負例は、D後再P拒否、応答喪失/再起動/unknown、OFF saved resume、期限60秒、元画像/台帳変更、case取消、各RPCの期限、OAuth秘密非保存、processing→saved/終端未保存、候補TX末尾rollback、他枠ordinal分離、配布Schemaの欠落/改変拒否。
-最終固定版の件数・CI・独立レビューは別の証跡へ記録する。初回全体試験の旧配布fixture不足1件は、正式v3の追加と欠落/改変の負例で補修した。
+固定実装版は8a160e2952edc42cc06a432489db1bdc5a78ad86。局所49件成功（85.371秒）、独立43件成功（86.537秒）でコード・隔離範囲Go。
+独立レビューはMINA_SCOPED_RESCUE_REVIEW_20261028.md、検証原本要約はinvestigations/preparation-recovery-20261028/SCOPED_V3_ACCEPTANCE.json。
+同commitの配布物358ファイルを構築し、Schema同梱・全実SHA・activation_allowed=falseを確認した。最終CIはPR更新後に確認する。
+初回全体試験の旧配布fixture不足1件は、正式v3の追加と欠落/改変の負例で補修した。
+
+10/28 00:06 JSTの本番RO再確認でもAgentはa34005ef、hold epoch1/held、M1要求6、通常P/D/C・置換試行・候補0。
+新v3のjobs/requests表は未作成で、今回の実装・DDL・実食事操作は本番へ反映されていない。
 
 ## 本番の停止条件と次の承認
 

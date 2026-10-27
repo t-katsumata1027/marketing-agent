@@ -1,0 +1,14 @@
+{
+  "checked_at": "2026-10-27T15:06:39.481518+00:00",
+  "read_only": true,
+  "agent_commit": "a34005efd50afa5b75431f2baee05471ffa8027d",
+  "target_date": "2026-10-28",
+  "hold": {"epoch": 1, "state": "held", "reason": "external_inventory_required"},
+  "mina_requests": 6,
+  "meal_replacement_requests": 0,
+  "replacement_attempts": 0,
+  "candidates": 0,
+  "scoped_rescue_requests_table_present": false,
+  "scoped_rescue_jobs_table_present": false,
+  "production_changes_performed": false
+}
