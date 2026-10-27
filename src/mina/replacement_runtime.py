@@ -75,21 +75,21 @@ def build_coordinator(store,directory,draft,saved,evidence,commit,host,ai,drive,
         if len(observed['meals'])!=3 or {v['meal']['meal_type'] for v in observed['meals']}!={'breakfast','lunch','dinner'}:
             raise ValueError('replacement_source_incomplete')
     flow.inspect_composition=inspect_composition
-    if os.getenv('MINA_REPLACEMENT_COLLECTION_ENABLED','false').lower()=='true':
-        from .replacement_collection import Collection
-        def admit_collection():
-            # 完全な既存日のGETは提供側設定の読取にのみ使用し、対象日の期限・版へ転用しない。
-            from .domain import JST
-            today=clock().astimezone(JST).date().isoformat()
-            observed=contract.preconditions(client.preconditions(today),today)
-            p=observed['policy'];c=observed.get('circuit')
-            if (not policy.waived or p.get('analysis_provider')!='gemini'
-                    or p['policy_version']!=policy.policy['policy_version'] or p['budget_policy_digest']!=policy.policy_digest
-                    or p.get('cost_control')!={'mode':'waived','approval_reference_digest':policy.policy['approval_reference_digest']}
-                    or p['budget_configured'] is not False
-                    or set(p['blocking_reasons'])-{'deadline_unverified','deadline_exceeded','replan_limit_exceeded'}
-                    or not c or c['state']!='closed' or c['recovery_required']):raise ValueError('replacement_policy_unverified')
-        flow.collect_missing=Collection(store,directory,draft,saved,meal,ai,host,policy,inventory,clock,admit_collection)
+    from .replacement_collection import Collection
+    def admit_collection():
+        # 完全な既存日のGETは提供側設定の読取にのみ使用し、対象日の期限・版へ転用しない。
+        from .domain import JST
+        today=clock().astimezone(JST).date().isoformat()
+        observed=contract.preconditions(client.preconditions(today),today)
+        p=observed['policy'];c=observed.get('circuit')
+        if (not policy.waived or p.get('analysis_provider')!='gemini'
+                or p['policy_version']!=policy.policy['policy_version'] or p['budget_policy_digest']!=policy.policy_digest
+                or p.get('cost_control')!={'mode':'waived','approval_reference_digest':policy.policy['approval_reference_digest']}
+                or p['budget_configured'] is not False
+                or set(p['blocking_reasons'])-{'deadline_unverified','deadline_exceeded','replan_limit_exceeded'}
+                or not c or c['state']!='closed' or c['recovery_required']):raise ValueError('replacement_policy_unverified')
+    # 3食完成日の元hold証明は収集OFFでも行い、書込みの許可とは分離する。
+    flow.collect_missing=Collection(store,directory,draft,saved,meal,ai,host,policy,inventory,clock,admit_collection)
     rebuilder=ReplacementRebuilder(store,meal,ai,drive,Path(directory).parent,settings['instagram_directory'],evidence,commit,host,clock,
         api=api,ports_directory=ports_path,instagram_enabled='instagram' in settings['policy']['required_channels'])
     with store.transaction() as db:

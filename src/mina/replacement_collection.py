@@ -111,6 +111,8 @@ class Collection:
         if not self.missing:
             self.expected_results={slot:value['result']['result_version'] for slot,value in completed.items()}
             return
+        if os.getenv('MINA_REPLACEMENT_COLLECTION_ENABLED','false').lower()!='true':
+            raise ValueError('replacement_source_incomplete')
         effective_deadline=self.checkpoint()
         if self.clock().timestamp()+180>=effective_deadline:raise ValueError('deadline_exceeded')
         # boundedへの未検証の課金割当を追加しない。既承認waivedの操作予約を維持する。

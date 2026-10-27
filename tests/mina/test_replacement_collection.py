@@ -53,7 +53,7 @@ class CollectionTests(unittest.TestCase):
 
     def test_missing_flag_and_expired_deadline_never_register(self):
         with patch.dict('os.environ',{'MINA_REPLACEMENT_COLLECTION_ENABLED':'false'}):
-            with self.assertRaisesRegex(ValueError,'disabled'):self.collection(self.e)
+            with self.assertRaisesRegex(ValueError,'source_incomplete'):self.collection(self.e)
         self.now=NOW.replace(hour=20)
         with self.assertRaisesRegex(ValueError,'deadline'):self.collection(self.e)
         self.assertEqual(self.meal.register.call_count,2)
@@ -105,6 +105,20 @@ class CollectionTests(unittest.TestCase):
         for slot,op in [('lunch','meal_correction'),('daily','daily_share')]:
             with self.store.transaction() as db:
                 with self.assertRaises(ValueError):self.collection.claim(db,{'target_date':TARGET,'slot':slot,'operation':op})
+
+    def test_complete_day_still_requires_current_hold_when_collection_disabled(self):
+        self.collection(self.e)
+        with patch.dict('os.environ',{'MINA_REPLACEMENT_COLLECTION_ENABLED':'false'}):
+            self.collection(self.e)
+            current=self.meal.day_state.side_effect
+            def changed(target):
+                result=current(target)
+                for value in result['meals']:
+                    if value['meal']['meal_type']=='lunch':value['result_version']='rv1_'+'a'*64
+                return result
+            self.meal.day_state.side_effect=changed
+            with self.assertRaises(ValueError):self.collection(self.e)
+        self.assertEqual(self.meal.register.call_count,3)
 
 
 class PreflightTests(unittest.TestCase):
