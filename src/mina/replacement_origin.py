@@ -107,7 +107,8 @@ def originals(db, target, slot, binding):
                     uuid.UUID(value['round'])
                     if value['draft']['target_date'] != target:raise ValueError()
                     from .menu_budget import validate_draft_plan
-                    validate_draft_plan(value['draft'],db=db)
+                    # 現在版の入場ではなく、採用履歴と既存画像要求の原本検証。
+                    validate_draft_plan(value['draft'],db=db,historical=True)
                     image_step=by_step['image:'+slot+':'+value['round']]
                     key_step=by_step['meal_request_key:'+slot+':'+value['round']]
                     registered=by_step['meal_register:'+slot+':'+value['round']]

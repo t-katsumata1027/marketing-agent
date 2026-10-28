@@ -172,6 +172,28 @@ class MenuBudgetTests(unittest.TestCase):
     def test_partial_file_adoption_without_db_commit_stops_after_restart(self):
         self.adoption_failure(True)
 
+    def test_pending_before_journal_blocks_direct_image_and_registration_entries(self):
+        from src.mina.preparation import prepare_images
+        from src.mina.registration import register_day
+        self.ai.structured.side_effect=lambda instructions,content,schema,name:{s:[300,300] for s in json.loads(content)['foods']}
+        self.budget.collect(self.draft,self.ai)
+        MealReplanner(self.store,self.draft,self.path,self.ai)
+        validate_draft_plan(self.draft,self.store)
+        with self.store.transaction() as db:
+            db.execute("INSERT INTO meal_plan_adoptions VALUES(?,?,?,?,NULL,NULL,NULL,'pending')",
+                (self.draft['target_date'],'meal_replan:dinner:1','a'*64,fingerprint(self.draft)))
+        api=Mock();self.ai.reset_mock()
+        with self.assertRaises(ValueError):prepare_images(self.store,self.path,self.root/'images',self.ai)
+        with self.assertRaises(ValueError):register_day(self.store,self.draft,{},self.root/'ogp',api,self.ai,'www.log-eats.com')
+        self.ai.assert_not_called();self.assertEqual(self.ai.mock_calls,[]);self.assertEqual(api.mock_calls,[])
+        # 完了工程だけが残った場合も、採用行の欠損を旧互換として扱わない。
+        with self.store.transaction() as db:
+            db.execute('DELETE FROM meal_plan_adoptions')
+            db.execute("INSERT INTO preparation_steps VALUES(?,?,?,'complete',?,1)",
+                (self.draft['target_date'],'meal_replan:dinner:1','a'*64,'{}'))
+        with self.assertRaises(ValueError):prepare_images(self.store,self.path,self.root/'images',self.ai)
+        self.assertEqual(self.ai.mock_calls,[])
+
     def completed_cli_rejection(self,amounts,exhausted=False):
         candidates=[]
         for amount in amounts:

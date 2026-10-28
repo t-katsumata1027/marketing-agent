@@ -208,14 +208,47 @@ def admitted_basis(db, draft):
     return basis_from_document(db, draft, document)
 
 
-def validate_draft_plan(draft, store=None, *, db=None):
+def validate_adoptions(db,draft,strict=False):
+    """読取専用の共通入口。採用途中の工程を画像生成や登録から迂回しない。"""
+    target=draft['target_date']
+    exists=db.execute("SELECT 1 FROM sqlite_master WHERE name='meal_plan_adoptions'").fetchone()
+    if not exists:
+        if strict:raise ValueError('計画採用台帳を確認できません')
+        return
+    rows=list(db.execute('SELECT * FROM meal_plan_adoptions WHERE target_date=? ORDER BY step',(target,)))
+    if not rows and not strict:
+        admission_table=db.execute("SELECT 1 FROM sqlite_master WHERE name='menu_nutrition_admissions'").fetchone()
+        if not admission_table or not db.execute('SELECT 1 FROM menu_nutrition_admissions WHERE target_date=?',(target,)).fetchone():return
+    steps={r['step']:r for r in db.execute("SELECT * FROM preparation_steps WHERE target_date=? AND step LIKE 'meal_replan:%'",(target,))}
+    if any(r['state'] not in ('adopted','rejected') for r in rows) or set(steps)!={r['step'] for r in rows}:
+        raise ValueError('再計画の完了・採用状態の照合が必要です')
+    latest={}
+    for row in rows:
+        step=steps[row['step']]
+        if step['digest']!=row['input_digest']:raise ValueError('採用原本の入力版が変わっています')
+        if row['state']=='rejected':
+            from .generation_receipts import rejection
+            if rejection(step) is None:raise ValueError('不採用原本を確認できません')
+        else:
+            value=json.loads(step['result'] or '{}')
+            slot=row['step'].split(':')[1]
+            if (step['state']!='complete' or fingerprint(value['draft'])!=row['after_digest']
+                    or fingerprint(value['draft']['meals'][slot])!=row['meal_digest'] or value['round']!=row['round']):
+                raise ValueError('採用原本の結果版が変わっています')
+            latest[slot]=row['meal_digest']
+    if any(fingerprint(draft['meals'][s])!=sha for s,sha in latest.items()):
+        raise ValueError('採用済みの食事版と現在計画が一致しません')
+
+
+def validate_draft_plan(draft, store=None, *, db=None, historical=False):
     """新経路では実在する完了原本を要求し、旧下書きの互換検査は維持する。"""
     from .generation import validate_plan
     if store is not None:
         with store.transaction() as connection:
-            return validate_draft_plan(draft, db=connection)
+            return validate_draft_plan(draft, db=connection,historical=historical)
     basis = None
     if db is not None:
+        if not historical:validate_adoptions(db,draft)
         exists = db.execute("SELECT 1 FROM sqlite_master WHERE name='menu_nutrition_bases'").fetchone()
         if exists and (db.execute('SELECT 1 FROM menu_nutrition_bases WHERE target_date=?', (draft['target_date'],)).fetchone()
                 or db.execute('SELECT 1 FROM menu_nutrition_admissions WHERE target_date=?', (draft['target_date'],)).fetchone()):

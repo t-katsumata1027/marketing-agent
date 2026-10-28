@@ -169,26 +169,8 @@ class MealReplanner:
         if self.path.is_symlink() or fingerprint(json.loads(self.path.read_text(encoding='utf-8-sig')))!=fingerprint(self.draft):
             raise ValueError('計画の実体と実行中の版が一致しません')
         with self.store.transaction() as db:
-            rows=list(db.execute('SELECT * FROM meal_plan_adoptions WHERE target_date=? ORDER BY step',(self.target,)))
-            steps={r['step']:r for r in db.execute("SELECT * FROM preparation_steps WHERE target_date=? AND step LIKE 'meal_replan:%'",(self.target,))}
-        if any(r['state'] not in ('adopted','rejected') for r in rows) or set(steps)!={r['step'] for r in rows}:
-            raise ValueError('再計画の完了・採用状態の照合が必要です')
-        latest={}
-        for row in rows:
-            step=steps[row['step']]
-            if step['digest']!=row['input_digest']:raise ValueError('採用原本の入力版が変わっています')
-            if row['state']=='rejected':
-                from .generation_receipts import rejection
-                if rejection(step) is None:raise ValueError('不採用原本を確認できません')
-            else:
-                value=json.loads(step['result'] or '{}')
-                slot=row['step'].split(':')[1]
-                if (step['state']!='complete' or fingerprint(value['draft'])!=row['after_digest']
-                        or fingerprint(value['draft']['meals'][slot])!=row['meal_digest'] or value['round']!=row['round']):
-                    raise ValueError('採用原本の結果版が変わっています')
-                latest[slot]=row['meal_digest']
-        if any(fingerprint(self.draft['meals'][s])!=sha for s,sha in latest.items()):
-            raise ValueError('採用済みの食事版と現在計画が一致しません')
+            from .menu_budget import validate_adoptions
+            validate_adoptions(db,self.draft,strict=True)
 
     def used_attempts(self,slot):
         from .generation_receipts import rejection
