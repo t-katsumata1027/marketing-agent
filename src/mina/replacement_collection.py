@@ -26,12 +26,15 @@ class Collection:
                 or target!=(now.astimezone(JST).date()+timedelta(days=1)).isoformat()):
             raise ValueError('replacement_collection_disabled')
         end=min(e['deadline'],approval_time(date.fromisoformat(target)).timestamp())
-        rows=list(db.execute("SELECT step,state,started FROM preparation_steps WHERE target_date=? AND step LIKE ?",(target,'meal_replan:'+e['slot']+':%')))
+        rows=list(db.execute("SELECT * FROM preparation_steps WHERE target_date=? AND step LIKE ?",(target,'meal_replan:'+e['slot']+':%')))
         ordinals=[]
         for r in rows:
             n=r['step'].split(':')[-1]
-            if n not in ('1','2') or r['state']!='complete' or not 0<r['started']<=now.timestamp():
+            if n not in ('1','2') or r['state'] not in ('complete','known_rejected') or not 0<r['started']<=now.timestamp():
                 raise ValueError('migration_unverified')
+            if r['state']=='known_rejected':
+                from .generation_receipts import rejection
+                rejection(r)
             ordinals.append(int(n));end=min(end,r['started']+900)
         if sorted(ordinals)!=list(range(1,len(ordinals)+1)) or len(ordinals)>=2:
             raise ValueError('replan_limit_exceeded')

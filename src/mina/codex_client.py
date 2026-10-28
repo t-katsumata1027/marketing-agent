@@ -123,11 +123,15 @@ class CodexClient(OpenAIClient):
                 command.extend(["--disable", "shell_tool"])
                 guard += "ツールを使用せず、与えた文章と添付画像だけを検討する。"
             command.append("-")
+            from .generation_receipts import invocation, completed
+            transmitted = guard + "\n" + prompt
+            invocation_receipt = invocation(root.name, schema, transmitted)
+            (root / 'invocation.json').write_text(json.dumps(invocation_receipt), encoding='utf-8')
             try:
                 process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                            text=True, encoding="utf-8", errors="replace", env=self.environment(),
                                            start_new_session=os.name == "posix")
-                stdout, stderr = process.communicate(guard + "\n" + prompt, timeout=timeout)
+                stdout, stderr = process.communicate(transmitted, timeout=timeout)
             except subprocess.TimeoutExpired:
                 self.stop_process(process)
                 diagnostic(process.returncode if type(process.returncode) is int else None)
@@ -160,6 +164,7 @@ class CodexClient(OpenAIClient):
                     raise ValueError("Codexの生成画像がありません")
                 result["image_bytes"] = image_path.read_bytes()
             state("complete")
+            completed(root, schema, result, invocation_receipt, process.returncode, writable)
             return result
         except Exception as error:
             exit_code=getattr(locals().get('process'),'returncode',None)

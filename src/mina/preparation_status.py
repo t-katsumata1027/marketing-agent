@@ -17,6 +17,7 @@ REASONS = {'post_text_too_long':'固定文・共有URLを含むX本文が280上�
            'experiential_claim':'実食経験の断定','health_claim':'健康効果の断定',
            'copy_repetition':'過去の文面との重複','daily_energy_out_of_range':'3食合計が設定範囲外',
            'api_quality_rejected_not_saved':'登録前の解析品質検査で拒否・未保存を確認',
+           'generated_plan_invalid':'生成済み献立案が保存前の検査に不合格',
            'deadline_exceeded':'準備・再計画の有効期限を超過',
            'clock_ahead':'正本APIの応答時刻の先行が待機上限を超過',
            'http_error':'外部APIのHTTPエラー','io_failed':'外部接続またはファイル読取の失敗',

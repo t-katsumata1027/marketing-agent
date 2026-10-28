@@ -30,6 +30,9 @@ class AutomaticImageRepair:
         if menu_round is None:
             menu_round=(self.planner.last_rounds.get(slot) if self.image_meals.get(slot)!=fingerprint(self.draft['meals'][slot]) else self.rounds.get(slot))
         while True:
+            self.planner.check_budget(client=meal_client,only_slot=slot)
+            if self.image_meals.get(slot)!=fingerprint(self.draft['meals'][slot]):
+                menu_round=self.planner.last_rounds.get(slot,menu_round)
             active=menu_round
             failure=None
             for attempt in range(2):

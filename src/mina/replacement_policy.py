@@ -118,11 +118,14 @@ class ReplacementPolicy:
                         (circuit['retry_at'],binding['owner'],binding['epoch'],target))
             rows=[]
             if db.execute("SELECT 1 FROM sqlite_master WHERE name='preparation_steps'").fetchone():
-                rows=list(db.execute('SELECT step,state,started FROM preparation_steps WHERE target_date=? AND step LIKE ?',(target,'meal_replan:'+slot+':%')))
+                rows=list(db.execute('SELECT * FROM preparation_steps WHERE target_date=? AND step LIKE ?',(target,'meal_replan:'+slot+':%')))
             old_ordinals=[];starts=[]
             for r in rows:
                 n=r['step'].split(':')[-1]
-                if n not in ('1','2') or r['state']!='complete':raise ValueError('migration_unverified')
+                if n not in ('1','2') or r['state'] not in ('complete','known_rejected'):raise ValueError('migration_unverified')
+                if r['state']=='known_rejected':
+                    from .generation_receipts import rejection
+                    rejection(r)
                 if not 0<r['started']<=now.timestamp():raise ValueError('migration_unverified')
                 old_ordinals.append(int(n));starts.append(r['started'])
             attempts=list(db.execute('SELECT ordinal,first_started,deadline,receipt FROM replacement_attempts WHERE target_date=? AND slot=?',(target,slot)))
