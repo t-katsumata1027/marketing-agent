@@ -71,6 +71,9 @@ class ScopedRescueJournal:
         self.store, self.clock = store, clock
         self.scope = (VERSION, target, slot, case_uuid)
         with store.transaction() as db:
+            db.execute('''CREATE TABLE IF NOT EXISTS scoped_preparation_locks (
+                target_date TEXT PRIMARY KEY,case_uuid TEXT NOT NULL,owner TEXT NOT NULL,epoch INTEGER NOT NULL,
+                window_json TEXT NOT NULL,candidates_digest TEXT NOT NULL)''')
             db.execute('''CREATE TABLE IF NOT EXISTS scoped_rescue_jobs (
                 contract TEXT NOT NULL,target_date TEXT NOT NULL,slot TEXT NOT NULL,case_uuid TEXT NOT NULL,
                 owner TEXT NOT NULL,epoch INTEGER NOT NULL,issue_json TEXT NOT NULL,prepare_uuid TEXT NOT NULL UNIQUE,

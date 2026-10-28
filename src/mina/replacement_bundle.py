@@ -59,6 +59,8 @@ def notice_allowed(db,row,channel):
         return False
 
 def maybe_release(db,target,now):
+    from .scoped_preparation import locked
+    if locked(db,target):return
     if not exists(db,'replacement_bundles'):return
     b=db.execute("SELECT * FROM replacement_bundles WHERE target_date=? AND state='approval_pending'",(target,)).fetchone()
     if not b:return
@@ -74,13 +76,15 @@ def maybe_release(db,target,now):
         from .domain import Candidate
         from .instagram_domain import InstagramCandidate
         payload=json.loads(r['payload']);actual=(Candidate if member['channel']=='x' else InstagramCandidate)(**payload).digest
+        from .scoped_preparation import blocked
+        if blocked(payload):return
         if actual!=r['digest'] or (payload.get('approval_source') if member['channel']=='x' else payload.get('source',{})).get('state_version')!=proof['state_version']:return
     h=db.execute('SELECT * FROM publication_holds WHERE target_date=?',(target,)).fetchone()
     if not h or (h['owner'],h['epoch'],h['state'])!=(b['owner'],b['epoch'],'saved_pending_review'):return
     db.execute("UPDATE publication_holds SET state='released',reason='new_bundle_approved' WHERE target_date=?",(target,))
     db.execute("UPDATE replacement_bundles SET state='released' WHERE target_date=?",(target,))
 
-def stage(store,target,owner,epoch,source_digest,x_candidates,ig_candidates,host,hosts,now,proof,required_channels=('x','instagram'),checkpoint=None):
+def stage(store,target,owner,epoch,source_digest,x_candidates,ig_candidates,host,hosts,now,proof,required_channels=('x','instagram'),checkpoint=None,preparation_window=None):
     """検証済み候補だけを通常型で保持し、送信履歴のあるrouteを再利用しない。"""
     from dataclasses import asdict
     from .replacement_client import timestamp
@@ -102,6 +106,10 @@ def stage(store,target,owner,epoch,source_digest,x_candidates,ig_candidates,host
         if checkpoint is not None:checkpoint(db)
         initialize(db);h=db.execute('SELECT * FROM publication_holds WHERE target_date=?',(target,)).fetchone()
         if not h or (h['owner'],h['epoch'],h['state'])!=(owner,epoch,'saved_pending_review'):raise ValueError('replacement_hold_changed')
+        from .scoped_preparation import blocked,seal
+        marked=any(blocked({'approval_source':c.approval_source}) for c in x_candidates) or any(blocked({'source':c.source}) for c in ig_candidates)
+        if marked != (preparation_window is not None):raise ValueError('scoped_preparation_marker_invalid')
+        if preparation_window is not None:seal(db,preparation_window,owner,epoch,x_candidates,ig_candidates,now)
         if db.execute('SELECT 1 FROM replacement_bundles WHERE target_date=?',(target,)).fetchone():raise ValueError('replacement_bundle_already_staged')
         if exists(db,'instagram_attempts') and db.execute('SELECT 1 FROM instagram_attempts WHERE target_date=?',(target,)).fetchone():raise ValueError('external_dispatch_present')
         if db.execute("SELECT 1 FROM buffer_publication WHERE target_date=? AND (state<>'armed' OR request_json IS NOT NULL OR post_id IS NOT NULL)",(target,)).fetchone():raise ValueError('external_dispatch_present')

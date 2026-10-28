@@ -1,5 +1,10 @@
 """外部例外の文字列をそのまま監査へ残さない固定理由コード。"""
 INTERNAL_REASONS=frozenset({
+    'scoped_preparation_scope_invalid',
+    'scoped_preparation_deadline',
+    'scoped_preparation_schedule_invalid',
+    'scoped_preparation_marker_invalid',
+    'scoped_rescue_preparation_approval_changed',
     'scoped_rescue_code_changed',
     'scoped_rescue_acceptance_artifact_missing',
     'scoped_rescue_acceptance_scope_changed',

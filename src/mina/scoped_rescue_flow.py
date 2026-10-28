@@ -20,6 +20,7 @@ class ScopedRescueFlow:
         self.contract = ScopedRescueContract(clock,target,slot)
         self.journal = ScopedRescueJournal(store,clock,target,slot,case_uuid)
         self.acceptance_check=lambda:None
+        self.preparation_window=None
         from .replacement_ports import PreparationPorts
         if isinstance(ports,PreparationPorts):
             from .scoped_rescue_rpc import GuardedAI,guarded_drive
@@ -35,6 +36,10 @@ class ScopedRescueFlow:
         """本人の絶対期限は維持し、全4枠を作れる実効時間だけを検査する。"""
         from .domain import slot_time,date
         first=slot_time(date.fromisoformat(self.target),'breakfast')
+        if self.preparation_window is not None:
+            from .scoped_preparation import validate
+            first=validate(self.preparation_window,self.target,self.slot,self.journal.scope[3],self.clock())
+            if timestamp(not_after)>first:raise ValueError('scoped_preparation_deadline')
         if self.clock()+timedelta(seconds=60)>min(timestamp(not_after),self.clock()+timedelta(minutes=15),first):
             raise ValueError('scoped_rescue_publication_schedule_expired')
 
@@ -64,7 +69,12 @@ class ScopedRescueFlow:
             deadline = timestamp(c['ogp_finish_deadline_at'])
         else: deadline = timestamp(c['hard_deadline_at'])
         from .domain import slot_time,date
-        if not (safe and saved):deadline=min(deadline,slot_time(date.fromisoformat(self.target),'breakfast'))
+        if not (safe and saved):
+            limit=slot_time(date.fromisoformat(self.target),'breakfast')
+            if self.preparation_window is not None:
+                from .scoped_preparation import validate
+                limit=validate(self.preparation_window,self.target,self.slot,self.journal.scope[3],self.clock())
+            deadline=min(deadline,limit)
         expired=self.clock()>=deadline if remaining==0 else self.clock()+timedelta(seconds=remaining)>deadline
         if not safe and (c['state'] != 'active' and not self.journal.saved(db) or expired):
             raise ValueError('scoped_rescue_deadline')
@@ -412,6 +422,7 @@ class ScopedRescueFlow:
         e = {'target_date':self.target,'slot':self.slot,'prepare_uuid':job['prepare_uuid'],'commit_uuid':commit_key,
              'owner':job['owner'],'epoch':job['epoch'],'contract_version':VERSION}
         rebuilder.response_reader,rebuilder.response_contract,rebuilder.checkpoint = self.client,self.contract,lambda:self.checkpoint(saved=True)
+        rebuilder.preparation_window=self.preparation_window
         from .scoped_rescue_rpc import GuardedAI,guarded_drive
         if not isinstance(rebuilder.ai,GuardedAI):rebuilder.ai=GuardedAI(self,rebuilder.ai)
         rebuilder.drive=guarded_drive(self,rebuilder.drive)
@@ -430,7 +441,7 @@ class ScopedRescueFlow:
         with self.store.transaction() as db:
             from .publication_hold import exists
             old = db.execute('SELECT 1 FROM replacement_bundles WHERE target_date=?',(self.target,)).fetchone() if exists(db,'replacement_bundles') else None
-        if not old: stage(self.store,self.target,job['owner'],job['epoch'],result['proof']['source_digest'],xs,igs,rebuilder.host,HOSTS,self.clock(),result['proof'],required_channels=('x','instagram') if igs else ('x',),checkpoint=lambda db:self.checkpoint(db,saved=True))
+        if not old: stage(self.store,self.target,job['owner'],job['epoch'],result['proof']['source_digest'],xs,igs,rebuilder.host,HOSTS,self.clock(),result['proof'],required_channels=('x','instagram') if igs else ('x',),checkpoint=lambda db:self.checkpoint(db,saved=True),preparation_window=self.preparation_window)
         else:
             with self.store.transaction() as db:
                 self.checkpoint(db,saved=True)

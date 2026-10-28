@@ -141,6 +141,13 @@ class InstagramRuntime:
                 or candidate.caption != caption(bundle, candidate.slot)):
             raise ValueError('画像または本文が正本と一致しません')
         source = {k: bundle[k] for k in ('bundle_sha256', 'state_version', 'x_digests')}
+        from .scoped_preparation import KEY,registered_marker,locked
+        with self.store.transaction() as db:
+            if locked(db,candidate.target_date) or KEY in candidate.source or KEY in bundle['x_candidates'][candidate.slot]['approval_source']:
+                marked=registered_marker(db,candidate.target_date,candidate.slot,candidate.source)
+                if bundle['x_candidates'][candidate.slot]['approval_source'].get(KEY)!=marked:
+                    raise ValueError('scoped_preparation_marker_invalid')
+                source[KEY]=marked
         from .instagram_recovery import base_source, publication_window
         if 'recovery' in candidate.source:
             row = next(r for r in self.store.rows(candidate.target_date) if r['slot'] == candidate.slot)

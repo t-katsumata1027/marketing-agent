@@ -173,6 +173,8 @@ class BufferPublisher:
         if os.getenv('MINA_PUBLISH_ENABLED','false').lower() != 'true':
             raise ProbeError('buffer_publication_disabled')
         c = Candidate(**json.loads(self.row['payload']))
+        from .scoped_preparation import blocked
+        if blocked({'approval_source':c.approval_source}):raise ValueError('scoped_preparation_publication_forbidden')
         if text != c.content or not isinstance(self.proof, dict):
             raise ProbeError('buffer_approved_text_or_proof_missing')
         # 外部へ送る直前にも単調時計・期限を再検査する。API受付をX公開成功とは扱わない。

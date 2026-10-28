@@ -182,7 +182,8 @@ class InstagramStore:
                 return None
             db.execute("UPDATE instagram_candidates SET state='expired',nonce_hash=NULL WHERE state IN ('approved','approval_pending') AND scheduled<?", (ts - 120,))
             rows = db.execute("SELECT * FROM instagram_candidates WHERE state='approved' AND scheduled<=? AND scheduled>=? ORDER BY scheduled", (ts, ts - 120)).fetchall()
-            row = next((r for r in rows if not held(db, r['target_date'])), None)
+            from .scoped_preparation import blocked
+            row = next((r for r in rows if not held(db, r['target_date']) and not blocked(json.loads(r['payload']))), None)
             if not row:
                 return None
             c = InstagramCandidate(**json.loads(row['payload']))

@@ -60,6 +60,9 @@ class Candidate:
 
     @property
     def scheduled_at(self) -> datetime:
+        from .scoped_preparation import proposed
+        preparation=proposed(self.approval_source,self.target_date)
+        if preparation is not None:return preparation
         if self.approval_source and self.approval_source.get('publish_after_approval_until'):
             return instant(datetime.fromisoformat(self.approval_source['publish_after_approval_until']))
         return slot_time(date.fromisoformat(self.target_date), self.slot)

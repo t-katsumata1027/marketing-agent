@@ -10,7 +10,7 @@ from src.mina.scoped_rescue_flow import ScopedRescueFlow
 from src.mina.scoped_rescue_contract import ScopedRescueClient,ScopedRescueContract
 TARGET="2026-10-28"
 from src.mina.replacement_contract import canonical,digest,stamp
-from src.mina.replacement_client import ReplacementReadFailure
+from src.mina.replacement_client import ReplacementReadFailure,timestamp
 from src.mina.replacement_policy import ReplacementPolicy
 from src.mina.publication_hold import acquire
 from src.mina.store import Store
@@ -27,7 +27,7 @@ class ScopedRescueHttpTests(unittest.TestCase):
         cls.tmp=tempfile.TemporaryDirectory();cls.addClassCleanup(cls.tmp.cleanup)
         source=Path(os.environ['MINA_SCOPED_RESCUE_PROVIDER_ROOT']);snapshot=Path(cls.tmp.name)/'provider';snapshot.mkdir()
         # 固定Git treeからだけ展開し、作業中の未commit変更を混ぜない。
-        provider_commit='858e2bbb4f62a26ec8dc6e0d5310944541d0ec27'
+        provider_commit='f4aee73ecc9ad2c784c6196fb4d04009812037d6'
         archive=subprocess.check_output(['git','-C',str(source),'archive',provider_commit,'--','src','scripts','docs/marketing','tsconfig.json','package.json','package-lock.json'])
         import tarfile
         with tarfile.open(fileobj=io.BytesIO(archive)) as bundle:
@@ -317,7 +317,9 @@ class ScopedRescueHttpTests(unittest.TestCase):
         from src.mina.instagram_media import host_asset as actual_host,verify_public
         from src.mina.domain import ACCOUNT,slot_time
         from tests.mina.scoped_fakes import SyntheticDrive
-        data=self.control(reset=True,pending_grant=True);case=data['case']
+        late=getattr(self,'late_preparation',False)
+        data=self.control(reset=True,pending_grant=True,late=late);case=data['case']
+        if late:self.now=timestamp(data['now'])
         root=Path(self.temp.name)/'complete';root.mkdir();directory=root/'daily'/TARGET;directory.mkdir(parents=True)
         self.store=Store(root/'db');InstagramStore(self.store.path);policy=ReplacementPolicy(self.store,build()['agent_policy'],self.clock)
         raw=base64.b64decode(data['old_original_base64']);drive=SyntheticDrive()
@@ -378,6 +380,10 @@ class ScopedRescueHttpTests(unittest.TestCase):
         ai.image.return_value=self.image;ai.execute.return_value={'verdict':'pass','observations':[]}
         ports=PreparationPorts(ai,drive,draft,saved,root/'ports',self.clock)
         flow=ScopedRescueFlow(self.store,self.client,normal,policy,inventory,ports,self.clock,TARGET,'lunch',case['case_uuid']);self.flow=flow
+        if late:
+            flow.preparation_window={'target_date':TARGET,'target_slot':'lunch','case_uuid':case['case_uuid'],'mode':'prepare_only',
+                'not_after':stamp(self.now+timedelta(minutes=15)),
+                'proposed_times':{slot:stamp(self.now+timedelta(hours=i+1)) for i,slot in enumerate(('breakfast','lunch','dinner','daily'))}}
         anchors=case['basis']['other_meals_expected']
         reviews=flow.review_other_meals(meal,ai,capture,draft,saved,'www.log-eats.com',anchors,'synthetic-review-v3',case['basis']['not_after'],OWNER,1)
         pre=normal.preconditions(TARGET);origin=capture_origin(self.store,pre,OWNER,1,self.now,TARGET,'lunch',case['case_uuid'])
@@ -389,7 +395,7 @@ class ScopedRescueHttpTests(unittest.TestCase):
         costs={'history_complete':True,'unresolved_cost_count':0,'waived_approval_digest':APPROVAL,'ledgers':origin['document']['ledgers']}
         basis={**case['basis'],'source_ledger_digest':digest(ledger_proof),'cost_history_digest':digest(costs),'other_meals_reviews':reviews,
                'other_meals_expected':[{**a,'independent_review_digest':digest(next(r for r in reviews if r['target_slot']==a['target_slot']))} for a in anchors]}
-        basis.pop('operator_approval_digest');body='858e2bbb4f62a26ec8dc6e0d5310944541d0ec27'
+        basis.pop('operator_approval_digest');body='f4aee73ecc9ad2c784c6196fb4d04009812037d6'
         approval={'action':'issue','approved':True,'case_uuid':case['case_uuid'],'planned_prepare_uuid':case['planned_prepare_uuid'],
             'basis_sha256':digest(basis),'not_after':basis['not_after'],'expected_review_policy_version':'synthetic-review-v3',
             'expected_agent_commit':'a'*40,'expected_body_commit':body,'expected_schema_sha256':SCHEMA_SHA}
@@ -423,6 +429,13 @@ class ScopedRescueHttpTests(unittest.TestCase):
         self.assertEqual(len(finished['x']),4);self.assertEqual(len(finished['instagram']),4);self.assertEqual(sum(len(c['assets']) for c in finished['instagram']),8)
         self.assertEqual(self.control()['calls']['grant'],1);self.assertEqual(self.control()['calls']['analysis'],1);self.assertEqual(self.control()['history'],1)
         self.assertTrue(finished['publication_hold']);self.assertFalse(finished['discord_sent'])
+        if late:
+            from src.mina.instagram_runtime import InstagramRuntime
+            from src.mina.instagram_domain import InstagramCandidate
+            runtime=InstagramRuntime(self.store.path,root/'daily',root/'instagram',store=InstagramStore(self.store.path),meal=meal)
+            with patch('src.mina.instagram_runtime.datetime') as clock_type:
+                clock_type.now.return_value=self.now
+                runtime.verify(InstagramCandidate(**finished['instagram'][0]))
         with self.store.transaction() as db:
             self.assertEqual(db.execute('SELECT count(*) FROM candidates WHERE state=\'approval_pending\'').fetchone()[0],4)
             self.assertEqual(db.execute('SELECT count(*) FROM instagram_candidates WHERE state=\'approval_pending\'').fetchone()[0],4)
@@ -448,8 +461,40 @@ class ScopedRescueHttpTests(unittest.TestCase):
         self.assertEqual(before['post'],sum(v for name,v in self.control()['httpCounts'].items() if name.startswith('POST ')))
         self.assertEqual(reviews_before,(ai.review_meal.call_count,ai.review_ogp.call_count,ai.execute.call_count))
         with self.store.transaction() as db:
-            self.assertEqual(db.execute('SELECT state FROM publication_holds WHERE target_date=?',(TARGET,)).fetchone()[0],'released')
+            self.assertEqual(db.execute('SELECT state FROM publication_holds WHERE target_date=?',(TARGET,)).fetchone()[0],'saved_pending_review' if late else 'released')
             old=db.execute('SELECT deadline,prepare_uuid,commit_uuid FROM replacement_episodes WHERE target_date=?',(TARGET,)).fetchone()
             self.assertEqual(old['deadline'],datetime(2026,10,27,11,tzinfo=UTC).timestamp());self.assertIsNone(old['prepare_uuid']);self.assertIsNone(old['commit_uuid'])
+        if late:
+            # 本人が全件を承認し、holdを別操作で解除しても準備専用候補を送信しない。
+            with self.store.transaction() as db:db.execute("UPDATE publication_holds SET state='released' WHERE target_date=?",(TARGET,))
+            due=Candidate(**finished['x'][0]).scheduled_at
+            self.assertEqual(self.store.claim_due(due),[]);self.assertFalse(self.store.has_due(due))
+            self.assertIsNone(InstagramStore(self.store.path).claim_due(due))
+            from src.mina.scoped_preparation import registered_marker,KEY
+            from src.mina.publication_hold import require_claim,require_buffer_mutation
+            from src.mina.instagram_publisher import draft_once
+            from src.mina.instagram_domain import InstagramCandidate
+            for field in ('case_uuid','window_sha256','proposed_at'):
+                changed=copy.deepcopy(finished['instagram'][0]['source']);changed[KEY][field]='changed'
+                with self.store.transaction() as db:
+                    with self.assertRaises(ValueError):registered_marker(db,TARGET,'breakfast',changed)
+            # 候補の印自体を削除しても、独立した永続公開禁止が残る。
+            with self.store.transaction() as db:
+                for table,field in (('candidates','approval_source'),('instagram_candidates','source')):
+                    rows=list(db.execute('SELECT * FROM '+table+' WHERE target_date=?',(TARGET,)))
+                    for row in rows:
+                        payload=json.loads(row['payload']);payload[field].pop(KEY)
+                        db.execute('UPDATE '+table+" SET payload=?,state='dispatching' WHERE target_date=? AND slot=?",(json.dumps(payload),TARGET,row['slot']))
+            with self.assertRaises(ValueError):require_claim(self.store,self.store.get(TARGET,'breakfast'))
+            with self.assertRaises(ValueError):require_buffer_mutation(self.store,TARGET)
+            candidate=InstagramCandidate(**finished['instagram'][0]);candidate.source.pop(KEY)
+            client=Mock()
+            with patch('src.mina.instagram_publisher.require_live'):
+                with self.assertRaises(ValueError):draft_once(InstagramStore(self.store.path),candidate,client)
+            client._request.assert_not_called()
+
+    def test_late_preparation_full_chain_never_releases_or_claims_even_after_approval(self):
+        self.late_preparation=True
+        self.test_native_hold_to_real_operator_c_finish_eight_images_and_all_source_verifiers()
 
 if __name__=='__main__':unittest.main()

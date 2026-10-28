@@ -18,6 +18,7 @@ class ReplacementRebuilder:
         self.api,self.ports_directory,self.instagram_enabled=api,Path(ports_directory),instagram_enabled
         self.response_reader,self.response_contract=response_reader,response_contract
         self.checkpoint=checkpoint or (lambda:None)
+        self.preparation_window=None
 
     def __call__(self,e,response,p,material):
         from .instagram_source import load_bundle
@@ -89,7 +90,7 @@ class ReplacementRebuilder:
         response=reader.request(e['commit_uuid'],'meal_replace')
         reviewed,proof=review_posts(self.store,self.meal,self.ai,capture_ogp,
             target,e['commit_uuid'],response,draft,raw_images,self.host,self.clock,daily_request_key=daily_request_key)
-        xs=[Candidate(**v) for v in build_candidates(reviewed,self.evidence,self.commit,self.host,self.clock())]
+        xs=[Candidate(**v) for v in build_candidates(reviewed,self.evidence,self.commit,self.host,self.clock(),preparation_window=self.preparation_window)]
         igs=[]
         if self.instagram_enabled:
             # 新X候補だけの一時SQLiteで描画する。本番の候補や停止行を先行更新しない。
@@ -104,6 +105,9 @@ class ReplacementRebuilder:
                 assets=[host_asset(a,self.drive,self.store,allow_public=True) for a in manifest['assets'][slot]]
                 c=InstagramCandidate(target,slot,channel['id'],channel['serviceId'],'post' if slot=='daily' else 'story',caption(bundle,slot),assets,
                     {k:bundle[k] for k in ('bundle_sha256','state_version','x_digests')})
+                if self.preparation_window is not None:
+                    from .scoped_preparation import KEY,marker
+                    c.source[KEY]=marker(self.preparation_window,slot)
                 c.validate(self.clock(),HOSTS);igs.append(c)
             save_json(destination/'candidates.json',[asdict(c) for c in igs])
         adopt(self.store,target,e['owner'],e['epoch'],self.daily,version.name,manifest_sha)
@@ -141,7 +145,11 @@ class ReplacementRebuilder:
             state=self.meal.day_state(target)
             bundle=load_bundle(version/'render-snapshot.sqlite3',self.daily,target,state,self.clock(),artifact_directory=version)
             for candidate in igs:
-                if candidate.source!={k:bundle[k] for k in ('bundle_sha256','state_version','x_digests')} or candidate.caption!=caption(bundle,candidate.slot):raise ValueError('replacement_source_changed')
+                expected_source={k:bundle[k] for k in ('bundle_sha256','state_version','x_digests')}
+                from .scoped_preparation import KEY
+                marked=bundle['x_candidates'][candidate.slot]['approval_source'].get(KEY)
+                if marked is not None:expected_source[KEY]=marked
+                if candidate.source!=expected_source or candidate.caption!=caption(bundle,candidate.slot):raise ValueError('replacement_source_changed')
                 manifest=json.loads((self.instagram/target/candidate.layout_version/bundle['bundle_sha256']/'rendered.json').read_text(encoding='utf-8'))
                 if [a['sha256'] for a in candidate.assets]!=[a['sha256'] for a in manifest['assets'][candidate.slot]]:raise ValueError('replacement_source_image_changed')
                 for asset in candidate.assets:verify_public(asset)

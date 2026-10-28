@@ -41,8 +41,8 @@ const sample=(id:string)=>structuredClone(fixtures.samples.find(s=>s.case_id===i
 const obj=(v:unknown)=>v as JsonObject;
 const req=(path:string,body?:JsonObject,extra:Record<string,string>={})=>new NextRequest(base+path,{method:body?"POST":"GET",headers:{Authorization:"Bearer "+token,...(body?{"Content-Type":"application/json","Idempotency-Key":String(body.request_uuid)}:{}),...extra},body:body?JSON.stringify(body):undefined});
 async function result(response:Response){return {status:response.status,headers:response.headers,body:await response.json() as JsonObject};}
-function harness(targetSlot:Slot="lunch",pendingGrant=false){
- let now=initial;
+function harness(targetSlot:Slot="lunch",pendingGrant=false,late=false){
+ let now=late?Date.parse("2026-10-28T01:00:00.000Z"):initial;
  const at=()=>new Date(now).toISOString();
  const m1=new FakeMinaStore({users:[{id:7,email,settings:{target_calories:1800,target_protein:90,target_fat:50,target_carbs:230,daily_calorie_target:null,tolerance_pct:10,share_og_image_enabled:true}}]});
  const normal=new FakeReplacementStore(m1),assets=new Map<string,ArrayBuffer>(),calls={analysis:0,image:0,render:0,put:0,grant:0,native_analysis:0,native_render:0,native_put:0};
@@ -141,7 +141,7 @@ const server=createServer(async(request,response)=>{
   if(path==='/__ogp'){const found=[...fixture.assets.values()].find(raw=>sha256Hex(raw)===url.searchParams.get('sha'));if(!found)throw Error('fixture_asset_missing');response.setHeader('Content-Type','image/png');response.end(Buffer.from(found));return;}
   if(path==='/__fixture'){
    const c=bytes.length?JSON.parse(bytes.toString()):{};
-   if(c.reset){fixture=harness("lunch",!!c.pending_grant);await fixture.ready();wrap();for(const k of Object.keys(httpCounts))delete httpCounts[k];}
+   if(c.reset){fixture=harness("lunch",!!c.pending_grant,!!c.late);await fixture.ready();wrap();for(const k of Object.keys(httpCounts))delete httpCounts[k];}
    if(c.grant_packet)await fixture.issuePacket(c.grant_packet.input,c.grant_packet.approval,c.grant_packet.evidence);
    if(c.pause_saved)pauseSaved=true;
    if(c.advance_ms)fixture.advance(c.advance_ms);

@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 import re
+from datetime import timedelta
 from pathlib import Path
 from .scoped_rescue_contract import VERSION, SCHEMA_SHA, ScopedRescueClient, ScopedRescueContract, target_scope
 
@@ -25,6 +26,14 @@ def acceptance(settings, commit):
             'target_slot':slot,'case_uuid':settings['case_uuid'],'agent_commit':commit,'body_commit':settings['body_commit'],
             'schema_sha256':SCHEMA_SHA,'verdict':'approved' if role.endswith('_approval') else 'Go'}
         if any(document.get(k)!=v for k,v in fixed.items()): raise ValueError('scoped_rescue_acceptance_scope_changed')
+        if role=='execution_approval' and document.get('preparation_window')!=settings.get('preparation_window'):
+            raise ValueError('scoped_rescue_preparation_approval_changed')
+    if settings.get('preparation_window') is not None:
+        from .scoped_preparation import validate
+        from .replacement_client import timestamp
+        # 実時刻による期限検査は各checkpointで行い、ここでは範囲と承認原本を照合する。
+        window=settings['preparation_window']
+        validate(window,target,slot,settings['case_uuid'],timestamp(window['not_after'])-timedelta(seconds=1))
     return target,slot
 
 
@@ -69,5 +78,6 @@ def build_flow(store, directory, draft, saved, commit, ai, drive, meal, clock, s
     normal = Contract(clock)
     reader = ReplacementReadClient(meal.base,meal.token,decoder=normal.decode,clock=clock)
     flow=ScopedRescueFlow(store,client,reader,policy,inventory,ports,clock,target,slot,settings['case_uuid'])
+    flow.preparation_window=settings.get('preparation_window')
     flow.acceptance_check=check_acceptance
     return flow
