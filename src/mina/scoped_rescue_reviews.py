@@ -10,13 +10,21 @@ from .scoped_rescue_contract import ScopedRescueContract
 from .scoped_rescue_storage import execution_seal,verify_execution_seal
 
 
-def review_other_meals(flow,meal,ai,capture,draft,saved,host,anchors,review_policy_version,not_after,owner,epoch):
+def review_other_meals(flow,meal,ai,capture,draft,saved,host,anchors,review_policy_version,not_after,owner,epoch,*,_round=0,_claim=None,_materials=None):
     """既存画像を点検するだけ。正常M1の再登録・訂正・生成は行わない。"""
     from .domain import JST
     from .m1_contract import validate_state
+    from .scoped_review_history import call_key
+    if _round not in (0,1):raise ValueError('scoped_rescue_refresh_round_invalid')
+    if _round:
+        from .scoped_review_refresh import active_claim
+        active_claim(flow,_claim)
+    elif flow.journal.rows('events',"AND kind='pregrant_refresh_claim'"):
+        raise ValueError('scoped_rescue_refresh_selected')
     end=timestamp(not_after)
     def guard():
         flow.enabled();flow.acceptance_check()
+        if _round:active_claim(flow,_claim)
         flow.schedule_gate(not_after)
         today=flow.clock().astimezone(JST).date()
         if flow.target not in (today.isoformat(),(today+timedelta(days=1)).isoformat()) or flow.clock()+timedelta(seconds=60)>end:
@@ -29,7 +37,7 @@ def review_other_meals(flow,meal,ai,capture,draft,saved,host,anchors,review_poli
             elif len(seals)!=1:raise ValueError('scoped_rescue_origin_changed')
             else:verify_execution_seal(db,flow.target,json.loads(seals[0]['document']),flow.journal.scope[3])
     def call(slot,kind,inputs,operation):
-        guard();key=flow.journal.scope[3]+':pregrant:'+slot+':'+kind;sha=digest(inputs)
+        guard();key=call_key(flow.journal.scope[3],slot,kind,_round);sha=digest(inputs)
         with flow.store.transaction() as db:
             rows=flow.journal.rows('calls','AND call_key=?',(key,),db)
             if rows:
@@ -62,13 +70,12 @@ def review_other_meals(flow,meal,ai,capture,draft,saved,host,anchors,review_poli
                 or expected['stored_sha256']!=r['stored_image_sha256'] or expected['analysis_digest']!=m['analysis_digest']
                 or m['expected']['target_result_version']!=r['result_version'] or m['analysis']['quality']['status']!='pass' or r['quality']['status']!='pass'):
             raise ValueError('scoped_rescue_other_meals_changed')
-        path=Path(saved['images'][slot]['path'])
-        if path.is_symlink():raise ValueError('scoped_rescue_origin_file_changed')
-        raw=path.read_bytes()
-        if hashlib.sha256(raw).hexdigest()!=r['image_sha256']:raise ValueError('scoped_rescue_origin_file_changed')
-        guard();snapshot=capture(r['share']['url'],host);guard();verify_image_reference(snapshot,r['ogp'],r['share']['url'],host)
-        inputs={'anchor':expected,'m1_result':r,'descriptor':m['analysis'],'original_sha256':hashlib.sha256(raw).hexdigest(),
-            'ogp_snapshot_digest':snapshot['digest'],'review_policy_version':review_policy_version}
+        if _round:
+            raw,snapshot,inputs=_materials[slot]
+            if (inputs['anchor']!=expected or inputs['m1_result']!=r or inputs['descriptor']!=m['analysis']
+                    or inputs['review_policy_version']!=review_policy_version):raise ValueError('scoped_rescue_refresh_source_changed')
+        else:
+            raw,snapshot,inputs=material(meal,capture,draft,saved,host,m,r,expected,review_policy_version)
         food,food_at=call(slot,'food',inputs,lambda:ai.review_meal(raw,draft['meals'][slot],{'result':r},snapshot['meta']))
         ogp,ogp_at=call(slot,'ogp',inputs,lambda:ai.review_ogp([snapshot['review_image'],raw],r,snapshot['meta']))
         if food!={'status':'publishable','reason_codes':[]} or ogp!={'status':'publishable','reason_codes':[]}:
@@ -76,26 +83,38 @@ def review_other_meals(flow,meal,ai,capture,draft,saved,host,anchors,review_poli
         review={**expected,'reviewer_role':'independent_reviewer','verdict':'pass','quality_status':'pass',
                 'review_policy_version':review_policy_version,'reviewed_at':min(food_at,ogp_at)}
         ScopedRescueContract(flow.clock).validate('OtherMealReview',review)
-        receipt={'formal':review,'inputs':inputs,'food_call_key':flow.journal.scope[3]+':pregrant:'+slot+':food',
-            'ogp_call_key':flow.journal.scope[3]+':pregrant:'+slot+':ogp','method':'original-image-and-saved-ogp-v1'}
-        previous=flow.journal.rows('events',"AND kind='other_meal_review' AND reference=?",(slot,))
+        receipt={'formal':review,'inputs':inputs,'food_call_key':call_key(flow.journal.scope[3],slot,'food',_round),
+            'ogp_call_key':call_key(flow.journal.scope[3],slot,'ogp',_round),'method':'original-image-and-saved-ogp-v1'}
+        kind='other_meal_review_refresh' if _round else 'other_meal_review';reference=f'1:{slot}' if _round else slot
+        if _round:receipt.update(review_round=1,refresh_claim_digest=_claim)
+        previous=flow.journal.rows('events',"AND kind=? AND reference=?",(kind,reference))
         if previous and any(json.loads(e['document'])!=receipt for e in previous):raise ValueError('scoped_rescue_review_immutable')
-        if not previous:flow.journal.event('other_meal_review',slot,receipt)
+        if not previous:flow.journal.event(kind,reference,receipt)
         reviews.append(review)
     guard()
     if validate_state(meal.day_state(flow.target),flow.target,flow.clock())!=pre['state_version']:raise ValueError('scoped_rescue_source_changed')
     return reviews
 
 
+def material(meal,capture,draft,saved,host,m,r,expected,review_policy_version):
+    """原画像と現共有カードを読み、点検の実入力を固定する。"""
+    from .ogp import verify_image_reference
+    path=Path(saved['images'][expected['target_slot']]['path'])
+    if path.is_symlink():raise ValueError('scoped_rescue_origin_file_changed')
+    raw=path.read_bytes()
+    if hashlib.sha256(raw).hexdigest()!=r['image_sha256']:raise ValueError('scoped_rescue_origin_file_changed')
+    snapshot=capture(r['share']['url'],host);verify_image_reference(snapshot,r['ogp'],r['share']['url'],host)
+    inputs={'anchor':expected,'m1_result':r,'descriptor':m['analysis'],'original_sha256':hashlib.sha256(raw).hexdigest(),
+            'ogp_snapshot_digest':snapshot['digest'],'review_policy_version':review_policy_version}
+    return raw,snapshot,inputs
+
+
 def verify_receipts(flow,basis):
-    for review in basis['other_meals_reviews']:
-        receipts=flow.journal.rows('events',"AND kind='other_meal_review' AND reference=?",(review['target_slot'],))
-        if len(receipts)!=1:raise ValueError('scoped_rescue_review_origin_missing')
-        receipt=json.loads(receipts[0]['document'])
-        if receipt['formal']!=review or receipt['inputs']['review_policy_version']!=basis['review_policy_version']:
-            raise ValueError('scoped_rescue_other_meals_changed')
-        for kind in ('food','ogp'):
-            rows=flow.journal.rows('calls','AND call_key=?',(receipt[kind+'_call_key'],))
-            if (len(rows)!=1 or rows[0]['state']!='complete' or rows[0]['input_digest']!=digest(receipt['inputs'])
-                    or json.loads(rows[0]['value'])!={'status':'publishable','reason_codes':[]}):
-                raise ValueError('scoped_rescue_review_origin_missing')
+    from .scoped_review_history import complete_history
+    with flow.store.transaction() as db:history=complete_history(db,flow.journal.scope)
+    if history['claims']:
+        from .scoped_review_refresh import active_claim
+        active_claim(flow,digest(history['claims'][0]))
+    reviews=sorted(basis['other_meals_reviews'],key=lambda r:r['target_slot'])
+    if reviews!=[r['formal'] for r in history['selected']] or any(r['inputs']['review_policy_version']!=basis['review_policy_version'] for r in history['selected']):
+        raise ValueError('scoped_rescue_other_meals_changed')

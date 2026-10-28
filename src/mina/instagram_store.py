@@ -121,6 +121,8 @@ class InstagramStore:
             from .instagram_recovery import publication_window
             _, until = publication_window(self, row, c)
             timing = f'【復旧投稿】承認後に投稿します。受付期限 {until.astimezone(JST).isoformat()}'
+        from .scoped_preparation import KEY,approval_notice
+        if KEY in c.source:timing=f'提案時刻 JST {c.scheduled_at.astimezone(JST).isoformat()}'
         payload = {'content': f'【Instagram／{types}】{c.target_date} {c.slot}\n'
                               f'{timing}\n{c.caption}',
                    'embeds': [{'image': {'url': a['url']}} for a in c.assets],
@@ -128,6 +130,7 @@ class InstagramStore:
                    'components': [{'type': 1, 'components': [
                        {'type': 2, 'style': style, 'label': label, 'custom_id': 'minaig:' + action + ':' + token}
                        for action, label, style in (('approve', 'Instagramを承認', 3), ('reject', '差戻し', 2), ('skip', '見送り', 4))]}]}
+        approval_notice(payload,c.source)
         with self.transaction() as db:
             actual = db.execute('SELECT * FROM instagram_candidates WHERE target_date=? AND slot=?',
                                 (c.target_date, c.slot)).fetchone()

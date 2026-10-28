@@ -130,9 +130,11 @@ class RuntimeSchemaTests(unittest.TestCase):
         with tarfile.open(fileobj=buffer,mode='w') as archive:
             from src.mina.rescue_contract import SCHEMA_SHA
             from src.mina.scoped_rescue_contract import SCHEMA_SHA as V3_SHA
+            from src.mina.scoped_coordination import SCHEMA_SHA as HANDSHAKE_SHA
             for entry in (evidence['runtime_schema'],*evidence['frozen_history'].values(),
                           {'path':'src/mina/contracts/rescue_v1/mina-rescue-v1.schema.json','sha256':SCHEMA_SHA},
-                          {'path':'src/mina/contracts/rescue_v3/mina-rescue-v3.schema.json','sha256':V3_SHA}):
+                          {'path':'src/mina/contracts/rescue_v3/mina-rescue-v3.schema.json','sha256':V3_SHA},
+                          {'path':'src/mina/contracts/management_handshake_v1/envelope.schema.json','sha256':HANDSHAKE_SHA}):
                 name=entry['path']
                 if name==missing:continue
                 raw=(Path(__file__).resolve().parents[2]/name).read_bytes()
@@ -150,6 +152,10 @@ class RuntimeSchemaTests(unittest.TestCase):
                 expected,raw=self.archive(changes=changed,missing=missing)
                 with tarfile.open(fileobj=raw) as archive,self.assertRaises(ValueError):verify_archive_contract(archive,expected)
         path='src/mina/contracts/rescue_v3/mina-rescue-v3.schema.json'
+        for changed,missing in (({path:b'changed'},None),({},path)):
+            expected,raw=self.archive(changes=changed,missing=missing)
+            with tarfile.open(fileobj=raw) as archive,self.assertRaises(ValueError):verify_archive_contract(archive,expected)
+        path='src/mina/contracts/management_handshake_v1/envelope.schema.json'
         for changed,missing in (({path:b'changed'},None),({},path)):
             expected,raw=self.archive(changes=changed,missing=missing)
             with tarfile.open(fileobj=raw) as archive,self.assertRaises(ValueError):verify_archive_contract(archive,expected)

@@ -108,16 +108,11 @@ def capture(store, precondition, owner, epoch, now, target, slot, case_uuid=None
     verified_pregrant=set();pregrant_calls=[]
     if case_uuid:
         with store.transaction() as db:
-            receipts=[json.loads(r['document']) for r in db.execute("SELECT document FROM scoped_rescue_events WHERE contract='mina-rescue-v3' AND target_date=? AND slot=? AND case_uuid=? AND kind='other_meal_review'",(target,slot,case_uuid))]
-            for receipt in receipts:
-                for kind in ('food','ogp'):
-                    key=receipt[kind+'_call_key']
-                    row=db.execute("SELECT * FROM scoped_rescue_calls WHERE contract='mina-rescue-v3' AND target_date=? AND slot=? AND case_uuid=? AND call_key=?",(target,slot,case_uuid,key)).fetchone()
-                    if (not row or row['state']!='complete' or row['kind']!='review' or row['input_digest']!=digest(receipt['inputs'])
-                            or json.loads(row['value'])!={'status':'publishable','reason_codes':[]}):raise ValueError('rescue_cost_or_call_unresolved')
-                    verified_pregrant.add(key);record=dict(row);record['value']={'sha256':hashlib.sha256(record['value']).hexdigest(),'byte_length':len(record['value'])};pregrant_calls.append(record)
-            actual_keys={r['call_key'] for r in db.execute("SELECT call_key FROM scoped_rescue_calls WHERE contract='mina-rescue-v3' AND target_date=? AND slot=? AND case_uuid=? AND call_key LIKE ?",(target,slot,case_uuid,case_uuid+':pregrant:%'))}
-            if actual_keys!=verified_pregrant:raise ValueError('rescue_cost_or_call_unresolved')
+            from .scoped_review_history import complete_history
+            history=complete_history(db,('mina-rescue-v3',target,slot,case_uuid))
+            pregrant_calls=history['calls'];verified_pregrant={r['call_key'] for r in pregrant_calls}
+            if history['claims']:
+                ledgers['scoped_pregrant_refresh_history']={'claims':history['claims'],'receipts':history['receipts'],'selected_round':history['round']}
     if not ordinals and (ledgers.get('meal_replacement_requests') or ledgers.get('replacement_external_calls')
             or any(not row['kind'].startswith('collection_') and row['call_key'] not in verified_pregrant for row in costs)):
         raise ValueError('rescue_orphan_generation')

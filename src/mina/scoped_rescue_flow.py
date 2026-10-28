@@ -21,6 +21,11 @@ class ScopedRescueFlow:
         self.journal = ScopedRescueJournal(store,clock,target,slot,case_uuid)
         self.acceptance_check=lambda:None
         self.preparation_window=None
+        self.pregrant_refresh_approval=None
+        self.execution_approval_sha256=None
+        self.integration=None
+        self.management_helpers=None
+        self.planned_prepare_uuid=None
         from .replacement_ports import PreparationPorts
         if isinstance(ports,PreparationPorts):
             from .scoped_rescue_rpc import GuardedAI,guarded_drive
@@ -157,6 +162,10 @@ class ScopedRescueFlow:
     def review_other_meals(self,*args,**kwargs):
         from .scoped_rescue_reviews import review_other_meals
         return review_other_meals(self,*args,**kwargs)
+
+    def refresh_other_meals(self,*args,**kwargs):
+        from .scoped_review_refresh import refresh_other_meals
+        return refresh_other_meals(self,*args,**kwargs)
 
     def operator_bundle(self):
         """承認原本と実点検receiptを渡すだけ。管理CLIは呼び出さない。"""
@@ -493,5 +502,5 @@ def _trace(method):
     return invoke
 
 
-for _name in ('stage_issue','operator_bundle','review_other_meals','prepare_candidate','decide','reconcile','resume','discard_reviewed','finish'):
+for _name in ('stage_issue','operator_bundle','review_other_meals','refresh_other_meals','prepare_candidate','decide','reconcile','resume','discard_reviewed','finish'):
     setattr(ScopedRescueFlow,_name,_trace(getattr(ScopedRescueFlow,_name)))

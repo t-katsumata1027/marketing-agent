@@ -1,5 +1,11 @@
 # みな運用の実装・サブPC配置状況
 
+## 2026年10月28日19時停止後・本体配備成功、点検鮮度切れのAgent局所補修
+
+本人①②承認後、本体e0e0bb391609d7483e6a74998376e9e051a144d3/正規release40658798812は成功・救済構成ON。Agent実点検4件pass後、最初の完了からstageまで137.083秒で120秒条件を超え、権限発行前に停止した。19時枠は失効。case/P・旧原本/費用/hold保持、権限発行/PDC/食事変更/候補/送付/SNSは0。実点検4callを費用0へ戻さない。稼働Agent1c5224b6・救済OFFのまま。
+
+同case内の追加一組4点検claim、全8費用/receipt保持、資格分離file協調、元case照会復旧、準備専用Discord表示/unknown再送拒否をローカル実装。対象46件、後続承認/協調34件、実UID7境界、実e0本体HTTPの一連とDiscord不明/期限切れ境界に成功。非実装Codexの局所Go後、下流2指摘を補修し固定head再レビュー待ち。管理側の正式CLI/FSproxy接続・依存閉包・両側全体レビューは未完了。本番追加配置/新時間/追加実点検の承認を先取りしない。詳細MINA_SCOPED_RESTART_1900_20261028.md、MINA_SCOPED_REFRESH_HANDSHAKE_20261028.mdとrefresh-handshake証跡。
+
 ## 2026年10月28日17時台・QA修正の正式CI/回収/Preview成功、次の本番・新窓承認待ち
 
 Log-Eats担当のDraft PR158/head64590d84/tree e952c120は公式Product QA40648871128とSEO成功。Core72成功/0失敗/0flaky/予定skip38、回収users0/mapping0・cleanup_verified=true、専用Preview3GET/書込0を公式artifact実取得でAgent側も確認。局所19件/型/必須QA/M1回帰/独立コードGo、Agent実HTTP4経路成功・本番Mina/Schema不変。g02原本4件SHA一致、正規反映/ON/失敗時OFF復旧案と新19時/初回有効化15分最短の準備専用案は独立計画Go。旧QA users2/mapping0は未回収保持。Agent1c5224b6/本番救済OFF、旧15時失効・新窓未承認、本番反映/権限/有料生成/食事/Discord候補/SNS操作0。今日の復旧は未完了。次①本体固定tree反映+ON+切戻し、②別名原本/operator検証後の新窓昼食救済→X4IG4/Discordを具体的承認案として提示する。詳細MINA_QA_FIX_AGENT_ACCEPTANCE_20261028.mdと計画レビュー受領記録。

@@ -14,13 +14,15 @@ from src.mina.readiness import release_commit
 from src.mina.replacement_contract import load_contract_resources
 from src.mina.rescue_contract import resources as rescue_resources, SCHEMA_SHA as RESCUE_SCHEMA_SHA
 from src.mina.scoped_rescue_contract import ScopedRescueContract,SCHEMA_SHA as SCOPED_SCHEMA_SHA
+from src.mina.scoped_coordination import SCHEMA_SHA as HANDSHAKE_SCHEMA_SHA
 
 
 def verify_archive_contract(archive, evidence):
     """配布tarにも正式契約と凍結履歴が同じ実バイトで入っていることを確認する。"""
     for entry in (evidence['runtime_schema'],*evidence['frozen_history'].values(),
                   {'path':'src/mina/contracts/rescue_v1/mina-rescue-v1.schema.json','sha256':RESCUE_SCHEMA_SHA},
-                  {'path':'src/mina/contracts/rescue_v3/mina-rescue-v3.schema.json','sha256':SCOPED_SCHEMA_SHA}):
+                  {'path':'src/mina/contracts/rescue_v3/mina-rescue-v3.schema.json','sha256':SCOPED_SCHEMA_SHA},
+                  {'path':'src/mina/contracts/management_handshake_v1/envelope.schema.json','sha256':HANDSHAKE_SCHEMA_SHA}):
         try:
             member=archive.getmember(entry['path'])
             if not member.isfile():

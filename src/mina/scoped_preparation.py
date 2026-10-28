@@ -6,6 +6,14 @@ from .replacement_client import timestamp
 
 
 KEY = 'scoped_preparation_only'
+APPROVAL_PREFIX='【準備専用・公開停止中】時刻は案です。内容の承認だけではSNS予約・公開されません。\n'
+
+
+def approval_notice(payload,source):
+    """daemonがclaimする前のカード生成時点で、準備専用の表示を固定する。"""
+    if KEY in (source or {}) and not payload.get('content','').startswith(APPROVAL_PREFIX):
+        payload['content']=APPROVAL_PREFIX+payload.get('content','')
+    return payload
 
 
 def validate(window, target, slot, case, now):

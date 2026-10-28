@@ -51,4 +51,26 @@ class LatePreparationTests(unittest.TestCase):
             changed=copy.deepcopy(settings);changed.pop('execution_approval')
             with self.assertRaises(ValueError):acceptance(changed,'a'*40)
 
+    def test_refresh_plan_helpers_and_context_are_bound_to_actual_execution_bytes(self):
+        planned=str(uuid.uuid4())
+        refresh={'version':1,'approved':True,'target_date':'2026-10-28','target_slot':'lunch','case_uuid':self.case,
+            'max_rounds':1,'max_calls':4,'planned_prepare_uuid':planned,'parent_history_digest':'c'*64,'source_digest':'d'*64,'not_after':self.window['not_after']}
+        settings={'target_date':'2026-10-28','target_slot':'lunch','case_uuid':self.case,'contract_version':'mina-rescue-v3',
+            'schema_sha256':SCHEMA_SHA,'agent_commit':'a'*40,'body_commit':'b'*40,'preparation_window':self.window,
+            'planned_prepare_uuid':planned,'pregrant_refresh':refresh,'management_helpers':{k:'e'*64 for k in ('agent','management','fs_proxy','grant_cli')},
+            'context_reference':{'path':'synthetic-context.json','sha256':'f'*64}}
+        with tempfile.TemporaryDirectory() as directory:
+            for role in ('provider_acceptance','agent_acceptance','implementation_review','deployment_approval','execution_approval'):
+                document={'role':role,'contract_version':'mina-rescue-v3','scope':'operator_scoped_meal_replacement','target_date':'2026-10-28',
+                    'target_slot':'lunch','case_uuid':self.case,'agent_commit':'a'*40,'body_commit':'b'*40,'schema_sha256':SCHEMA_SHA,
+                    'verdict':'approved' if role.endswith('_approval') else 'Go'}
+                if role=='execution_approval':document.update({k:settings[k] for k in ('preparation_window','planned_prepare_uuid','pregrant_refresh','management_helpers','context_reference')})
+                path=Path(directory)/role;path.write_text(json.dumps(document),encoding='utf-8')
+                settings[role]={'path':str(path),'sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
+            self.assertEqual(acceptance(settings,'a'*40),('2026-10-28','lunch'))
+            for field,value in (('planned_prepare_uuid',str(uuid.uuid4())),('management_helpers',{'agent':'0'*64}),
+                                ('context_reference',{'path':'changed','sha256':'0'*64})):
+                changed=copy.deepcopy(settings);changed[field]=value
+                with self.assertRaises(ValueError):acceptance(changed,'a'*40)
+
 if __name__=='__main__':unittest.main()

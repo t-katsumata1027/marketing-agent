@@ -1,0 +1,266 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mina-management-handshake-v1/envelope.schema.json",
+  "title": "管理資格分離の有界協調envelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol",
+    "phase",
+    "scope",
+    "payload",
+    "created_at",
+    "valid_until"
+  ],
+  "properties": {
+    "protocol": {
+      "const": "mina-management-handshake-v1"
+    },
+    "phase": {
+      "enum": [
+        "initial-snapshot-ready",
+        "reviews-ready",
+        "snapshot-ready",
+        "bundle-ready",
+        "grant-result",
+        "stopped"
+      ]
+    },
+    "scope": {
+      "$ref": "#/$defs/Scope"
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "sha256"
+      ],
+      "properties": {
+        "name": {
+          "enum": [
+            "initial-snapshot.json",
+            "reviews.json",
+            "snapshot.json",
+            "bundle.json",
+            "result.json",
+            "stopped.json"
+          ]
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "valid_until": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "Scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_uuid",
+        "planned_prepare_uuid",
+        "target_date",
+        "target_slot",
+        "round",
+        "parent_history_digest",
+        "human_approval_sha256",
+        "agent_commit",
+        "body_commit",
+        "schema_sha256",
+        "review_policy_version",
+        "policy_digest",
+        "not_after"
+      ],
+      "properties": {
+        "case_uuid": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+        },
+        "planned_prepare_uuid": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+        },
+        "target_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "target_slot": {
+          "enum": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ]
+        },
+        "round": {
+          "const": 1,
+          "type": "integer"
+        },
+        "parent_history_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "human_approval_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "agent_commit": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "body_commit": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "schema_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "review_policy_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "policy_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "not_after": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "initial-snapshot-ready"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "properties": {
+              "name": {
+                "const": "initial-snapshot.json"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "reviews-ready"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "properties": {
+              "name": {
+                "const": "reviews.json"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "snapshot-ready"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "properties": {
+              "name": {
+                "const": "snapshot.json"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "bundle-ready"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "properties": {
+              "name": {
+                "const": "bundle.json"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "grant-result"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "properties": {
+              "name": {
+                "const": "result.json"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "stopped"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "properties": {
+              "name": {
+                "const": "stopped.json"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

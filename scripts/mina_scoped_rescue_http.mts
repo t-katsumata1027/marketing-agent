@@ -91,7 +91,7 @@ function harness(targetSlot:Slot="lunch",pendingGrant=false,late=false){
   if(issued)throw Error('fixture_grant_reissue_forbidden');
   const previous=rescue;rescue={...rescue,basis:input.basis,case_uuid:input.case_uuid,planned_prepare_uuid:input.planned_prepare_uuid,attempt_ordinal:input.attempt_ordinal};
   const grantTx={m1,dbNow:async()=>at(),generations:async(d:string,id:number)=>normal.read(7,r=>r.generations(d,id)),case:async()=>null,originalContext:async()=>null,
-   issueCase:async()=>{calls.grant++;issued=true;rescue.authorization_digest=digest({contract_version:version,case_uuid:input.case_uuid,user_id:7,basis:input.basis});return structuredClone(rescue);}};
+   issueCase:async()=>{calls.grant++;issued=true;rescue.first_activated_at=at();rescue.created_at=at();rescue.hard_deadline_at=new Date(Math.min(now+900000,Date.parse(input.basis.not_after))).toISOString();rescue.authorization_digest=digest({contract_version:version,case_uuid:input.case_uuid,user_id:7,basis:input.basis});return structuredClone(rescue);}};
   try{return await createRescueOperator(version).issueRescueGrant({query:async()=>({rows:[],rowCount:0}),release(){}},grantTx,7,input,
     {operatorApprovalArtifact:approval,agentEvidence,operatorRuntime:{body_commit:agentEvidence.integration.body_commit,schema_sha256:agentEvidence.integration.schema_sha256}},policy);
   }catch(error){rescue=previous;throw error;}
@@ -123,7 +123,23 @@ function harness(targetSlot:Slot="lunch",pendingGrant=false,late=false){
  const candidate=()=>structuredClone(normal.candidates.get(rescue.planned_prepare_uuid)!.document) as RescueCandidate;
  const open=async()=>{await normal.transaction(7,async tx=>{for(let n=0;n<21;n++)await tx.guard!.admit({uuid:randomUUID(),inputHash:"f".repeat(64),operation:"candidate_prepare"});});};
  const resume=(originalUuid:string)=>{const r=normal.requests.get(originalUuid)!,receipt=normal.guardData.receipts.get(originalUuid)!.document;return {contract_version:version,request_uuid:randomUUID(),original_request_uuid:originalUuid,expected_stage_version:receipt.stageVersion,expected_input_sha256:r.input.input_image_sha256,policy_version:policy.version,budget_policy_digest:policy.budget_policy_digest,publication_hold:hold(),rescue:ref()};};
- return {assets,m1Deps,nativeRecords,issuePacket,targetSlot,normal,m1,calls,hooks,store,ready,ref,hold,prepareBody,prepare,candidate,open,resume,case:()=>structuredClone(rescue),setCase:(changes:Partial<RescueCase>)=>{rescue={...rescue,...changes};},advance:(ms:number)=>{now+=ms;},at,setDeps:(v:Partial<RescueDeps>)=>setRescueDepsForTests({...deps,...v})};
+ const nativeMetadata=async()=>{
+  const snapshot=await m1.readDaySnapshot(7,date,50);
+  const anchors=await Promise.all(snapshot.meals.map(async meal=>{
+   const generations=await normal.read(7,r=>r.generations(date,meal.id)),analysis=canonicalAnalysis(meal),quality=analysis.quality;
+   return {target_slot:meal.meal_type,target_result_version:computeMealResultVersion(meal,snapshot.settings),original_sha256:mealImageHashes(meal).image_sha256,
+    stored_sha256:mealImageHashes(meal).stored_image_sha256,analysis_digest:analysisDigest(analysis),ogp_input_digest:mealOgRenderDigestFromRow(meal,snapshot.settings),
+    calories:analysis.summary.totalCalories,api_quality:{status:quality.status,atwater_calories:quality.atwater_calories,calorie_difference:quality.calorie_difference,
+     calorie_difference_ratio:quality.calorie_difference_ratio,warning_codes:quality.warnings.map(w=>w.code)},
+    account_generation:generations.account,day_generation:generations.day,meal_generation:generations.meal};}));
+  const state=await result(await m1Handlers.handleMinaStateGet(new NextRequest(base+'/api/internal/mina/state?date='+date,{headers:{Authorization:'Bearer '+token}}),m1Deps));
+  const value={artifact_spec:'mina-native-anchors-artifact-v1',complete:true,metadata_only:true,independent_review_provided:false,image_bytes_verified:false,
+   source_body_commit:'e0e0bb391609d7483e6a74998376e9e051a144d3',schema_sha256:'baf76695c55298cd97fe8b24fc488c3c164585c11ae735986da380c4e52397ab',
+   date,target_slot:targetSlot,read_started_at:at(),checked_at:at(),valid_until:new Date(now+120000).toISOString(),state_version:state.body.state_version,
+   target_native:anchors.find(a=>a.target_slot===targetSlot),other_meals_native:anchors.filter(a=>a.target_slot!==targetSlot)};
+  return {...value,artifact_sha256:digest(value)};
+ };
+ return {assets,m1Deps,nativeRecords,issuePacket,nativeMetadata,targetSlot,normal,m1,calls,hooks,store,ready,ref,hold,prepareBody,prepare,candidate,open,resume,case:()=>structuredClone(rescue),setCase:(changes:Partial<RescueCase>)=>{rescue={...rescue,...changes};},advance:(ms:number)=>{now+=ms;},at,setDeps:(v:Partial<RescueDeps>)=>setRescueDepsForTests({...deps,...v})};
 }
 let networkAttempts=0;globalThis.fetch=(()=>{networkAttempts++;throw Error('external_network_forbidden');}) as typeof fetch;
 net.Socket.prototype.connect=function(){networkAttempts++;throw Error('external_network_forbidden');} as any;
@@ -143,6 +159,7 @@ const server=createServer(async(request,response)=>{
    const c=bytes.length?JSON.parse(bytes.toString()):{};
    if(c.reset){fixture=harness("lunch",!!c.pending_grant,!!c.late);await fixture.ready();wrap();for(const k of Object.keys(httpCounts))delete httpCounts[k];}
    if(c.grant_packet)await fixture.issuePacket(c.grant_packet.input,c.grant_packet.approval,c.grant_packet.evidence);
+   if(c.native_metadata){response.setHeader('Content-Type','application/json');response.end(JSON.stringify(await fixture.nativeMetadata()));return;}
    if(c.pause_saved)pauseSaved=true;
    if(c.advance_ms)fixture.advance(c.advance_ms);
    if(c.case)fixture.setCase(c.case);
@@ -176,6 +193,6 @@ const server=createServer(async(request,response)=>{
   const raw=Buffer.from(await out.arrayBuffer());
   if(lose&&method==='POST'&&path.endsWith(lose)){lose=null;response.destroy();return;}
   response.writeHead(out.status,Object.fromEntries(out.headers.entries()));response.end(raw);
- }catch(error){process.stderr.write(String(error)+'\n');response.writeHead(500);response.end('fixture_failed');}
+ }catch(error){process.stderr.write(String(error)+(error instanceof ReplacementRejectedError?' reason='+error.reason:'')+'\n');response.writeHead(500);response.end('fixture_failed');}
 });
 server.listen(0,'127.0.0.1',()=>process.stdout.write(JSON.stringify({port:(server.address() as any).port,version:'agent-scoped-rescue-http-v3',harness_source_sha256:process.argv[3]})+'\n'));

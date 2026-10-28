@@ -1,0 +1,21 @@
+{
+  "source_sha256": "b151ae3cec727ada589c81e163b0e26fc1e66dbc9adfdf69e0ad63b2a200907e",
+  "function_sha256": "45b66c0ca5f896e193bc886091b287860b4248b2b88b3d4b9d2f040a69050cca",
+  "exit_code": 0,
+  "result": {
+    "status": "pass",
+    "checks": [
+      "root_owned_read",
+      "group_writable_file_rejected",
+      "nonroot_owner_rejected",
+      "symlink_rejected",
+      "replaceable_parent_rejected",
+      "outside_root_rejected",
+      "agent_cannot_replace_authority"
+    ],
+    "uid": 995,
+    "business_connections": 0,
+    "paid_calls": 0
+  },
+  "stderr": ""
+}

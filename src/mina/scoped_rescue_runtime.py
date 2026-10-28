@@ -28,6 +28,16 @@ def acceptance(settings, commit):
         if any(document.get(k)!=v for k,v in fixed.items()): raise ValueError('scoped_rescue_acceptance_scope_changed')
         if role=='execution_approval' and document.get('preparation_window')!=settings.get('preparation_window'):
             raise ValueError('scoped_rescue_preparation_approval_changed')
+        if role=='execution_approval' and document.get('pregrant_refresh')!=settings.get('pregrant_refresh'):
+            raise ValueError('scoped_rescue_refresh_not_approved')
+        if role=='execution_approval' and document.get('management_helpers')!=settings.get('management_helpers'):
+            raise ValueError('scoped_coordination_helpers_unapproved')
+        if role=='execution_approval' and settings.get('pregrant_refresh') is not None:
+            if (document.get('planned_prepare_uuid')!=settings.get('planned_prepare_uuid')
+                    or settings.get('pregrant_refresh',{}).get('planned_prepare_uuid')!=settings.get('planned_prepare_uuid')):
+                raise ValueError('scoped_rescue_refresh_plan_changed')
+            if document.get('context_reference')!=settings.get('context_reference'):
+                raise ValueError('scoped_rescue_origin_file_changed')
     if settings.get('preparation_window') is not None:
         from .scoped_preparation import validate
         from .replacement_client import timestamp
@@ -79,5 +89,18 @@ def build_flow(store, directory, draft, saved, commit, ai, drive, meal, clock, s
     reader = ReplacementReadClient(meal.base,meal.token,decoder=normal.decode,clock=clock)
     flow=ScopedRescueFlow(store,client,reader,policy,inventory,ports,clock,target,slot,settings['case_uuid'])
     flow.preparation_window=settings.get('preparation_window')
-    flow.acceptance_check=check_acceptance
+    flow.pregrant_refresh_approval=settings.get('pregrant_refresh')
+    flow.execution_approval_sha256=settings['execution_approval']['sha256']
+    flow.integration={k:settings[k] for k in ('agent_commit','body_commit','schema_sha256')}
+    flow.management_helpers=settings.get('management_helpers')
+    flow.planned_prepare_uuid=settings.get('planned_prepare_uuid')
+    def check_bound_acceptance():
+        check_acceptance()
+        if (flow.pregrant_refresh_approval!=settings.get('pregrant_refresh')
+                or flow.execution_approval_sha256!=settings['execution_approval']['sha256']
+                or flow.management_helpers!=settings.get('management_helpers')
+                or flow.planned_prepare_uuid!=settings.get('planned_prepare_uuid')
+                or flow.integration!={k:settings[k] for k in ('agent_commit','body_commit','schema_sha256')}):
+            raise ValueError('scoped_rescue_refresh_acceptance_changed')
+    flow.acceptance_check=check_bound_acceptance
     return flow

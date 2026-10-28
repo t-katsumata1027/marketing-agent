@@ -168,7 +168,9 @@ class Store:
                 c = Candidate(**json.loads(row["payload"]))
                 timing = ('本人指定：本日の' + LABELS[c.slot] + 'は承認後に臨時公開（受付期限 JST '
                           + c.scheduled_at.astimezone(JST).strftime('%H:%M') + '）') if (c.approval_source or {}).get('publish_after_approval_until') else f'JST {c.scheduled_at.astimezone(JST):%H:%M}'
-                card = {"content": f"━━━━━━━━━━━━━━━━━━━━\n**{LABELS[c.slot]}｜{target_date}**\n投稿予定：{timing}\n━━━━━━━━━━━━━━━━━━━━\n\n{c.content}",
+                from .scoped_preparation import KEY,approval_notice
+                timing_label='提案時刻' if KEY in (c.approval_source or {}) else '投稿予定'
+                card = {"content": f"━━━━━━━━━━━━━━━━━━━━\n**{LABELS[c.slot]}｜{target_date}**\n{timing_label}：{timing}\n━━━━━━━━━━━━━━━━━━━━\n\n{c.content}",
                         "allowed_mentions": {"parse": []},
                         "embeds": [{"title": f"{LABELS[c.slot]}｜品質確認済みの候補", "description": c.menu,
                                     "fields": [{"name": "栄養の目安", "value": json.dumps(c.nutrition, ensure_ascii=False)},
@@ -179,6 +181,7 @@ class Store:
                 if c.approval_source and c.approval_source.get('ogp_image_url'):
                     card['embeds'][0]['image'] = {'url': c.approval_source['ogp_image_url']}
                     card['embeds'][0]['fields'].append({'name': '承認対象の版', 'value': c.digest[:16]})
+                approval_notice(card,c.approval_source)
                 db.execute("UPDATE candidates SET nonce_hash=? WHERE target_date=? AND slot=?", (hashlib.sha256(nonce.encode()).hexdigest(), target_date, row["slot"]))
                 db.execute("INSERT INTO notices(target_date,slot,revision,kind,payload,created) VALUES(?,?,?,'approval',?,?)", (target_date, row["slot"], row["revision"], json.dumps(card, ensure_ascii=False), timestamp))
                 issued.append(card)

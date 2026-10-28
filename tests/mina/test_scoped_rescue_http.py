@@ -27,7 +27,7 @@ class ScopedRescueHttpTests(unittest.TestCase):
         cls.tmp=tempfile.TemporaryDirectory();cls.addClassCleanup(cls.tmp.cleanup)
         source=Path(os.environ['MINA_SCOPED_RESCUE_PROVIDER_ROOT']);snapshot=Path(cls.tmp.name)/'provider';snapshot.mkdir()
         # 固定Git treeからだけ展開し、作業中の未commit変更を混ぜない。
-        provider_commit='f4aee73ecc9ad2c784c6196fb4d04009812037d6'
+        provider_commit='e0e0bb391609d7483e6a74998376e9e051a144d3'
         archive=subprocess.check_output(['git','-C',str(source),'archive',provider_commit,'--','src','scripts','docs/marketing','tsconfig.json','package.json','package-lock.json'])
         import tarfile
         with tarfile.open(fileobj=io.BytesIO(archive)) as bundle:
@@ -67,7 +67,13 @@ class ScopedRescueHttpTests(unittest.TestCase):
             'provider_files_sha256':cls.files,'cases':REPORT},ensure_ascii=False,indent=2),encoding='utf-8')
 
     def control(self,**value):
-        with urlopen(Request(self.base+'/__fixture',data=json.dumps(value).encode(),headers={'Content-Type':'application/json'}),timeout=10) as response:return json.load(response)
+        from urllib.error import HTTPError
+        try:
+            with urlopen(Request(self.base+'/__fixture',data=json.dumps(value).encode(),headers={'Content-Type':'application/json'}),timeout=10) as response:return json.load(response)
+        except HTTPError as error:
+            # localhost合成fixtureの固定診断だけを試験失敗へ添える。本番応答には使わない。
+            detail=Path(self.stderr.name).read_text(encoding='utf-8')
+            raise RuntimeError('isolated_fixture_failed: '+detail) from error
 
     def setUp(self):
         data=self.control(reset=True);self.now=datetime.fromisoformat(data['now'].replace('Z','+00:00'));self.clock=lambda:self.now
@@ -395,15 +401,88 @@ class ScopedRescueHttpTests(unittest.TestCase):
         costs={'history_complete':True,'unresolved_cost_count':0,'waived_approval_digest':APPROVAL,'ledgers':origin['document']['ledgers']}
         basis={**case['basis'],'source_ledger_digest':digest(ledger_proof),'cost_history_digest':digest(costs),'other_meals_reviews':reviews,
                'other_meals_expected':[{**a,'independent_review_digest':digest(next(r for r in reviews if r['target_slot']==a['target_slot']))} for a in anchors]}
-        basis.pop('operator_approval_digest');body='f4aee73ecc9ad2c784c6196fb4d04009812037d6'
+        basis.pop('operator_approval_digest');body=self.provider_commit
         approval={'action':'issue','approved':True,'case_uuid':case['case_uuid'],'planned_prepare_uuid':case['planned_prepare_uuid'],
             'basis_sha256':digest(basis),'not_after':basis['not_after'],'expected_review_policy_version':'synthetic-review-v3',
             'expected_agent_commit':'a'*40,'expected_body_commit':body,'expected_schema_sha256':SCHEMA_SHA}
         basis['operator_approval_digest']=digest(approval);issue={'contract_version':'mina-rescue-v3','case_uuid':case['case_uuid'],
             'planned_prepare_uuid':case['planned_prepare_uuid'],'attempt_ordinal':1,'basis':basis}
         proof={'source_ledger':ledger_proof,'cost_history':costs,'publication':publication,'integration':{'agent_commit':'a'*40,'body_commit':body,'schema_sha256':SCHEMA_SHA}}
-        flow.stage_issue(issue,approval,proof,owner=OWNER,epoch=1,agent_commit='a'*40,body_commit=body)
-        self.control(grant_packet=flow.operator_bundle());flow.prepare_candidate();committed=flow.decide()
+        if getattr(self,'refresh_pregrant',False):
+            from src.mina.scoped_review_history import complete_history,parent_history
+            from src.mina.scoped_review_refresh import source_digest
+            from src.mina.scoped_issue_builder import stage
+            with self.store.transaction() as db:
+                old=complete_history(db,flow.journal.scope);_,parent=parent_history(db,flow.journal.scope)
+            self.now+=timedelta(seconds=121);self.control(advance_ms=121000)
+            flow.integration=proof['integration'];flow.execution_approval_sha256='f'*64
+            flow.pregrant_refresh_approval={'version':1,'approved':True,'target_date':TARGET,'target_slot':'lunch',
+                'case_uuid':case['case_uuid'],'planned_prepare_uuid':case['planned_prepare_uuid'],'max_rounds':1,'max_calls':4,
+                'parent_history_digest':parent,'source_digest':source_digest(pre,anchors,'synthetic-review-v3',OWNER,1),
+                'not_after':case['basis']['not_after']}
+            flow.planned_prepare_uuid=case['planned_prepare_uuid']
+            flow.management_helpers={k:'c'*64 for k in ('agent','management','fs_proxy','grant_cli')}
+            context_path=root/'context.json'
+            context_path.write_bytes(canonical({'context':{'directory':str(directory),'draft':draft,'saved':saved,'host':'www.log-eats.com'}}))
+            execution={'role':'execution_approval','contract_version':'mina-rescue-v3','scope':'operator_scoped_meal_replacement',
+                'target_date':TARGET,'target_slot':'lunch','case_uuid':case['case_uuid'],**flow.integration,'verdict':'approved',
+                'planned_prepare_uuid':case['planned_prepare_uuid'],'preparation_window':flow.preparation_window,
+                'pregrant_refresh':flow.pregrant_refresh_approval,'management_helpers':flow.management_helpers,
+                'context_reference':{'path':str(context_path),'sha256':hashlib.sha256(context_path.read_bytes()).hexdigest()}}
+            execution_raw=canonical(execution);flow.execution_approval_sha256=hashlib.sha256(execution_raw).hexdigest()
+            unissued={'artifact_spec':'mina-rescue-v3-unissued-proof-v1','target_date':TARGET,'target_slot':'lunch',
+                'case_uuid':case['case_uuid'],'planned_prepare_uuid':case['planned_prepare_uuid'],'source_body_commit':body,
+                'schema_sha256':SCHEMA_SHA,'complete':True,'read_only':True,'same_case_count':0,'same_day_slot_case_count':0,
+                'planned_prepare_request_count':0,'planned_prepare_candidate_count':0,'first_activation_present':False,
+                'read_started_at':stamp(self.now),'read_finished_at':stamp(self.now),'valid_until':stamp(self.now+timedelta(seconds=120))}
+            path=root/'synthetic-unissued.json';path.write_bytes(canonical(unissued))
+            ref={'path':str(path),'sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
+            native_metadata=self.control(native_metadata=True)
+            native_path=root/'synthetic-native.json';native_path.write_bytes(canonical(native_metadata))
+            native_ref={'path':str(native_path),'sha256':hashlib.sha256(native_path.read_bytes()).hexdigest()}
+            # 管理資格とUIDは使わず、実bodyへの送信前検査・通常正本・P/Cを同じlocalhostで通す。
+            coordinated=getattr(self,'coordinate_pregrant',False)
+            if coordinated:
+                self.coordinate_actual(flow,root,meal,ai,capture,draft,saved,native_metadata,unissued,OWNER)
+                with self.store.transaction() as db:reviews=[r['formal'] for r in complete_history(db,flow.journal.scope)['selected']]
+            else:
+                with patch('src.mina.scoped_management_proofs.root_file',return_value=path.read_bytes()):
+                    reviews=flow.refresh_other_meals(meal,ai,capture,draft,saved,'www.log-eats.com',anchors,'synthetic-review-v3',
+                        case['basis']['not_after'],OWNER,1,management_reference=ref)
+            with self.store.transaction() as db:current=complete_history(db,flow.journal.scope)
+            fixture_dir=os.getenv('MINA_SCOPED_REFRESH_FIXTURE_DIR')
+            if fixture_dir:
+                from src.mina.scoped_pregrant_coordinator import scope_for
+                output=Path(fixture_dir);output.mkdir(parents=True,exist_ok=True)
+                (output/'execution_approval.json').write_bytes(execution_raw)
+                (output/'context.json').write_bytes(context_path.read_bytes())
+                (output/'scope.json').write_bytes(canonical(scope_for(flow,'synthetic-review-v3')))
+                (output/'reviews.json').write_bytes(canonical({'review_round':1,'parent_history_digest':parent,
+                    'claim_digest':digest(current['claims'][0]),'formal_reviews':reviews,'history':current}))
+                (output/'README.md').write_text('合成専用。localhost実ハンドラー・合成画像・合成AIの試験出力。本人承認や本番実行に使用しない。\n',encoding='utf-8')
+                for name,value in (('initial-native.json',native_metadata),('fresh-native.json',native_metadata),
+                        ('initial-unissued.json',unissued),('fresh-unissued.json',unissued)):
+                    (output/name).write_bytes(canonical(value))
+                claim=current['claims'][0]
+                (output/'authority.json').write_bytes(canonical({'scope':scope_for(flow,'synthetic-review-v3'),
+                    'claim':{k:claim[k] for k in ('source_digest','origin_digest','cost_history_digest','owner','epoch','management_reference')},
+                    'clock':stamp(self.now),'management_helpers':flow.management_helpers,'context_reference':execution['context_reference']}))
+            self.assertEqual(current['calls'][:4],old['calls']);self.assertEqual(current['costs'][:4],old['costs'])
+            self.assertEqual(len(current['calls']),8);self.assertEqual(self.control()['calls']['grant'],1 if coordinated else 0)
+            packet=flow.operator_bundle() if coordinated else stage(flow,reviews,anchors,{'native_reference':native_ref,'unissued_reference':ref},OWNER,1)
+            if fixture_dir:
+                for role in ('input','approval','evidence'):(output/('grant-'+role+'.json')).write_bytes(canonical(packet[role]))
+        else:
+            flow.stage_issue(issue,approval,proof,owner=OWNER,epoch=1,agent_commit='a'*40,body_commit=body)
+        if not getattr(self,'coordinate_pregrant',False):self.control(grant_packet=flow.operator_bundle())
+        if getattr(self,'refresh_pregrant',False) and fixture_dir:
+            with urlopen(Request(self.base+'/api/internal/mina/rescue-v3/cases/'+case['case_uuid'],headers={'Authorization':'Bearer '+meal.token})) as response:
+                result_raw=response.read();self.assertIn('no-store',response.headers['Cache-Control'])
+            flow.contract.decode('case',json.loads(result_raw));(output/'result.json').write_bytes(result_raw)
+        if getattr(self,'refresh_pregrant',False):
+            from src.mina.scoped_preparation_completion import prepare_once
+            committed=prepare_once(flow)
+        else:flow.prepare_candidate();committed=flow.decide()
         from src.mina.instagram_media import host_asset as actual_host,verify_public
         from urllib.parse import parse_qs
         class Response(io.BytesIO):headers={'Content-Type':'image/jpeg'}
@@ -429,6 +508,46 @@ class ScopedRescueHttpTests(unittest.TestCase):
         self.assertEqual(len(finished['x']),4);self.assertEqual(len(finished['instagram']),4);self.assertEqual(sum(len(c['assets']) for c in finished['instagram']),8)
         self.assertEqual(self.control()['calls']['grant'],1);self.assertEqual(self.control()['calls']['analysis'],1);self.assertEqual(self.control()['history'],1)
         self.assertTrue(finished['publication_hold']);self.assertFalse(finished['discord_sent'])
+        if getattr(self,'refresh_pregrant',False):
+            from src.mina.scoped_preparation_completion import notify_once
+            if getattr(self,'expired_notification',False):
+                from src.mina.instagram_store import InstagramStore
+                from src.mina.scoped_preparation import APPROVAL_PREFIX
+                self.store.issue_cards(TARGET,self.now);ig=InstagramStore(self.store.path)
+                for row in ig.rows(TARGET):ig.queue_approval(row)
+                with self.store.transaction() as db:
+                    for table in ('notices','instagram_notices'):
+                        cards=list(db.execute('SELECT payload FROM '+table+" WHERE target_date=? AND kind='approval'",(TARGET,)))
+                        self.assertEqual(len(cards),4)
+                        self.assertTrue(all(json.loads(r['payload'])['content'].startswith(APPROVAL_PREFIX) for r in cards))
+                    db.execute("UPDATE notices SET state='outcome_unknown' WHERE target_date=? AND slot='breakfast'",(TARGET,))
+                    db.execute("INSERT INTO notices(target_date,slot,revision,kind,payload,created) VALUES('2026-10-29','lunch',1,'approval','{}',?)",(self.now.timestamp(),))
+                self.now+=timedelta(minutes=16);self.control(advance_ms=960000)
+                discord=Mock()
+                with self.assertRaises(ValueError):notify_once(flow,finished,discord)
+                discord.send.assert_not_called()
+                with self.store.transaction() as db:
+                    for table in ('notices','instagram_notices'):
+                        self.assertEqual(db.execute('SELECT count(*) FROM '+table+" WHERE target_date=? AND state='pending' AND kind='approval'",(TARGET,)).fetchone()[0],0)
+                    self.assertEqual(db.execute("SELECT count(*) FROM notices WHERE target_date=? AND state='outcome_unknown'",(TARGET,)).fetchone()[0],1)
+                    self.assertEqual(db.execute("SELECT count(*) FROM notices WHERE target_date='2026-10-29' AND state='pending'").fetchone()[0],1)
+                return
+            if getattr(self,'notification_loss',False):
+                discord=Mock();discord.send.side_effect=RuntimeError('synthetic Discord response loss')
+                with self.assertRaises(RuntimeError):notify_once(flow,finished,discord)
+                self.assertEqual(discord.send.call_count,1)
+                with self.assertRaisesRegex(ValueError,'reconciliation_required'):notify_once(flow,finished,discord)
+                self.assertEqual(discord.send.call_count,1)
+                with self.store.transaction() as db:
+                    self.assertEqual(db.execute("SELECT count(*) FROM notices WHERE state='outcome_unknown'").fetchone()[0],1)
+                    self.assertEqual(db.execute("SELECT count(*) FROM notices WHERE state='pending'").fetchone()[0],0)
+                    self.assertEqual(db.execute("SELECT count(*) FROM instagram_notices WHERE state='pending'").fetchone()[0],0)
+                return
+            discord=Mock();sent=notify_once(flow,finished,discord)
+            self.assertEqual(sent['counts'],{'x':{'sent':4},'instagram':{'sent':4}})
+            self.assertEqual(discord.send.call_count,8)
+            notify_once(flow,finished,discord);self.assertEqual(discord.send.call_count,8)
+            with self.assertRaisesRegex(ValueError,'lookup_only'):prepare_once(flow)
         if late:
             from src.mina.instagram_runtime import InstagramRuntime
             from src.mina.instagram_domain import InstagramCandidate
@@ -496,5 +615,59 @@ class ScopedRescueHttpTests(unittest.TestCase):
     def test_late_preparation_full_chain_never_releases_or_claims_even_after_approval(self):
         self.late_preparation=True
         self.test_native_hold_to_real_operator_c_finish_eight_images_and_all_source_verifiers()
+
+    def test_explicit_refresh_keeps_old_costs_and_completes_late_real_http_chain(self):
+        self.late_preparation=True;self.refresh_pregrant=True
+        self.test_native_hold_to_real_operator_c_finish_eight_images_and_all_source_verifiers()
+
+    def test_discord_unknown_keeps_saved_and_never_resends(self):
+        self.notification_loss=True
+        self.test_explicit_refresh_keeps_old_costs_and_completes_late_real_http_chain()
+
+    def test_expired_notification_obsoletes_only_target_pending_before_send(self):
+        self.expired_notification=True
+        self.test_explicit_refresh_keeps_old_costs_and_completes_late_real_http_chain()
+
+    def coordinate_actual(self,flow,root,meal,ai,capture,draft,saved,native,unissued,owner):
+        from src.mina.scoped_coordination import ManagementHandshake,NAMES
+        from src.mina.scoped_pregrant_coordinator import coordinate,scope_for
+        from src.mina.scoped_issue_builder import stage
+        scope=scope_for(flow,'synthetic-review-v3');out=root/'root-authority';out.mkdir()
+        manifest=out/'manifest.json';manifest.write_bytes(canonical({'protocol':'mina-management-handshake-v1','scope':scope,'helper_shas':flow.management_helpers}))
+        def root_read(path,limit=65536):
+            value=Path(path).read_bytes()
+            if len(value)>limit:raise ValueError('scoped_coordination_payload_too_large')
+            return value
+        def referenced(ref):
+            value=root_read(ref['path'])
+            if hashlib.sha256(value).hexdigest()!=ref['sha256']:raise ValueError('scoped_coordination_reference_changed')
+            return value
+        def publish(phase,value):
+            raw=canonical(value);(out/NAMES[phase]).write_bytes(raw)
+            (out/(phase+'.envelope.json')).write_bytes(canonical(port.envelope(phase,{'name':NAMES[phase],'sha256':hashlib.sha256(raw).hexdigest()},scope['not_after'])))
+        def snapshot(phase,prefix):
+            refs={}
+            for kind,value in (('native',native),('unissued',unissued)):
+                name=prefix+'-'+kind+'.json';raw=canonical(value);(out/name).write_bytes(raw)
+                refs[kind]={'name':name,'sha256':hashlib.sha256(raw).hexdigest()}
+            publish(phase,refs)
+        def manager_tick(_):
+            if (port.inbox/'reviews-ready.envelope.json').exists() and not (out/'snapshot-ready.envelope.json').exists():snapshot('snapshot-ready','fresh')
+            if (port.inbox/'bundle-ready.envelope.json').exists() and not (out/'grant-result.envelope.json').exists():
+                bundle=json.loads((port.inbox/'bundle.json').read_bytes());packet={}
+                for key,ref in bundle.items():
+                    raw=(port.inbox/ref['name']).read_bytes();self.assertEqual(hashlib.sha256(raw).hexdigest(),ref['sha256']);packet[key]=json.loads(raw)
+                self.control(grant_packet=packet);publish('grant-result',self.client.case(scope['case_uuid']))
+        with patch('src.mina.scoped_coordination.root_bytes',side_effect=root_read),patch('src.mina.scoped_coordination.root_file',side_effect=referenced),\
+                patch('src.mina.scoped_coordination.AGENT_INBOX_ROOT',root/'actor-inbox'),patch('src.mina.scoped_management_proofs.root_file',side_effect=referenced):
+            port=ManagementHandshake({'path':str(manifest),'sha256':hashlib.sha256(manifest.read_bytes()).hexdigest()},scope,self.clock,flow.management_helpers,sleep=manager_tick)
+            snapshot('initial-snapshot-ready','initial')
+            result=coordinate(flow,port,meal,ai,capture,draft,saved,'www.log-eats.com','synthetic-review-v3',owner,1,
+                lambda reviews,anchors,snapshot:stage(flow,reviews,anchors,snapshot,owner,1))
+            self.assertEqual(result['case_uuid'],scope['case_uuid']);self.assertEqual(self.control()['calls']['grant'],1)
+
+    def test_file_coordination_reaches_real_operator_and_eight_notices(self):
+        self.coordinate_pregrant=True
+        self.test_explicit_refresh_keeps_old_costs_and_completes_late_real_http_chain()
 
 if __name__=='__main__':unittest.main()
