@@ -48,8 +48,12 @@ def approval_allowed(db,target,channel,slot=None,revision=None,candidate_digest=
     if not rows:raise PublicationHeld()
     if slot is not None and not any(r['slot']==slot and (revision is None or r['revision']==revision) and (candidate_digest is None or r['digest']==candidate_digest) for r in rows):raise PublicationHeld()
 
-def notice_allowed(db,row,channel):
+def notice_allowed(db,row,channel,*,scoped_operator=False):
     try:
+        from .scoped_preparation import locked
+        # 準備専用日は、期限を検査する限定operatorだけが承認カードを送る。
+        # 常駐daemonに渡すと、operator停止・期限後にもpendingを送信し得る。
+        if locked(db,row['target_date']) and not scoped_operator:return False
         table='candidates' if channel=='x' else 'instagram_candidates'
         candidate=db.execute('SELECT * FROM '+table+' WHERE target_date=? AND slot=?',(row['target_date'],row['slot'])).fetchone()
         if not candidate or candidate['state']!='approval_pending' or candidate['revision']!=row['revision']:return False
@@ -59,6 +63,8 @@ def notice_allowed(db,row,channel):
         return False
 
 def maybe_release(db,target,now):
+    from .scoped_preparation import locked
+    if locked(db,target):return
     if not exists(db,'replacement_bundles'):return
     b=db.execute("SELECT * FROM replacement_bundles WHERE target_date=? AND state='approval_pending'",(target,)).fetchone()
     if not b:return
@@ -74,13 +80,15 @@ def maybe_release(db,target,now):
         from .domain import Candidate
         from .instagram_domain import InstagramCandidate
         payload=json.loads(r['payload']);actual=(Candidate if member['channel']=='x' else InstagramCandidate)(**payload).digest
+        from .scoped_preparation import blocked
+        if blocked(payload):return
         if actual!=r['digest'] or (payload.get('approval_source') if member['channel']=='x' else payload.get('source',{})).get('state_version')!=proof['state_version']:return
     h=db.execute('SELECT * FROM publication_holds WHERE target_date=?',(target,)).fetchone()
     if not h or (h['owner'],h['epoch'],h['state'])!=(b['owner'],b['epoch'],'saved_pending_review'):return
     db.execute("UPDATE publication_holds SET state='released',reason='new_bundle_approved' WHERE target_date=?",(target,))
     db.execute("UPDATE replacement_bundles SET state='released' WHERE target_date=?",(target,))
 
-def stage(store,target,owner,epoch,source_digest,x_candidates,ig_candidates,host,hosts,now,proof,required_channels=('x','instagram')):
+def stage(store,target,owner,epoch,source_digest,x_candidates,ig_candidates,host,hosts,now,proof,required_channels=('x','instagram'),checkpoint=None,preparation_window=None):
     """検証済み候補だけを通常型で保持し、送信履歴のあるrouteを再利用しない。"""
     from dataclasses import asdict
     from .replacement_client import timestamp
@@ -99,8 +107,13 @@ def stage(store,target,owner,epoch,source_digest,x_candidates,ig_candidates,host
     all_candidates=[('x',c) for c in x_candidates]+[('instagram',c) for c in ig_candidates]
     if len({(ch,c.slot) for ch,c in all_candidates})!=len(all_candidates):raise ValueError('replacement_bundle_duplicate')
     with store.transaction() as db:
+        if checkpoint is not None:checkpoint(db)
         initialize(db);h=db.execute('SELECT * FROM publication_holds WHERE target_date=?',(target,)).fetchone()
         if not h or (h['owner'],h['epoch'],h['state'])!=(owner,epoch,'saved_pending_review'):raise ValueError('replacement_hold_changed')
+        from .scoped_preparation import blocked,seal
+        marked=any(blocked({'approval_source':c.approval_source}) for c in x_candidates) or any(blocked({'source':c.source}) for c in ig_candidates)
+        if marked != (preparation_window is not None):raise ValueError('scoped_preparation_marker_invalid')
+        if preparation_window is not None:seal(db,preparation_window,owner,epoch,x_candidates,ig_candidates,now)
         if db.execute('SELECT 1 FROM replacement_bundles WHERE target_date=?',(target,)).fetchone():raise ValueError('replacement_bundle_already_staged')
         if exists(db,'instagram_attempts') and db.execute('SELECT 1 FROM instagram_attempts WHERE target_date=?',(target,)).fetchone():raise ValueError('external_dispatch_present')
         if db.execute("SELECT 1 FROM buffer_publication WHERE target_date=? AND (state<>'armed' OR request_json IS NOT NULL OR post_id IS NOT NULL)",(target,)).fetchone():raise ValueError('external_dispatch_present')
@@ -117,6 +130,7 @@ def stage(store,target,owner,epoch,source_digest,x_candidates,ig_candidates,host
             db.execute('INSERT INTO replacement_bundle_members VALUES(?,?,?,?,?)',(target,ch,c.slot,rev,c.digest));members.append((ch,c.slot,rev,c.digest))
         members.sort()
         db.execute('INSERT INTO replacement_bundles VALUES(?,?,?,?,?,?,?,?)',(target,owner,epoch,digest(members),source_digest,json.dumps(members),json.dumps(proof),'approval_pending'))
+        if checkpoint is not None:checkpoint(db)
 
 def refresh(store,target,source_digest,proof,now):
     """承認が遅れた場合も、新たな正本照合証跡がないまま停止解除しない。"""

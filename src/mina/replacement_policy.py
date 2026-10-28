@@ -93,6 +93,8 @@ class ReplacementPolicy:
             from .publication_hold import exists
             if exists(db,'rescue_jobs') and db.execute('SELECT 1 FROM rescue_jobs WHERE target_date=?',(target,)).fetchone():
                 raise ValueError('rescue_existing_reservation')
+            if exists(db,'scoped_rescue_jobs') and db.execute('SELECT 1 FROM scoped_rescue_jobs WHERE target_date=?',(target,)).fetchone():
+                raise ValueError('rescue_existing_reservation')
             self._day(db,target)
             origin=None
             if binding is not None:

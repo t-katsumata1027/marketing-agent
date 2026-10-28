@@ -28,14 +28,16 @@ STAGES = frozenset(('draft','images','drive','registration','candidates','daily_
  'meal_correction','ogp_capture','ogp_review','daily_share','daily_request_key','automatic_image_repair',
  'route','connection','candidate','source','source_state','source_request','source_image','source_final',
  'freshness','submission','delivery','notification','preparation','request','reconciliation','launch','cycle',
- 'review_diagnosis','recovery','meal_replan','menu_nutrition','other'))
+ 'review_diagnosis','recovery','meal_replan','menu_nutrition','replacement_preflight','other'))
 REASONS = frozenset(('none','unclassified','validation_failed','post_text_too_long','io_failed','timeout','http_error','response_invalid',
  'contract_invalid','quality_hold','quality_rejected_not_saved','deadline_exceeded','outcome_unknown',
  'lookup_unavailable','clock_ahead','state_changed','source_changed','image_changed','ogp_expired',
  'connection_network','connection_timeout','connection_http_transient','retry_pending','retry_exhausted','usage_limit','configuration','sandbox','execution',
  'retry_deadline','binding_changed','buffer_unavailable','buffer_quota','authentication','audit_unavailable',
  'image_analysis_mismatch','nutrition_semantic_mismatch','context_mismatch','share_ogp_mismatch',
- 'experiential_claim','health_claim','copy_repetition','daily_energy_out_of_range','recovered','legacy_hold'))
+ 'experiential_claim','health_claim','copy_repetition','daily_energy_out_of_range','recovered','legacy_hold',
+ 'external_dispatch_present','external_dispatch_unverified','external_inventory_incomplete','external_inventory_stale',
+ 'replacement_source_incomplete','replacement_preflight_busy','replacement_quality_hold_required'))
 EVENTS = frozenset(('started','completed','failed','held','stopped','retry_wait','recovered','observed'))
 
 

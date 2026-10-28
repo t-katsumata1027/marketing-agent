@@ -1,0 +1,6 @@
+{
+  "scope": "隔離・合成入力のみ",
+  "reproduced": true,
+  "error": "日付と食事区分を含む保存名が必要です",
+  "external_calls": 0
+}

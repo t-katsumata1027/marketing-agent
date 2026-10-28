@@ -1,0 +1,2 @@
+{"checked_at": "2026-10-27T10:46:40.375547+00:00", "progress": {"target_date": "2026-10-28", "step": "replacement_preflight:lunch", "status": "stopped", "reasons": "[\"external_dispatch_present\"]", "updated": 1793098000.349996}, "existing_m1_requests_unchanged": true, "pdc_requests": 0, "food_writes": 0, "draft_deletes": 0, "paid_calls": 0}
+

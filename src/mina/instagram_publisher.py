@@ -35,6 +35,8 @@ def instagram_channel(client):
 
 
 def request_for(c, draft=False):
+    from .scoped_preparation import blocked
+    if blocked({'source':c.source}):raise ValueError('scoped_preparation_publication_forbidden')
     return {'channelId': c.channel_id, 'text': c.caption, 'assets': [{'image': {'url': a['url']}} for a in c.assets],
             'schedulingType': 'automatic', 'mode': 'addToQueue' if draft else 'shareNow',
             'saveToDraft': draft, 'needsApproval': False,
@@ -68,6 +70,10 @@ def validate_post(c, post, draft=False):
 def draft_once(store, c, client):
     """下書きの成否不明を反復しない。公開モードを使わない。"""
     require_live()
+    from .scoped_preparation import blocked
+    if blocked({'source':c.source}):raise ValueError('scoped_preparation_publication_forbidden')
+    from .publication_hold import require_buffer_mutation
+    require_buffer_mutation(store,c.target_date)
     client.publication_target = c.target_date
     from .instagram_media import HOSTS
     c.validate(datetime.now(UTC), HOSTS, require_future=False)

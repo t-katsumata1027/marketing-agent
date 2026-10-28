@@ -46,8 +46,13 @@ def import_manifest(store: Store, path: Path, host: str, now: datetime, expected
 
 
 def notify_day(store: Store, target: str, now: datetime):
-    store.issue_cards(target, now)
-    store.queue_delay(target, now)
+    from .publication_hold import PublicationHeld
+    try:
+        store.issue_cards(target, now)
+        store.queue_delay(target, now)
+    except PublicationHeld:
+        # 保留日の承認禁止は維持する。既知の業務保留で別日の通知・公開巡回を止めない。
+        return
 
 
 def send_notifications(store: Store, client):

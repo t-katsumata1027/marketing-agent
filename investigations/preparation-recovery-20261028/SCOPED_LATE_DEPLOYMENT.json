@@ -1,0 +1,120 @@
+{
+  "checked_at": "2026-10-28T02:50:32.853299+00:00",
+  "commit": "1c5224b6d0fe1670ee9b874b08688eeac42da12f",
+  "existing_tables": 71,
+  "unchanged_business_tables": [
+    "mina_requests",
+    "preparation_steps",
+    "candidates",
+    "instagram_candidates",
+    "buffer_publication",
+    "instagram_attempts",
+    "instagram_media",
+    "instagram_drafts",
+    "replacement_attempts",
+    "meal_replacement_requests",
+    "replacement_external_calls",
+    "replacement_waived_calls",
+    "replacement_origin_receipts",
+    "publication_holds",
+    "buffer_draft_cleanup",
+    "buffer_draft_cleanup_observations",
+    "preparation_execution_approvals",
+    "replacement_collection_jobs",
+    "replacement_collection_claims"
+  ],
+  "added_empty_tables": {
+    "scoped_preparation_locks": 0,
+    "scoped_rescue_calls": 0,
+    "scoped_rescue_events": 0,
+    "scoped_rescue_jobs": 0,
+    "scoped_rescue_requests": 0
+  },
+  "units": {
+    "mina-agent.service": "active",
+    "mina-gateway.service": "active",
+    "mina-instagram.service": "active",
+    "mina-prepare.timer": "active",
+    "mina-notify.timer": "active",
+    "mina-backup.timer": "active",
+    "mina-instagram-prepare.timer": "active",
+    "mina-offsite-backup.timer": "active"
+  },
+  "process_flags": [
+    {
+      "MINA_SOURCE_COMMIT": "1c5224b6d0fe1670ee9b874b08688eeac42da12f",
+      "MINA_SCOPED_RESCUE_ENABLED": "false",
+      "MINA_SAME_DAY_RESCUE_ENABLED": "false",
+      "MINA_REPLACEMENT_COLLECTION_ENABLED": "true"
+    },
+    {
+      "MINA_SOURCE_COMMIT": "1c5224b6d0fe1670ee9b874b08688eeac42da12f",
+      "MINA_SCOPED_RESCUE_ENABLED": "false",
+      "MINA_SAME_DAY_RESCUE_ENABLED": "false",
+      "MINA_REPLACEMENT_COLLECTION_ENABLED": "true"
+    },
+    {
+      "MINA_SOURCE_COMMIT": "1c5224b6d0fe1670ee9b874b08688eeac42da12f",
+      "MINA_SCOPED_RESCUE_ENABLED": "false",
+      "MINA_SAME_DAY_RESCUE_ENABLED": "false",
+      "MINA_REPLACEMENT_COLLECTION_ENABLED": "true"
+    },
+    {
+      "MINA_SOURCE_COMMIT": "1c5224b6d0fe1670ee9b874b08688eeac42da12f",
+      "MINA_SCOPED_RESCUE_ENABLED": "false",
+      "MINA_SAME_DAY_RESCUE_ENABLED": "false",
+      "MINA_REPLACEMENT_COLLECTION_ENABLED": "true"
+    },
+    {
+      "MINA_SOURCE_COMMIT": "1c5224b6d0fe1670ee9b874b08688eeac42da12f",
+      "MINA_SCOPED_RESCUE_ENABLED": "false",
+      "MINA_SAME_DAY_RESCUE_ENABLED": "false",
+      "MINA_REPLACEMENT_COLLECTION_ENABLED": "true"
+    },
+    {
+      "MINA_SOURCE_COMMIT": "1c5224b6d0fe1670ee9b874b08688eeac42da12f",
+      "MINA_SCOPED_RESCUE_ENABLED": "false",
+      "MINA_SAME_DAY_RESCUE_ENABLED": "false",
+      "MINA_REPLACEMENT_COLLECTION_ENABLED": "true"
+    }
+  ],
+  "counts": {
+    "candidates": 0,
+    "instagram_candidates": 0,
+    "meal_replacement_requests": 0,
+    "replacement_attempts": 0
+  },
+  "hold": {
+    "epoch": 1,
+    "state": "held"
+  },
+  "episode": {
+    "stage": "generating",
+    "deadline": 1793098800.0,
+    "prepare_uuid": null,
+    "commit_uuid": null
+  },
+  "cycle": {
+    "singleton": 1,
+    "checked": 1793155826.337416,
+    "last_success": 1793155826.337416,
+    "consecutive_failures": 0,
+    "mode": "live"
+  },
+  "backup": "/var/lib/mina-agent/deployment-review-recovery-scoped-1c5224b6",
+  "ci_url": "https://github.com/t-katsumata1027/marketing-agent/actions/runs/40622843938",
+  "isolated_tests": {
+    "local": 55,
+    "http": 20,
+    "independent": 5,
+    "linux_uid": 90,
+    "ci_mina_passed": 702,
+    "ci_mina_skipped": 71,
+    "ci_general": 32
+  },
+  "body_commit": "f4aee73ecc9ad2c784c6196fb4d04009812037d6",
+  "activation_allowed": false,
+  "production_paid_calls": 0,
+  "production_meal_writes": 0,
+  "production_discord_sns_writes": 0
+}

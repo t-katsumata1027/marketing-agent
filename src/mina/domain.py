@@ -60,6 +60,9 @@ class Candidate:
 
     @property
     def scheduled_at(self) -> datetime:
+        from .scoped_preparation import proposed
+        preparation=proposed(self.approval_source,self.target_date)
+        if preparation is not None:return preparation
         if self.approval_source and self.approval_source.get('publish_after_approval_until'):
             return instant(datetime.fromisoformat(self.approval_source['publish_after_approval_until']))
         return slot_time(date.fromisoformat(self.target_date), self.slot)
@@ -107,10 +110,12 @@ class Candidate:
             expected = f'{self.comment}\n\n{self.api_text}\n{self.share_url}'
             if self.publish_text != expected:
                 raise ValueError('サーバー完成本文と承認対象の固定文が一致しません')
-        if isinstance(self.approval_source,dict) and self.approval_source.get('contract_version') in ('mina-replace-v1','mina-rescue-v1'):
+        if isinstance(self.approval_source,dict) and self.approval_source.get('contract_version') in ('mina-replace-v1','mina-rescue-v1','mina-rescue-v3'):
             from .replacement_source import validate_binding
             validate_binding(self)
         elif self.approval_source is not None:
+            if isinstance(self.approval_source,dict) and self.approval_source.get('contract_version') not in (None,'mina-write-v1'):
+                raise ValueError('replacement_source_contract_unknown')
             from .m1_contract import version
             from .clients import MealClient
             if not isinstance(self.approval_source, dict) or self.publish_text is None:

@@ -1,0 +1,7 @@
+{
+  "schema_sha256": "baf76695c55298cd97fe8b24fc488c3c164585c11ae735986da380c4e52397ab",
+  "cases": 20,
+  "passed": 20,
+  "external_calls": 0,
+  "runtime_acceptance": false
+}

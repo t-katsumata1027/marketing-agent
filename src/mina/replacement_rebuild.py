@@ -11,11 +11,14 @@ from .readiness import build_candidates
 from .domain import Candidate,SLOTS
 
 class ReplacementRebuilder:
-    def __init__(self,store,meal,ai,drive,daily_directory,instagram_directory,evidence,commit,host,clock,*,api,ports_directory,instagram_enabled):
+    def __init__(self,store,meal,ai,drive,daily_directory,instagram_directory,evidence,commit,host,clock,*,api,ports_directory,instagram_enabled,response_reader=None,response_contract=None,checkpoint=None):
         self.store,self.meal,self.ai,self.drive=store,meal,ai,drive
         self.daily,self.instagram=Path(daily_directory),Path(instagram_directory)
         self.evidence,self.commit,self.host,self.clock=evidence,commit,host,clock
         self.api,self.ports_directory,self.instagram_enabled=api,Path(ports_directory),instagram_enabled
+        self.response_reader,self.response_contract=response_reader,response_contract
+        self.checkpoint=checkpoint or (lambda:None)
+        self.preparation_window=None
 
     def __call__(self,e,response,p,material):
         from .instagram_source import load_bundle
@@ -26,6 +29,10 @@ class ReplacementRebuilder:
         from .instagram_publisher import instagram_channel
         target=e['target_date'];base=self.daily/target;version=base/('replacement-'+e['prepare_uuid'])
         draft=json.loads((base/'draft.json').read_text(encoding='utf-8-sig'));draft=copy.deepcopy(draft);draft['meals'][e['slot']]=json.loads(material['plan'])
+        from .replacement_daily import daily_comment
+        from .m1_contract import validate_state
+        self.checkpoint();initial_state=self.meal.day_state(target);validate_state(initial_state,target,self.clock())
+        draft['daily_comment']=daily_comment(initial_state)
         saved=copy.deepcopy(json.loads((base/'drive.json').read_text(encoding='utf-8-sig')))
         drive_proof=json.loads((self.ports_directory/(e['prepare_uuid']+'-drive.json')).read_text(encoding='utf-8'))
         raw_images={};files={}
@@ -52,28 +59,38 @@ class ReplacementRebuilder:
         from .replacement_client import ReplacementReadClient
         from .request_ledger import RequestLedger
         state=self.meal.day_state(target);state_version=validate_state(state,target,self.clock())
-        if state.get('daily_share') is None:
-            # Cが作らなかった日次だけ、既存M1の台帳から一度作る。要求不明は再実行しない。
+        daily_request_key=None
+        namespace=response.get('contract_version','mina-replace-v1')
+        with self.store.transaction() as db:
+            db.execute('''CREATE TABLE IF NOT EXISTS replacement_finalization_requests (
+                contract TEXT NOT NULL,target_date TEXT NOT NULL,prepare_uuid TEXT NOT NULL,
+                request_key TEXT NOT NULL UNIQUE,payload TEXT NOT NULL,PRIMARY KEY(contract,target_date,prepare_uuid))''')
+            old=db.execute('SELECT * FROM replacement_finalization_requests WHERE contract=? AND target_date=? AND prepare_uuid=?',(namespace,target,e['prepare_uuid'])).fetchone()
+        if old or state.get('daily_share') is None or state['daily_share']['normalized_comment']!=draft['daily_comment']:
+            # 置換後の実値で日次を一度更新する。旧Cと新M1の出自を分け、要求不明は再送しない。
             import uuid
             with self.store.transaction() as db:
-                db.execute('CREATE TABLE IF NOT EXISTS replacement_daily_requests (target_date TEXT PRIMARY KEY,request_key TEXT,payload TEXT)')
-                old=db.execute('SELECT * FROM replacement_daily_requests WHERE target_date=?',(target,)).fetchone()
                 if old:key=old['request_key'];payload=json.loads(old['payload'])
                 else:
                     key=str(uuid.uuid4());payload={'contract_version':'mina-write-v1','date':target,'comment':draft['daily_comment'],'expected_meal_count':3,'expected_state_version':state_version}
-                    db.execute('INSERT INTO replacement_daily_requests VALUES(?,?,?)',(target,key,json.dumps(payload)))
+                    db.execute('INSERT INTO replacement_finalization_requests VALUES(?,?,?,?,?)',(namespace,target,e['prepare_uuid'],key,json.dumps(payload)))
+            if payload['comment']!=draft['daily_comment'] or payload['expected_state_version']!=state_version:raise ValueError('replacement_daily_input_changed')
             ledger=RequestLedger(self.store);ledger.prepare(key,'daily_share',target,'daily',payload)
             record=ledger.restore(key)
             if record['phase']=='prepared':
                 from .publication_hold import replacement_daily_scope
+                self.checkpoint()
                 with replacement_daily_scope(target,e['owner'],e['epoch']):
                     ledger.execute_once(key,self.meal,lambda:self.meal.json_write('/api/internal/mina/daily-share',payload,request_key=key))
             lookup=self.meal.request_state(key,'daily_share');completed_request(lookup,key,'daily_share',lookup['current_result']);ledger.record(key,'complete',{'persistence':'saved','stage':'completed'})
-        contract=Contract(self.clock);reader=ReplacementReadClient(self.meal.base,self.meal.token,decoder=contract.decode,clock=self.clock)
+            daily_request_key=key
+        contract=self.response_contract or Contract(self.clock)
+        reader=self.response_reader or ReplacementReadClient(self.meal.base,self.meal.token,decoder=contract.decode,clock=self.clock)
+        self.checkpoint()
         response=reader.request(e['commit_uuid'],'meal_replace')
         reviewed,proof=review_posts(self.store,self.meal,self.ai,capture_ogp,
-            target,e['commit_uuid'],response,draft,raw_images,self.host,self.clock)
-        xs=[Candidate(**v) for v in build_candidates(reviewed,self.evidence,self.commit,self.host,self.clock())]
+            target,e['commit_uuid'],response,draft,raw_images,self.host,self.clock,daily_request_key=daily_request_key)
+        xs=[Candidate(**v) for v in build_candidates(reviewed,self.evidence,self.commit,self.host,self.clock(),preparation_window=self.preparation_window)]
         igs=[]
         if self.instagram_enabled:
             # 新X候補だけの一時SQLiteで描画する。本番の候補や停止行を先行更新しない。
@@ -88,10 +105,15 @@ class ReplacementRebuilder:
                 assets=[host_asset(a,self.drive,self.store,allow_public=True) for a in manifest['assets'][slot]]
                 c=InstagramCandidate(target,slot,channel['id'],channel['serviceId'],'post' if slot=='daily' else 'story',caption(bundle,slot),assets,
                     {k:bundle[k] for k in ('bundle_sha256','state_version','x_digests')})
+                if self.preparation_window is not None:
+                    from .scoped_preparation import KEY,marker
+                    c.source[KEY]=marker(self.preparation_window,slot)
                 c.validate(self.clock(),HOSTS);igs.append(c)
             save_json(destination/'candidates.json',[asdict(c) for c in igs])
         adopt(self.store,target,e['owner'],e['epoch'],self.daily,version.name,manifest_sha)
-        final=contract.preconditions(reader.preconditions(target),target)
+        self.checkpoint()
+        normal=Contract(self.clock);normal_reader=ReplacementReadClient(self.meal.base,self.meal.token,decoder=normal.decode,clock=self.clock)
+        final=normal.preconditions(normal_reader.preconditions(target),target)
         proof['source_digest']=source_digest(final)
         return xs,igs,proof
 
@@ -123,7 +145,11 @@ class ReplacementRebuilder:
             state=self.meal.day_state(target)
             bundle=load_bundle(version/'render-snapshot.sqlite3',self.daily,target,state,self.clock(),artifact_directory=version)
             for candidate in igs:
-                if candidate.source!={k:bundle[k] for k in ('bundle_sha256','state_version','x_digests')} or candidate.caption!=caption(bundle,candidate.slot):raise ValueError('replacement_source_changed')
+                expected_source={k:bundle[k] for k in ('bundle_sha256','state_version','x_digests')}
+                from .scoped_preparation import KEY
+                marked=bundle['x_candidates'][candidate.slot]['approval_source'].get(KEY)
+                if marked is not None:expected_source[KEY]=marked
+                if candidate.source!=expected_source or candidate.caption!=caption(bundle,candidate.slot):raise ValueError('replacement_source_changed')
                 manifest=json.loads((self.instagram/target/candidate.layout_version/bundle['bundle_sha256']/'rendered.json').read_text(encoding='utf-8'))
                 if [a['sha256'] for a in candidate.assets]!=[a['sha256'] for a in manifest['assets'][candidate.slot]]:raise ValueError('replacement_source_image_changed')
                 for asset in candidate.assets:verify_public(asset)

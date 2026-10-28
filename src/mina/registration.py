@@ -44,7 +44,10 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
     target = draft['target_date']
     if collection_slots is not None:
         from .rescue_collection import _scope
-        if tuple(collection_slots) != ('lunch','dinner') or target != '2026-10-24' or _scope.get() is None:
+        from .replacement_collection import _scope as future_scope
+        future=future_scope.get()
+        valid_future=(future is not None and future.e['target_date']==target and tuple(collection_slots)==future.missing)
+        if not valid_future and (tuple(collection_slots) != ('lunch','dinner') or target != '2026-10-24' or _scope.get() is None):
             raise ValueError('rescue_collection_scope_required')
     if capture_round is not None:
         MealClient.request_key(capture_round)

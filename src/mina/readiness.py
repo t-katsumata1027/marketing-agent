@@ -77,7 +77,7 @@ def check_evidence(evidence, target, now):
     return entries
 
 
-def build_candidates(reviewed, evidence, commit, host, now, excluded_slots=(), lunch_after_approval_until=None):
+def build_candidates(reviewed, evidence, commit, host, now, excluded_slots=(), lunch_after_approval_until=None, preparation_window=None):
     """APIの完成本文を変更せず、確認証跡を承認対象のハッシュへ含める。"""
     target = reviewed['target_date']
     if excluded_slots:
@@ -103,6 +103,10 @@ def build_candidates(reviewed, evidence, commit, host, now, excluded_slots=(), l
             continue
         source = {**post['approval_source'], 'readiness_sha256': evidence_hash,
                   'ogp_image_url': post['ogp']['image_url'], 'ogp_image_sha256': post['ogp']['image_sha256']}
+        if preparation_window is not None:
+            from .scoped_preparation import validate,marker,KEY
+            validate(preparation_window,target,'lunch',preparation_window['case_uuid'],now)
+            source[KEY]=marker(preparation_window,slot)
         from .tracking import configured_policy
         tracking = configured_policy()
         if tracking is not None:

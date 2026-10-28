@@ -6,6 +6,69 @@ from .replacement_contract import digest
 from .preparation import fingerprint
 
 
+def native_quality_hold(db,target,slot,binding,steps):
+    """通常点検のcomplete+holdを、現在正本と同じ入力の事実として読む。書換えはしない。"""
+    from .generation import meal_review_policy_sha256
+    from .replacement_contract import Contract
+    from jsonschema.exceptions import ValidationError
+    from .m1_contract import validate_write
+    from .domain import slot_time,date
+    from .readiness import read_json
+    by_step={r['step']:r for r in steps}
+    corrected='meal_correction:'+slot in by_step
+    review=by_step.get('meal_review:'+slot+(':corrected' if corrected else ''))
+    capture=by_step.get('ogp_capture:'+slot+('-corrected' if corrected else ''))
+    saved_step=by_step.get(('meal_correction:' if corrected else 'meal_register:')+slot)
+    if not review or not capture or not saved_step or any(r['state']!='complete' for r in (review,capture,saved_step)):
+        raise ValueError('replacement_quality_hold_required')
+    verdict=json.loads(review['result'])
+    if (verdict.get('status')!='hold' or not verdict.get('reason_codes')
+            or not set(verdict['reason_codes'])<={'image_analysis_mismatch','nutrition_semantic_mismatch'}):
+        raise ValueError('replacement_quality_hold_required')
+    context_row=db.execute('SELECT context FROM replacement_runtime_context WHERE target_date=?',(target,)).fetchone()
+    if not context_row:raise ValueError('migration_unverified')
+    context=json.loads(context_row[0]);base=Path(context['directory'])
+    for name,key in (('draft.json','draft'),('drive.json','saved')):
+        path=base/name
+        if path.is_symlink() or read_json(path)!=context[key]:raise ValueError('migration_unverified')
+    draft=context['draft'];image=context['saved']['images'][slot]
+    if draft['target_date']!=target or context['saved']['target_date']!=target:raise ValueError('migration_unverified')
+    path=Path(image['path'])
+    if path.is_symlink():raise ValueError('migration_unverified')
+    raw=path.read_bytes()
+    if not 0<len(raw)<=4194304 or len(raw)!=image['size'] or hashlib.sha256(raw).hexdigest()!=image['sha256']:
+        raise ValueError('migration_unverified')
+    response=json.loads(saved_step['result']);captured=json.loads(capture['result'])
+    try:
+        validate_write(response,slot,target,context['host'],operation='meal_correction' if corrected else 'meal_register',
+                       logged_at=slot_time(date.fromisoformat(target),slot).isoformat(),input_comment=draft['meals'][slot]['comment'])
+    except ValueError:raise ValueError('replacement_quality_hold_required') from None
+    own=next((m for m in binding['preconditions']['meals'] if m['expected']['target_slot']==slot),None)
+    result=response['result']
+    descriptor=own['analysis'] if own else None
+    try:descriptor_digest=Contract(lambda:None).analysis(descriptor)
+    except (ValidationError,ValueError,KeyError,TypeError):raise ValueError('replacement_quality_hold_required') from None
+    # 保存済みdescriptorのprovenanceはM1とは異なる。nullをfalseへ補完せず、共有する実食品・栄養・品質を照合する。
+    def foods(value):
+        return [{k:f.get(k) for k in ('name','amount','calories','protein','fat','carbs')} for f in value['foods']]
+    if (not own or own['expected']['target_result_version']!=result['result_version']
+            or own['expected']['target_share_url']!=result['share']['url']
+            or own['image_sha256']!=image['sha256'] or result['image_sha256']!=image['sha256']
+            or own['stored_image_sha256']!=result['stored_image_sha256']
+            or descriptor_digest!=own['analysis_digest'] or descriptor['analysis_source']!='stored_canonical'
+            or descriptor['is_ambiguous'] not in (None,False) or result['analysis'].get('is_ambiguous') is not False
+            or foods(descriptor)!=foods(result['analysis']) or descriptor['summary']!=result['analysis']['summary']
+            or descriptor['quality']!=result['quality']):
+        raise ValueError('replacement_quality_hold_required')
+    expected={'image_sha256':image['sha256'],'meal':draft['meals'][slot],'response':response,
+              'ogp_digest':captured['digest'],'policy_sha256':meal_review_policy_sha256()}
+    if review['digest']!=fingerprint(expected):raise ValueError('replacement_quality_hold_required')
+    return {'format':'native-complete-hold-v1','step':review['step'],'input_digest':review['digest'],
+            'result_version':result['result_version'],'image_sha256':image['sha256'],'verdict_digest':fingerprint(verdict),
+            'stored_descriptor_digest':descriptor_digest,'stored_descriptor_ambiguity':descriptor['is_ambiguous'],
+            'm1_ambiguity':result['analysis']['is_ambiguous']}
+
+
 def originals(db, target, slot, binding):
     """空の台帳を初回と推測しない。保存済み3食と登録前工程の実在を照合する。"""
     owner, epoch, pre = binding['owner'], binding['epoch'], binding['preconditions']
@@ -21,7 +84,9 @@ def originals(db, target, slot, binding):
         raise ValueError('migration_unverified')
     holds=[json.loads(r['result'] or '{}') for r in steps
            if r['step'].split(':')[:2]==['meal_review',slot] and r['state']=='held']
-    if not any(h.get('classification')=='quality_hold' and h.get('reason_codes')
+    native=[r for r in steps if r['step'].split(':')[:2]==['meal_review',slot] and r['state']=='complete']
+    evidence=native_quality_hold(db,target,slot,binding,steps) if native else None
+    if evidence is None and not any(h.get('classification')=='quality_hold' and h.get('reason_codes')
                and set(h['reason_codes'])<={'image_analysis_mismatch','nutrition_semantic_mismatch'} for h in holds):
         raise ValueError('replacement_quality_hold_required')
     by_step={r['step']:r for r in steps}
@@ -125,7 +190,8 @@ def originals(db, target, slot, binding):
         r.pop('image')
     return {'version': 'agent-initial-prepare-origin-v1', 'target_date': target, 'slot': slot,
             'owner': owner, 'hold_epoch': epoch, 'preconditions': pre, 'preparation_steps': steps,
-            'requests': requests, 'generation_and_requests': ledgers}
+            'requests': requests, 'generation_and_requests': ledgers,
+            **({'quality_hold_evidence':evidence} if evidence is not None else {})}
 
 
 def verify_receipt(db, target, slot, receipt, owner, epoch):

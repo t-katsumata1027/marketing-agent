@@ -32,6 +32,7 @@ class DriveClient:
         self.folder_id = folder_id
         self.opener = build_opener(NoRedirect())
         self.access_token, self.expires = '', 0
+        self.request_guard = None
 
     @classmethod
     def from_env(cls):
@@ -39,6 +40,11 @@ class DriveClient:
                                                       'MINA_GOOGLE_REFRESH_TOKEN', 'MINA_DRIVE_FOLDER_ID')))
 
     def _request(self, url, data=None, headers=None, method='GET', limit=1048576, write=False):
+        if self.request_guard is not None:
+            return self.request_guard(url,data,method,lambda:self._transport_request(url,data,headers,method,limit,write))
+        return self._transport_request(url,data,headers,method,limit,write)
+
+    def _transport_request(self, url, data=None, headers=None, method='GET', limit=1048576, write=False):
         try:
             with self.opener.open(Request(url, data=data, headers=headers or {}, method=method), timeout=60) as response:
                 raw = response.read(limit + 1)
@@ -104,17 +110,29 @@ class DriveClient:
 
     def upload(self, image, filename):
         """一度だけ保存する。呼出元の工程台帳が再送を防ぐ。"""
+        if not re.fullmatch(r'\d{4}-\d{2}-\d{2}-(breakfast|lunch|dinner)\.jpg', filename):
+            raise ValueError('日付と食事区分を含む保存名が必要です')
+        return self._upload_image(image,filename,{})
+
+    def upload_replacement(self, image, target, slot, prepare_uuid):
+        """置換の新規FileIDだけを作る。通常保存名の許可範囲を広げない。"""
+        from .scoped_rescue_contract import target_scope
+        from .clients import MealClient
+        target_scope(target,slot);MealClient.request_key(prepare_uuid)
+        name=f'{target}-{slot}-replacement-{prepare_uuid}.jpg'
+        return self._upload_image(image,name,{'mina_role':'meal_replacement','mina_prepare_uuid':prepare_uuid,
+            'mina_target_date':target,'mina_target_slot':slot})
+
+    def _upload_image(self, image, filename, properties):
         require_live()
         if not isinstance(image, bytes) or not image.startswith(b'\xff\xd8\xff') or len(image) > 4 * 1024 * 1024:
             raise ValueError('4MB以下のJPEGが必要です')
-        if not re.fullmatch(r'\d{4}-\d{2}-\d{2}-(breakfast|lunch|dinner)\.jpg', filename):
-            raise ValueError('日付と食事区分を含む保存名が必要です')
         parent = self.metadata(self.folder_id, 'id,mimeType,trashed,capabilities(canAddChildren)')
         if parent.get('mimeType') != 'application/vnd.google-apps.folder' or parent.get('trashed') is not False or parent.get('capabilities', {}).get('canAddChildren') is not True:
             raise ValueError('Drive保存先の書き込み権限を確認してください')
         boundary = uuid.uuid4().hex
         meta = json.dumps({'name': filename, 'mimeType': 'image/jpeg', 'parents': [self.folder_id],
-                           'appProperties': {'mina_sha256': hashlib.sha256(image).hexdigest()}}, ensure_ascii=False).encode()
+                           'appProperties': {'mina_sha256': hashlib.sha256(image).hexdigest(),**properties}}, ensure_ascii=False).encode()
         body = (f'--{boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'.encode() + meta +
                 f'\r\n--{boundary}\r\nContent-Type: image/jpeg\r\n\r\n'.encode() + image + f'\r\n--{boundary}--\r\n'.encode())
         url = 'https://www.googleapis.com/upload/drive/v3/files?' + urlencode({'uploadType': 'multipart', 'fields': 'id', 'supportsAllDrives': 'true'})

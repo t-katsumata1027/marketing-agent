@@ -1,5 +1,45 @@
 # みな運用の実装・サブPC配置状況
 
+## 2026年10月28日19時停止後・本体配備成功、点検鮮度切れのAgent局所補修
+
+本人①②承認後、本体e0e0bb391609d7483e6a74998376e9e051a144d3/正規release40658798812は成功・救済構成ON。Agent実点検4件pass後、最初の完了からstageまで137.083秒で120秒条件を超え、権限発行前に停止した。19時枠は失効。case/P・旧原本/費用/hold保持、権限発行/PDC/食事変更/候補/送付/SNSは0。実点検4callを費用0へ戻さない。稼働Agent1c5224b6・救済OFFのまま。
+
+同case内の追加一組4点検claim、全8費用/receipt保持、資格分離file協調、元case照会復旧、準備専用Discord表示/unknown再送拒否をローカル実装。対象46件、後続承認/協調34件、実UID7境界、実e0本体HTTPの一連とDiscord不明/期限切れ境界に成功。非実装Codexの局所Go後、下流2指摘を補修し固定head再レビュー待ち。管理側の正式CLI/FSproxy接続・依存閉包・両側全体レビューは未完了。本番追加配置/新時間/追加実点検の承認を先取りしない。詳細MINA_SCOPED_RESTART_1900_20261028.md、MINA_SCOPED_REFRESH_HANDSHAKE_20261028.mdとrefresh-handshake証跡。
+
+## 2026年10月28日17時台・QA修正の正式CI/回収/Preview成功、次の本番・新窓承認待ち
+
+Log-Eats担当のDraft PR158/head64590d84/tree e952c120は公式Product QA40648871128とSEO成功。Core72成功/0失敗/0flaky/予定skip38、回収users0/mapping0・cleanup_verified=true、専用Preview3GET/書込0を公式artifact実取得でAgent側も確認。局所19件/型/必須QA/M1回帰/独立コードGo、Agent実HTTP4経路成功・本番Mina/Schema不変。g02原本4件SHA一致、正規反映/ON/失敗時OFF復旧案と新19時/初回有効化15分最短の準備専用案は独立計画Go。旧QA users2/mapping0は未回収保持。Agent1c5224b6/本番救済OFF、旧15時失効・新窓未承認、本番反映/権限/有料生成/食事/Discord候補/SNS操作0。今日の復旧は未完了。次①本体固定tree反映+ON+切戻し、②別名原本/operator検証後の新窓昼食救済→X4IG4/Discordを具体的承認案として提示する。詳細MINA_QA_FIX_AGENT_ACCEPTANCE_20261028.mdと計画レビュー受領記録。
+
+## 2026年10月28日16時台・本体QA限定修正を依頼、Agent互換4経路成功
+
+本人承認をLog-Eats担当へ送信し、担当がDraft PR158を作成。局所回収19件/診断/型/必須QAの前半＋停止箇所からの再開後半が成功し、独立コードレビューGo。Agent担当は本体を編集せず、固定11c16c46実ハンドラーのlocalhost HTTP4経路を実行して全件成功・外部通信0・本番操作0。本番Mina/Schema不変。公式CI40647721202は旧静的試験名参照でE2E前停止。最小試験追従のみの64590d84で更新CI40648871128進行中、専用Previewと回収成功は未確定。Agent1c5224b6/本体救済OFF、旧15時枠失効、権限/有料生成/食事操作/候補送付/SNS0。最終検証後に本番反映・再ON・別名原本operator・新時間窓を別承認として提示する。詳細MINA_QA_FIX_AGENT_ACCEPTANCE_20261028.md。
+
+## 2026年10月28日14時台・②承認後も本体ON release gate未合格、食事/投稿未操作
+
+本人②承認で管理担当と連携し、same case/P/15:00とcase初回+15分/原本5件/限定executorを固定・独立Go取得した。サービスONと権限発行の混同は未実行のまま訂正。ON run40626952820 attempt1はprovider管理GET500、診断/独立Go後の正式failed-job attempt2はCore72成功だがcleanup=falseで最終未合格。Production/postdeployはskip。担当はDoppler0/Production metadata復帰と旧OFF Deploymentを確認。14:02の管理READ ONLYでもcases0/未完了0。Agentは1c5224b6・救済OFF/同hold/旧期限/UUID保持、新case/PDC/生成解析/食事変更/Discord候補/SNS0。原本一覧と未実行executorを保護領域に保存し、第三回・QA迂回・期限延長をしない。本体担当のQA限定修正計画は独立Goだが実装未承認。詳細はMINA_SCOPED_EXECUTION_20261028.md、依頼文はLOGEATS_QA_CLEANUP_REQUEST_20261028.md。今日の投稿案復旧は未完了。
+
+
+## 2026年10月28日11:50・遅延準備専用Agentを配置、救済OFF
+
+本人①承認で1c5224b6を最終CI40622843938（Mina702成功/71skip・一般32成功）、実HTTP20/局所55/独立5/専用UID Linux90成功・独立Go後に配置。切替71表全行同一、追加5台帳は空、配置後業務19表保持・3service/5timer・巡回live/失敗0。新旧救済OFF/新config未設定を実processで確認。退避/var/lib/mina-agent/deployment-review-recovery-scoped-1c5224b6、旧コード/opt/marketing-agent-rollback-review-scoped-1c5224b6。本体f4aee73固定受入・Schema同一。準備専用は実行承認原本へ束縛し、永続公開禁止で全承認・marker削除・通常hold解除後も送信を拒否する。実課金/権限発行/食事変更/Discord・SNS0、当日候補/試行0、hold1/旧期限/UUID保持。②の15:00絶対終了候補は未承認。詳細はMINA_SCOPED_PREPARATION_20261028.mdと独立レビュー、SCOPED_LATE_DEPLOYMENT.json。
+
+
+## 2026年10月27日・v3 Agent統合を実装、隔離受入・独立レビュー中、本番未反映
+
+本人A承認によりv3専用adapter/所有台帳/原本封印/他2食receipt/個別RPC/Drive/日次/source verifierを実装した。Schema実SHA baf76695は同一、本体隔離参照は858e2bbbへ更新。実M1原本→native昼hold→実operator→P/2画像/実Drive→C→Flow.finish/新日次→4X4IG8画像→全source照合の通しと、case期限後/OFFの新版判断後RO照合を確認。OAuth秘密はDBへ残さずprocessing/not_savedは終端にしない。旧UUID・期限を保持して完成後のstageだけ通常の読取承認照合へ渡す。固定8a160e29の局所49成功・独立43成功/Go、配布358ファイル・無効化manifestを確認。最終CI待ち。10/28 00:06本番ROでもa34005ef/hold1/候補0/v3表なし、配置/実課金/登録/置換/Discord・SNS送信0。本体専用Previewと本番OGP24hex取得元は停止条件。詳細はMINA_SCOPED_RESCUE_IMPLEMENTATION_20261028.md。
+
+## 2026年10月27日・救済v3の固定契約受領、受入資料を準備
+
+提供側PR157 head06f43311、Schema実SHA baf76695c55298cd97fe8b24fc488c3c164585c11ae735986da380c4e52397abを取得・照合した。v3は承認対象日（発行時当日/翌日）/朝昼夕、1case1候補、D後再発行不可。合成構造fixture20件成功・外部呼出0であり、実HTTP/runtime受入ではない。本体CI40504573273はfoundation成功・専用実HTTP継続中、未配備との引継ぎ。MINA_RESCUE_V3_ACCEPTANCE_PREPARATION_20261028.mdへadapter/台帳/Drive/日次/source verifierの差分と承認A/B/Cを整理。独立Codexが固定Schema/提供側実装と20fixtureを再照合し準備範囲Go。今回runtime/配置/有効化/食事/課金/投稿変更0。追加実装承認待ち。
+
+## 2026年10月27日20:39・3食保存完了、native保留受入と巡回を恒久補修、昼の期限後救済は未完了
+
+本人追加承認で旧draft4件の現在不在を全ページ確認（ACK3/unknown履歴1保持、再DELETE0）、夕M1登録/訂正/食品・OGP独立合格まで完了。朝455/昼628.4/夕716=1799.4、朝昼再登録/再訂正0、昼識別保留は維持。通常complete holdを旧originが拒否し、P前停止・20時失効となった。最終a34005efをCI40497133180（682成功/51skip・一般32成功）、Linux103・独立Go後に20:37配置。正式descriptorとM1の投影・native→合成P結合受入、実データRO照合、UUID前段階と通知例外の分離を実装。切替71表保持・業務19表不変、3service/5timer active、巡回live/失敗0、27日21:30 X/IG承認保持。通常将来日収集ON/当日救済OFF、28日期限は不変・PDC/試行/候補0。本体救済v2は朝食限定のため昼へ流用せず、LogEats担当への調査依頼書を作成/独立計画Go、本人の依頼に基づき担当へ送信済み、回答・新契約待ち。投稿案完成は未達。詳細はMINA_PREPARATION_RECOVERY_20261028.md。
+
+## 2026年10月27日19:46・10/28品質保留の確認再開修正を配置、候補復旧は承認待ち
+
+昼訂正後のまいたけ識別uncertainによる品質保留、Buffer日時不明IG draft4件によるexternal_dispatch_present、UUID発行前checkingの復帰不能を切り分けた。5c19f4d9をCI40490523987（Mina669成功/51skip・一般32成功）、Linux90成功・独立Go後に19:45配置。切替61表不変、再起動後業務52表保持、3service/5timer正常、救済/新収集OFF。将来日missing枠だけのM1収集入口、元hold/現在正本/他枠独立点検の照合、実期限と費用履歴・所有排他、保存前食品種類点検、固定理由通知を追加。19:46の読取再確認で外部下書き停止を正確に記録。朝455/昼628.4保存済、夕未登録、候補0。過去draft4件削除の本人承認は未受領、追加食事/置換/公開0。本体変更なし。詳細はMINA_PREPARATION_RECOVERY_20261028.md、PR19。
+
 ## 2026年10月27日01:37・Instagram臨時4候補完成、準備継続とCLI有限再試行を本番反映
 
 10/27のIG story3/日次carousel5画像を既存原本から合成・独立8画像Go後に配信保存し、4候補/Discord4件送信完了。現在IG/Xとも本人4承認済み、IG投稿要求0。恒久版fde12d64をCI40359655087（Mina651成功/51skip・一般32成功）、秘密なしLinux実UID54件、最終独立Go後に01:35配置。旧40表行保持・新空2台帳のみ追加、3サービス/5timer正常、救済OFF保持。日跨ぎ依存追従・4候補原子保存・通知前中断復帰・読取/外部不明分離を実装。通常翌日CLIのみ同入力最大3回/360秒/期限guard、不明使用量保持。managed置換/救済の予約内retryは無効。8公開URL再取得のSHA/寸法とAPI正本整合を確認。CLI下位原因は未確定、外部不明/品質保留等は停止維持。詳細はMINA_INSTAGRAM_CONTINUITY_20261027.md、PR18。

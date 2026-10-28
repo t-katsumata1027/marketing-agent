@@ -1,0 +1,32 @@
+{
+  "source_commit": "30042ab5e32c909f062d12c9033d9b3e8b5679e4",
+  "tree": "0f245177f5174439515a686e108c46730592ca0a",
+  "ci_run": 40682139885,
+  "ci_status": "success",
+  "ci_merge_commit": "1c07091105be6c0f56f0a21839a7b87163149c2d",
+  "ci_merge_tree_matches_head": true,
+  "mina": {
+    "tests": 808,
+    "passed": 733,
+    "skipped": 75
+  },
+  "general": {
+    "passed": 32
+  },
+  "independent_review_sha256": "81b5c83bd698ec25a2cff728064927d05bc609be2a6c96d8adeefbb0f0063c88",
+  "verdict": "Agent局所実装/隔離受入Go",
+  "source_tar_sha256": "7c84036df20d0014e881c565d30217e3d0f1ada1b1d0a93cbcc26576ae5b634a",
+  "release_file_count": 382,
+  "authority_uid_function_sha256": "45b66c0ca5f896e193bc886091b287860b4248b2b88b3d4b9d2f040a69050cca",
+  "authority_uid_final_function_matches_tested": true,
+  "authority_uid_note": "実UID試験後の差分は未使用import削除だけ。試験実ASTと最終固定ASTが一致。",
+  "activation_allowed": false,
+  "production_deployed": false,
+  "production_execution_approval": false,
+  "remaining": [
+    "管理側の固定SSH/正式CLI接続コードとfake-runner検証",
+    "4helper依存閉包固定",
+    "両側全体独立レビュー",
+    "本人の新配置/追加4実点検/新時間窓承認"
+  ]
+}

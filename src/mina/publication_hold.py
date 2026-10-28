@@ -33,6 +33,8 @@ def exists(db, table):
 
 def held(db, target):
     """旧DBは読取だけで扱い、停止行があれば機能無効化後も保護する。"""
+    from .scoped_preparation import locked
+    if locked(db,target):return True
     if not exists(db, 'publication_holds'):
         return False
     row = db.execute('SELECT state FROM publication_holds WHERE target_date=?', (target,)).fetchone()
@@ -59,9 +61,10 @@ def require_buffer_mutation(store=None, target=None):
     with store.transaction() as db:
         if target is not None:
             require_clear(db, target)
-        elif exists(db, 'publication_holds') and db.execute(
-                "SELECT 1 FROM publication_holds WHERE state<>'released'").fetchone():
-            raise PublicationHeld()
+        else:
+            from .scoped_preparation import locked
+            if locked(db) or (exists(db, 'publication_holds') and db.execute(
+                    "SELECT 1 FROM publication_holds WHERE state<>'released'").fetchone()):raise PublicationHeld()
 
 
 def require_claim(store, row, table='candidates'):
@@ -70,11 +73,15 @@ def require_claim(store, row, table='candidates'):
         raise ValueError('公開台帳が不正です')
     with store.transaction() as db:
         require_clear(db, row['target_date'])
-        current = db.execute('SELECT state,digest,revision FROM '+table+' WHERE target_date=? AND slot=?',
+        current = db.execute('SELECT state,digest,revision,payload FROM '+table+' WHERE target_date=? AND slot=?',
                              (row['target_date'], row['slot'])).fetchone()
         if (not current or current['state'] != 'dispatching' or current['digest'] != row['digest']
                 or current['revision'] != row['revision']):
             raise ValueError('publication_claim_changed')
+        from .scoped_preparation import blocked
+        import json
+        if blocked(json.loads(current['payload'])) or blocked(json.loads(row['payload'])):
+            raise ValueError('scoped_preparation_publication_forbidden')
 
 
 def initialize(db):
@@ -160,5 +167,9 @@ def status(database):
     with closing(sqlite3.connect(path.as_uri()+'?mode=ro', uri=True)) as db:
         if not exists(db, 'publication_holds'):
             return []
-        return [dict(zip(('target_date','epoch','state','reason'), row)) for row in db.execute(
+        result=[dict(zip(('target_date','epoch','state','reason'), row)) for row in db.execute(
             'SELECT target_date,epoch,state,reason FROM publication_holds ORDER BY target_date')]
+        if exists(db,'scoped_preparation_locks'):
+            result.extend({'target_date':row[0],'epoch':row[1],'state':'preparation_only','reason':'scoped_preparation_only'}
+                          for row in db.execute('SELECT target_date,epoch FROM scoped_preparation_locks ORDER BY target_date'))
+        return result

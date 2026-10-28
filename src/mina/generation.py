@@ -79,8 +79,15 @@ def publication_context(api_response):
 
 def image_review_policy_sha256():
     """実際の点検指示・スタイル・判定形式を工程版へ固定する。"""
-    policy={"instructions":REVIEW_INSTRUCTIONS,"style":IMAGE_STYLE,"schema":review_schema("image_acceptable",True),'diagnostics_version':1}
+    policy={"instructions":REVIEW_INSTRUCTIONS,"scope":IMAGE_REVIEW_SCOPE,"style":IMAGE_STYLE,"schema":review_schema("image_acceptable",True),'diagnostics_version':1}
     return hashlib.sha256(json.dumps(policy,ensure_ascii=False,sort_keys=True,separators=(",", ":")).encode()).hexdigest()
+
+
+IMAGE_REVIEW_SCOPE=('保存前のこの段階で、献立foodsにある食品の種類を個別に実画像へ突合する。'
+    '同じ料理内に似た食品が複数ある場合も、ひとまとめの名称が見えるだけで全種類を確認済みにしない。'
+    '特定の種類が識別不確実なら食品番号とuncertainを記録してholdにする。'
+    '混ざった調味料や油、写真だけから正確なg/mlを計量できないこと自体を不一致とはしない。'
+    '元の食品を削除したり、未確認の食品を存在すると補完したりして合格にしない。')
 
 
 def object_schema(properties):
@@ -217,6 +224,7 @@ class OpenAIClient:
             context['planned_meal'] = {key:value for key,value in meal.items() if key != 'estimated_calories'}
             instructions += '\n' + MEAL_REVIEW_SCOPE
             context['publication_context'] = publication_context(api_response)
+        else:instructions += '\n' + IMAGE_REVIEW_SCOPE
         content = [{"type": "input_text", "text": json.dumps(context, ensure_ascii=False)},
                    {"type": "input_image", "image_url": "data:image/jpeg;base64," + base64.b64encode(raw).decode("ascii"), "detail": "high"}]
         result = self.structured(instructions, content, review_schema(positive,True), "mina_independent_review",

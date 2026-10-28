@@ -1,0 +1,29 @@
+{
+  "head": "11c16c46c242aad579fc19de105d9ac17846b9c4",
+  "pr": 158,
+  "typecheck": "passed",
+  "focused_cleanup_checks": 19,
+  "diagnostic_checks": "passed",
+  "required_qa": "passed_combined_prefix_and_resumed_suffix",
+  "initial_failure": "vm_dependency_mock_missing",
+  "independent_review": "Go",
+  "preview": "pending",
+  "production": "OFF_unchanged",
+  "production_writes": 0,
+  "actual_old_fixture_cleanup": 0,
+  "local_external_calls": 0,
+  "logs": [
+    {
+      "name": "cleanup-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "cleanup-test-qa.log",
+      "sha256": "bd5c5143b4b04f8f101ce5d0d24e1e7085b65e9fbdb1dcb5bb360604c7ce1ea1"
+    },
+    {
+      "name": "cleanup-qa-resume.log",
+      "sha256": "7e4e41395cd318912f56bf1a3506088c767233a4c58d7f6c423bd9d152e4df8e"
+    }
+  ]
+}

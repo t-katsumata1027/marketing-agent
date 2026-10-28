@@ -168,7 +168,9 @@ class Store:
                 c = Candidate(**json.loads(row["payload"]))
                 timing = ('本人指定：本日の' + LABELS[c.slot] + 'は承認後に臨時公開（受付期限 JST '
                           + c.scheduled_at.astimezone(JST).strftime('%H:%M') + '）') if (c.approval_source or {}).get('publish_after_approval_until') else f'JST {c.scheduled_at.astimezone(JST):%H:%M}'
-                card = {"content": f"━━━━━━━━━━━━━━━━━━━━\n**{LABELS[c.slot]}｜{target_date}**\n投稿予定：{timing}\n━━━━━━━━━━━━━━━━━━━━\n\n{c.content}",
+                from .scoped_preparation import KEY,approval_notice
+                timing_label='提案時刻' if KEY in (c.approval_source or {}) else '投稿予定'
+                card = {"content": f"━━━━━━━━━━━━━━━━━━━━\n**{LABELS[c.slot]}｜{target_date}**\n{timing_label}：{timing}\n━━━━━━━━━━━━━━━━━━━━\n\n{c.content}",
                         "allowed_mentions": {"parse": []},
                         "embeds": [{"title": f"{LABELS[c.slot]}｜品質確認済みの候補", "description": c.menu,
                                     "fields": [{"name": "栄養の目安", "value": json.dumps(c.nutrition, ensure_ascii=False)},
@@ -179,6 +181,7 @@ class Store:
                 if c.approval_source and c.approval_source.get('ogp_image_url'):
                     card['embeds'][0]['image'] = {'url': c.approval_source['ogp_image_url']}
                     card['embeds'][0]['fields'].append({'name': '承認対象の版', 'value': c.digest[:16]})
+                approval_notice(card,c.approval_source)
                 db.execute("UPDATE candidates SET nonce_hash=? WHERE target_date=? AND slot=?", (hashlib.sha256(nonce.encode()).hexdigest(), target_date, row["slot"]))
                 db.execute("INSERT INTO notices(target_date,slot,revision,kind,payload,created) VALUES(?,?,?,'approval',?,?)", (target_date, row["slot"], row["revision"], json.dumps(card, ensure_ascii=False), timestamp))
                 issued.append(card)
@@ -266,7 +269,8 @@ class Store:
             self.expire_due(db,now,grace_seconds)
             rows = db.execute("""SELECT * FROM candidates c WHERE state='approved' AND scheduled<=? AND scheduled>=?
                 AND NOT EXISTS(SELECT 1 FROM publication_retries r WHERE r.target_date=c.target_date AND r.slot=c.slot AND r.revision=c.revision AND r.next_at>?) ORDER BY scheduled""", (ts, ts - grace_seconds,ts)).fetchall()
-            rows = [row for row in rows if not held(db, row['target_date'])]
+            from .scoped_preparation import blocked
+            rows = [row for row in rows if not held(db, row['target_date']) and not blocked(json.loads(row['payload']))]
             for row in rows:
                 db.execute("UPDATE candidates SET state='dispatching',dispatch_started=? WHERE target_date=? AND slot=?", (ts, row["target_date"], row["slot"]))
                 self.audit.emit('publication',row['target_date'],row['slot'],row['revision'],'preparation','started',
@@ -278,10 +282,11 @@ class Store:
         ts = instant(now).timestamp()
         with self.transaction() as db:
             self.expire_due(db,now,grace_seconds)
-            rows = db.execute("""SELECT target_date FROM candidates c WHERE state='approved' AND scheduled BETWEEN ? AND ?
+            rows = db.execute("""SELECT target_date,payload FROM candidates c WHERE state='approved' AND scheduled BETWEEN ? AND ?
                 AND NOT EXISTS(SELECT 1 FROM publication_retries r WHERE r.target_date=c.target_date AND r.slot=c.slot AND r.revision=c.revision AND r.next_at>?)""",
                               (ts-grace_seconds, ts,ts)).fetchall()
-            return any(not held(db, row['target_date']) for row in rows)
+            from .scoped_preparation import blocked
+            return any(not held(db, row['target_date']) and not blocked(json.loads(row['payload'])) for row in rows)
 
     def expire_due(self,db,now,grace_seconds):
         rows=db.execute("SELECT * FROM candidates WHERE state IN ('approval_pending','approved') AND scheduled<?",(instant(now).timestamp()-grace_seconds,)).fetchall()
@@ -414,6 +419,10 @@ class Store:
         prefix=previous.split(':')[0]
         step=previous if prefix==stage or parents.get(prefix)==stage else stage
         reason,details=safe_failure(error)
+        if reason in ('external_dispatch_present','external_dispatch_unverified','external_inventory_incomplete','external_inventory_stale',
+                      'replacement_source_incomplete','replacement_preflight_busy','replacement_quality_hold_required'):
+            pieces=step.split(':')
+            step='replacement_preflight:'+pieces[1] if len(pieces)>1 else 'replacement_preflight'
         from .x_text import PostLengthError
         if isinstance(error,PostLengthError):step='candidates:'+error.slot
         if isinstance(error,QualityHold):
@@ -422,7 +431,7 @@ class Store:
             status,reasons='stopped',('deadline_exceeded',)
         else:
             from .clients import OutcomeUnknown
-            status='stopped' if not isinstance(error,OutcomeUnknown) and step.split(':')[0] in ('source_state','source_request') else 'reconciliation_required'
+            status='stopped' if not isinstance(error,OutcomeUnknown) and step.split(':')[0] in ('source_state','source_request','replacement_preflight') else 'reconciliation_required'
             from .preparation_status import REASONS
             reasons=(reason,) if reason in REASONS else ('unconfirmed',)
         event_stage,slot=step_context(step)

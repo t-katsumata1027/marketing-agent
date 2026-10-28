@@ -58,6 +58,9 @@ class InstagramCandidate:
 
     @property
     def scheduled_at(self):
+        from .scoped_preparation import proposed
+        preparation=proposed(self.source,self.target_date)
+        if preparation is not None:return preparation
         return slot_time(date.fromisoformat(self.target_date), self.slot)
 
     @property

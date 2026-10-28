@@ -28,7 +28,11 @@ class ReplacementCoordinator:
 
     def resume(self,target):
         # 再起動時にbeginや送信を繰り返さない。終端照会後の未送信工程だけを続行する。
-        self.flow.reconcile(target)
+        e=self.flow.episode(target)
+        if e['stage']=='checking':self.flow.resume_checking(target)
+        elif all(e.get(k) is None for k in ('prepare_uuid','discard_uuid','commit_uuid')):
+            return {'target_date':target,'state':'held:replacement','stage':e['stage'],'reason':e['reason']}
+        else:self.flow.reconcile(target)
         return self.advance(target)
 
     def refresh_approvals(self,target,verify):
@@ -68,6 +72,27 @@ def build_coordinator(store,directory,draft,saved,evidence,commit,host,ai,drive,
     ports=PreparationPorts(ai,drive,draft,saved,ports_path,clock)
     client=ReplacementClient(meal.base,meal.token,decoder=contract.decode,clock=clock,write_authorized=True)
     flow=ReplacementFlow(store,client,policy,inventory,ports,clock)
+    def inspect_composition(target):
+        from .m1_contract import validate_state
+        observed=meal.day_state(target);validate_state(observed,target,clock())
+        if len(observed['meals'])!=3 or {v['meal']['meal_type'] for v in observed['meals']}!={'breakfast','lunch','dinner'}:
+            raise ValueError('replacement_source_incomplete')
+    flow.inspect_composition=inspect_composition
+    from .replacement_collection import Collection
+    def admit_collection():
+        # 完全な既存日のGETは提供側設定の読取にのみ使用し、対象日の期限・版へ転用しない。
+        from .domain import JST
+        today=clock().astimezone(JST).date().isoformat()
+        observed=contract.preconditions(client.preconditions(today),today)
+        p=observed['policy'];c=observed.get('circuit')
+        if (not policy.waived or p.get('analysis_provider')!='gemini'
+                or p['policy_version']!=policy.policy['policy_version'] or p['budget_policy_digest']!=policy.policy_digest
+                or p.get('cost_control')!={'mode':'waived','approval_reference_digest':policy.policy['approval_reference_digest']}
+                or p['budget_configured'] is not False
+                or set(p['blocking_reasons'])-{'deadline_unverified','deadline_exceeded','replan_limit_exceeded'}
+                or not c or c['state']!='closed' or c['recovery_required']):raise ValueError('replacement_policy_unverified')
+    # 3食完成日の元hold証明は収集OFFでも行い、書込みの許可とは分離する。
+    flow.collect_missing=Collection(store,directory,draft,saved,meal,ai,host,policy,inventory,clock,admit_collection)
     rebuilder=ReplacementRebuilder(store,meal,ai,drive,Path(directory).parent,settings['instagram_directory'],evidence,commit,host,clock,
         api=api,ports_directory=ports_path,instagram_enabled='instagram' in settings['policy']['required_channels'])
     with store.transaction() as db:
@@ -113,25 +138,31 @@ def maintain(store,clock,*,factory=None):
             ctx=json.loads(e['context'])
             if factory:coordinator=factory(ctx)
             else:
-                from .clients import MealClient
+                from .clients import preparation_client
                 from .codex_client import generation_client
                 from .drive import DriveClient
                 # 期限後・承認待ちの確認では生成器を作らず、GET専用のクライアントを使う。
                 readonly=e['stage']=='new_bundle_pending_approval' or now.timestamp()>=e['deadline']
                 coordinator=build_coordinator(store,ctx['directory'],ctx['draft'],ctx['saved'],ctx['evidence'],ctx['commit'],ctx['host'],
                     None if readonly else generation_client(),None if readonly else DriveClient.from_env(),
-                    MealClient(os.getenv('MINA_MEAL_API_BASE_URL',''),os.getenv('MINA_AGENT_API_TOKEN','')),clock)
+                    preparation_client(os.getenv('MINA_MEAL_API_BASE_URL',''),os.getenv('MINA_AGENT_API_TOKEN','')),clock)
             if e['stage']=='new_bundle_pending_approval':
                 coordinator.refresh_approvals(target,coordinator.rebuild.verify_readonly)
                 outcome={'state':'approval_checked'}
             elif now.timestamp()>=e['deadline']:
-                coordinator.flow.reconcile(target);outcome={'state':'held:deadline'}
+                no_request=all(k in e and e[k] is None for k in ('prepare_uuid','discard_uuid','commit_uuid'))
+                if e['stage']!='checking' and not no_request:coordinator.flow.reconcile(target)
+                outcome={'state':'held:deadline'}
             else:outcome=coordinator.resume(target)
             if outcome.get('state')=='approval_pending':store.preparation_done(target)
             outcomes.append({'target_date':target,**outcome})
-        except Exception:
+        except Exception as error:
             # 認証、UUID、原文を表示せず、保護台帳の既存工程記録から調査する。
-            store.audit.emit('creation',target,None,None,'reconciliation','held','outcome_unknown',now=clock())
+            reason=getattr(error,'audit_reason',None)
+            fixed={'external_dispatch_present','external_dispatch_unverified','external_inventory_incomplete','external_inventory_stale',
+                   'replacement_source_incomplete','replacement_preflight_busy','replacement_quality_hold_required'}
+            if reason in fixed:store.record_preparation_failure(target,'registration',error,clock())
+            else:store.audit.emit('creation',target,None,None,'reconciliation','held','outcome_unknown',now=clock())
             outcomes.append({'target_date':target,'state':'held:replacement_lookup'})
     return outcomes
 

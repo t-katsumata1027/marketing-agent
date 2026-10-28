@@ -1,5 +1,23 @@
 # サブPCでの開発
 
+## 2026年10月28日14時台・②承認後も本体ON release gate未合格、食事/投稿未操作
+
+本人②承認で管理担当と連携し、same case/P/15:00とcase初回+15分/原本5件/限定executorを固定・独立Go取得した。サービスONと権限発行の混同は未実行のまま訂正。ON run40626952820 attempt1はprovider管理GET500、診断/独立Go後の正式failed-job attempt2はCore72成功だがcleanup=falseで最終未合格。Production/postdeployはskip。担当はDoppler0/Production metadata復帰と旧OFF Deploymentを確認。14:02の管理READ ONLYでもcases0/未完了0。Agentは1c5224b6・救済OFF/同hold/旧期限/UUID保持、新case/PDC/生成解析/食事変更/Discord候補/SNS0。原本一覧と未実行executorを保護領域に保存し、第三回・QA迂回・期限延長をしない。本体担当のQA限定修正計画は独立Goだが実装未承認。詳細はMINA_SCOPED_EXECUTION_20261028.md、依頼文はLOGEATS_QA_CLEANUP_REQUEST_20261028.md。今日の投稿案復旧は未完了。
+
+
+## 2026年10月28日11:50・遅延準備専用Agentを配置、救済OFF
+
+本人①承認で1c5224b6を最終CI40622843938（Mina702成功/71skip・一般32成功）、実HTTP20/局所55/独立5/専用UID Linux90成功・独立Go後に配置。切替71表全行同一、追加5台帳は空、配置後業務19表保持・3service/5timer・巡回live/失敗0。新旧救済OFF/新config未設定を実processで確認。退避/var/lib/mina-agent/deployment-review-recovery-scoped-1c5224b6、旧コード/opt/marketing-agent-rollback-review-scoped-1c5224b6。本体f4aee73固定受入・Schema同一。準備専用は実行承認原本へ束縛し、永続公開禁止で全承認・marker削除・通常hold解除後も送信を拒否する。実課金/権限発行/食事変更/Discord・SNS0、当日候補/試行0、hold1/旧期限/UUID保持。②の15:00絶対終了候補は未承認。詳細はMINA_SCOPED_PREPARATION_20261028.mdと独立レビュー、SCOPED_LATE_DEPLOYMENT.json。
+
+
+## 2026年10月27日20:37・native保留と通知巡回の最終補修
+
+最終a34005ef、CI40497133180・Linux103・独立Go。切替71表同一/DB移行なし、既存業務19表保持、3service/5timer active、実巡回live/失敗0。通常の将来日不足枠収集ON・当日救済OFFを実processで照合。退避は/var/lib/mina-agent/deployment-review-recovery-a34005ef、旧コードは/opt/marketing-agent-rollback-review-a34005ef。28日はM1朝昼夕保存/朝夕点検済、昼画像保留・実1799.4kcal・旧20時失効を保持し、PDC/試行/候補0。救済v2の朝食制約を迂回せず、昼救済の担当調査依頼は送信済み、回答・新契約待ち。MINA_PREPARATION_RECOVERY_20261028.md最終追記を参照。
+
+## 2026年10月27日19:45・将来日UUID前確認の再開を配置、収集OFF
+
+固定5c19f4d9・CI40490523987・Linux90件・独立Go。コード切替時61表同一、DB移行なし、既存業務52表保持、3サービス/5timer active。MINA_REPLACEMENT_COLLECTION_ENABLED=falseと当日救済OFFを実プロセスで確認。退避は/var/lib/mina-agent/deployment-review-recovery-5c19f4d9、旧コードは/opt/marketing-agent-rollback-review-5c19f4d9。10/28の朝昼M1要求4件を保持、夕未登録・候補未完成。外部の日時不明IG draft4件削除は本人承認待ちで、収集有効化・追加食事/置換/公開は未実行。MINA_PREPARATION_RECOVERY_20261028.mdを参照。
+
 ## 2026年10月27日01:35・Instagram準備継続と通常CLI有限再試行を配置
 
 稼働fde12d64a63fc94683e1ecac272d5c60f675243c、CI40359655087/秘密なしLinux54/最終独立Go。退避/var/lib/mina-agent/deployment-review-recovery-fde12d64、旧コード/opt/marketing-agent-rollback-review-fde12d64。旧40表行不変、新空instagram_preparations/eventsの2表を追加。3サービス/5timer・実子プロセスのcommit/救済OFF/UTM/通常置換とIGの既存4スイッチtrue保持、新巡回失敗0。IG候補4本人承認済み/Discord4件sent・8公開実体再検証、IG投稿要求0。通常catch_upは20:10〜朝食前、外部不明claimの自動解放なし。CLI retryは通常翌日だけ、managed予算内は従来1回。detailsはMINA_INSTAGRAM_CONTINUITY_20261027.md。
