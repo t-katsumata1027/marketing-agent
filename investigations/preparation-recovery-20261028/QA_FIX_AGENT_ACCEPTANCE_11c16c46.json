@@ -1,0 +1,153 @@
+{
+  "agent_code": "1c5224b6d0fe1670ee9b874b08688eeac42da12f",
+  "provider_old": "f4aee73ecc9ad2c784c6196fb4d04009812037d6",
+  "provider_pr_head": "11c16c46c242aad579fc19de105d9ac17846b9c4",
+  "provider_ci_head": "64590d84a982f9269a29266f576dc7179ddace1c",
+  "provider_ci_tree": "e952c120fcdc76939d74984ce2855f2582428657",
+  "ci_head_changed_paths_from_tested_head": [
+    "docs/qa/QA_FIXTURE_TERMINAL_CLEANUP_20261028.md",
+    "scripts/test-mina-m1-qa-general-cleanup.ts"
+  ],
+  "runtime_and_schema_unchanged_after_tested_head": true,
+  "provider_pr": "https://github.com/t-katsumata1027/LogEats/pull/158",
+  "mina_runtime_changed_paths": [],
+  "schema_sha256": "baf76695c55298cd97fe8b24fc488c3c164585c11ae735986da380c4e52397ab",
+  "test_source_sha256": "5ce4b559911697f91890a9fbeb6c2862c7a265b882256e5484341d54cbb0a675",
+  "harness": "agent-scoped-rescue-http-v3",
+  "harness_sha256": "63cee493860477e69c1958fa07343373f7465248bd5b0031088879a7df41e6f0",
+  "cases": [
+    {
+      "case": "test_actual_prepare_images_review_commit_and_saved_requery",
+      "calls": {
+        "analysis": 1,
+        "image": 1,
+        "render": 1,
+        "put": 1,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/84216b15-2d1b-463e-b94a-bc43d18bb9ea": 5,
+        "GET /api/internal/mina/rescue-v3/cases/84216b15-2d1b-463e-b94a-bc43d18bb9ea/preconditions": 4,
+        "POST /api/internal/mina/rescue-v3/candidates": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/98875397-b582-4c1b-8575-be716ff48ce8": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/98875397-b582-4c1b-8575-be716ff48ce8/images/original": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/98875397-b582-4c1b-8575-be716ff48ce8/images/stored": 1,
+        "POST /api/internal/mina/rescue-v3/commits": 1,
+        "GET /api/internal/mina/rescue-v3/commits/c6c67fe9-2b4b-4c40-8b40-06de123d7e24": 1
+      },
+      "history": 1,
+      "requests": 2,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_late_preparation_full_chain_never_releases_or_claims_even_after_approval",
+      "calls": {
+        "analysis": 1,
+        "image": 1,
+        "render": 1,
+        "put": 1,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 4,
+        "native_put": 4
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/state": 41,
+        "GET /api/internal/mina/meal-replacement-preconditions": 7,
+        "GET /api/internal/mina/rescue-v3/cases/3f82fa73-6c1e-4b5d-970c-dbb199bf6d96": 4,
+        "GET /api/internal/mina/rescue-v3/cases/3f82fa73-6c1e-4b5d-970c-dbb199bf6d96/preconditions": 4,
+        "POST /api/internal/mina/rescue-v3/candidates": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/7c78aa6e-880b-48df-b432-6730898c7bde": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/7c78aa6e-880b-48df-b432-6730898c7bde/images/original": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/7c78aa6e-880b-48df-b432-6730898c7bde/images/stored": 1,
+        "POST /api/internal/mina/rescue-v3/commits": 1,
+        "GET /api/internal/mina/rescue-v3/commits/2db31a85-a69c-44a7-adca-e041d5040447": 4,
+        "POST /api/internal/mina/daily-share": 1,
+        "GET /api/internal/mina/requests/ae55aa89-7144-4e2e-bbb1-d4caadc5c126": 4,
+        "GET /api/internal/mina/requests/e92e4016-dad7-413b-b396-e20fc959f6f9": 3,
+        "GET /api/internal/mina/requests/a365e5bd-41c6-47a1-bac9-a51e1a9fd7b7": 3
+      },
+      "history": 1,
+      "requests": 2,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_prepare_response_loss_uses_only_original_uuid_get",
+      "calls": {
+        "analysis": 1,
+        "image": 1,
+        "render": 0,
+        "put": 0,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/c8b58561-bf5f-4cb6-aca6-5cc22d5a6759": 3,
+        "GET /api/internal/mina/rescue-v3/cases/c8b58561-bf5f-4cb6-aca6-5cc22d5a6759/preconditions": 2,
+        "POST /api/internal/mina/rescue-v3/candidates": 1,
+        "GET /api/internal/mina/rescue-v3/requests/dc9cd239-92e5-4ae3-8a89-c0a3e0839080": 1
+      },
+      "history": 0,
+      "requests": 1,
+      "external_network_attempts": 0
+    },
+    {
+      "case": "test_saved_ogp_failure_is_not_replaced_again",
+      "calls": {
+        "analysis": 1,
+        "image": 1,
+        "render": 1,
+        "put": 0,
+        "grant": 1,
+        "native_analysis": 3,
+        "native_render": 3,
+        "native_put": 3
+      },
+      "httpCounts": {
+        "GET /api/internal/mina/rescue-v3/cases/5a027f24-d91f-4b48-809c-c62a6083f1b4": 5,
+        "GET /api/internal/mina/rescue-v3/cases/5a027f24-d91f-4b48-809c-c62a6083f1b4/preconditions": 4,
+        "POST /api/internal/mina/rescue-v3/candidates": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/71613793-7723-40b7-b097-535ada0a10fc": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/71613793-7723-40b7-b097-535ada0a10fc/images/original": 1,
+        "GET /api/internal/mina/rescue-v3/candidates/71613793-7723-40b7-b097-535ada0a10fc/images/stored": 1,
+        "POST /api/internal/mina/rescue-v3/commits": 1
+      },
+      "history": 1,
+      "requests": 2,
+      "external_network_attempts": 0
+    }
+  ],
+  "tests_passed": 4,
+  "elapsed_seconds": 20.642,
+  "full_report_sha256": "07101751853838353f4621e02b7b408104900eb3b73bf50b211862edb609bb81",
+  "production_operations": 0,
+  "paid_generation_or_analysis": 0,
+  "agent_code_changed": false,
+  "agent_deployed": false,
+  "provider_e2e_status": "passed",
+  "provider_ci_url": "https://github.com/t-katsumata1027/LogEats/actions/runs/40648871128",
+  "official_report": {
+    "passed": 72,
+    "failed": 0,
+    "flaky": 0,
+    "skipped": 38,
+    "cleanup_verified": true,
+    "cleanup_users_remaining": 0,
+    "cleanup_fixture_runs_remaining": 0,
+    "local_requests": 6689,
+    "local_write_requests": 215,
+    "remote_heavy_qa_requests": 0,
+    "preview_get_requests": 3,
+    "preview_write_requests": 0,
+    "qa_provider_calls": "not_separately_metered",
+    "runtime_sha256": "a2c8685ce8a6f5662ded926e88d1f6c3bed0f5534e0a1cc7b6d553afed0d6563",
+    "preview_sha256": "c4dd88179ab41f4598bc8cbd10f19d9a5727e56bc872491bce9f5052b9774459",
+    "html_report_sha256": "6ec6fa5b90e6b485e2967e2cb3543436e314ffe949ef0fcb68a1215838bca73f"
+  },
+  "new_execution_window_approved": false
+}

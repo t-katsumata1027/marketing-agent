@@ -1,5 +1,13 @@
 # みな運用の実装・サブPC配置状況
 
+## 2026年10月28日17時台・QA修正の正式CI/回収/Preview成功、次の本番・新窓承認待ち
+
+Log-Eats担当のDraft PR158/head64590d84/tree e952c120は公式Product QA40648871128とSEO成功。Core72成功/0失敗/0flaky/予定skip38、回収users0/mapping0・cleanup_verified=true、専用Preview3GET/書込0を公式artifact実取得でAgent側も確認。局所19件/型/必須QA/M1回帰/独立コードGo、Agent実HTTP4経路成功・本番Mina/Schema不変。g02原本4件SHA一致、正規反映/ON/失敗時OFF復旧案と新19時/初回有効化15分最短の準備専用案は独立計画Go。旧QA users2/mapping0は未回収保持。Agent1c5224b6/本番救済OFF、旧15時失効・新窓未承認、本番反映/権限/有料生成/食事/Discord候補/SNS操作0。今日の復旧は未完了。次①本体固定tree反映+ON+切戻し、②別名原本/operator検証後の新窓昼食救済→X4IG4/Discordを具体的承認案として提示する。詳細MINA_QA_FIX_AGENT_ACCEPTANCE_20261028.mdと計画レビュー受領記録。
+
+## 2026年10月28日16時台・本体QA限定修正を依頼、Agent互換4経路成功
+
+本人承認をLog-Eats担当へ送信し、担当がDraft PR158を作成。局所回収19件/診断/型/必須QAの前半＋停止箇所からの再開後半が成功し、独立コードレビューGo。Agent担当は本体を編集せず、固定11c16c46実ハンドラーのlocalhost HTTP4経路を実行して全件成功・外部通信0・本番操作0。本番Mina/Schema不変。公式CI40647721202は旧静的試験名参照でE2E前停止。最小試験追従のみの64590d84で更新CI40648871128進行中、専用Previewと回収成功は未確定。Agent1c5224b6/本体救済OFF、旧15時枠失効、権限/有料生成/食事操作/候補送付/SNS0。最終検証後に本番反映・再ON・別名原本operator・新時間窓を別承認として提示する。詳細MINA_QA_FIX_AGENT_ACCEPTANCE_20261028.md。
+
 ## 2026年10月28日14時台・②承認後も本体ON release gate未合格、食事/投稿未操作
 
 本人②承認で管理担当と連携し、same case/P/15:00とcase初回+15分/原本5件/限定executorを固定・独立Go取得した。サービスONと権限発行の混同は未実行のまま訂正。ON run40626952820 attempt1はprovider管理GET500、診断/独立Go後の正式failed-job attempt2はCore72成功だがcleanup=falseで最終未合格。Production/postdeployはskip。担当はDoppler0/Production metadata復帰と旧OFF Deploymentを確認。14:02の管理READ ONLYでもcases0/未完了0。Agentは1c5224b6・救済OFF/同hold/旧期限/UUID保持、新case/PDC/生成解析/食事変更/Discord候補/SNS0。原本一覧と未実行executorを保護領域に保存し、第三回・QA迂回・期限延長をしない。本体担当のQA限定修正計画は独立Goだが実装未承認。詳細はMINA_SCOPED_EXECUTION_20261028.md、依頼文はLOGEATS_QA_CLEANUP_REQUEST_20261028.md。今日の投稿案復旧は未完了。

@@ -1,0 +1,211 @@
+{
+  "reports": [
+    {
+      "stats": {
+        "total": 110,
+        "expected": 72,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 38,
+        "ok": true
+      },
+      "rescue_cases": [
+        {
+          "contract_file": "mina-dated-rescue.spec.ts",
+          "scenario": "commit",
+          "project": "desktop-chromium",
+          "outcome": "expected"
+        },
+        {
+          "contract_file": "mina-dated-rescue.spec.ts",
+          "scenario": "discard",
+          "project": "desktop-chromium",
+          "outcome": "expected"
+        },
+        {
+          "contract_file": "mina-dated-rescue.spec.ts",
+          "scenario": "expiry",
+          "project": "desktop-chromium",
+          "outcome": "expected"
+        },
+        {
+          "contract_file": "mina-dated-rescue.spec.ts",
+          "scenario": "unknown",
+          "project": "desktop-chromium",
+          "outcome": "expected"
+        },
+        {
+          "contract_file": "mina-dated-rescue.spec.ts",
+          "scenario": "commit",
+          "project": "mobile-chromium",
+          "outcome": "skipped"
+        },
+        {
+          "contract_file": "mina-dated-rescue.spec.ts",
+          "scenario": "discard",
+          "project": "mobile-chromium",
+          "outcome": "skipped"
+        },
+        {
+          "contract_file": "mina-dated-rescue.spec.ts",
+          "scenario": "expiry",
+          "project": "mobile-chromium",
+          "outcome": "skipped"
+        },
+        {
+          "contract_file": "mina-dated-rescue.spec.ts",
+          "scenario": "unknown",
+          "project": "mobile-chromium",
+          "outcome": "skipped"
+        },
+        {
+          "contract_file": "mina-meal-rescue.spec.ts",
+          "scenario": "commit",
+          "project": "desktop-chromium",
+          "outcome": "expected"
+        },
+        {
+          "contract_file": "mina-meal-rescue.spec.ts",
+          "scenario": "discard",
+          "project": "desktop-chromium",
+          "outcome": "expected"
+        },
+        {
+          "contract_file": "mina-meal-rescue.spec.ts",
+          "scenario": "expiry",
+          "project": "desktop-chromium",
+          "outcome": "expected"
+        },
+        {
+          "contract_file": "mina-meal-rescue.spec.ts",
+          "scenario": "unknown",
+          "project": "desktop-chromium",
+          "outcome": "expected"
+        },
+        {
+          "contract_file": "mina-meal-rescue.spec.ts",
+          "scenario": "commit",
+          "project": "mobile-chromium",
+          "outcome": "skipped"
+        },
+        {
+          "contract_file": "mina-meal-rescue.spec.ts",
+          "scenario": "discard",
+          "project": "mobile-chromium",
+          "outcome": "skipped"
+        },
+        {
+          "contract_file": "mina-meal-rescue.spec.ts",
+          "scenario": "expiry",
+          "project": "mobile-chromium",
+          "outcome": "skipped"
+        },
+        {
+          "contract_file": "mina-meal-rescue.spec.ts",
+          "scenario": "unknown",
+          "project": "mobile-chromium",
+          "outcome": "skipped"
+        },
+        {
+          "contract_file": "mina-scoped-rescue.spec.ts",
+          "scenario": "commit",
+          "project": "desktop-chromium",
+          "outcome": "expected"
+        },
+        {
+          "contract_file": "mina-scoped-rescue.spec.ts",
+          "scenario": "discard",
+          "project": "desktop-chromium",
+          "outcome": "expected"
+        },
+        {
+          "contract_file": "mina-scoped-rescue.spec.ts",
+          "scenario": "expiry",
+          "project": "desktop-chromium",
+          "outcome": "expected"
+        },
+        {
+          "contract_file": "mina-scoped-rescue.spec.ts",
+          "scenario": "unknown",
+          "project": "desktop-chromium",
+          "outcome": "expected"
+        },
+        {
+          "contract_file": "mina-scoped-rescue.spec.ts",
+          "scenario": "commit",
+          "project": "mobile-chromium",
+          "outcome": "skipped"
+        },
+        {
+          "contract_file": "mina-scoped-rescue.spec.ts",
+          "scenario": "discard",
+          "project": "mobile-chromium",
+          "outcome": "skipped"
+        },
+        {
+          "contract_file": "mina-scoped-rescue.spec.ts",
+          "scenario": "expiry",
+          "project": "mobile-chromium",
+          "outcome": "skipped"
+        },
+        {
+          "contract_file": "mina-scoped-rescue.spec.ts",
+          "scenario": "unknown",
+          "project": "mobile-chromium",
+          "outcome": "skipped"
+        }
+      ]
+    }
+  ],
+  "local-runtime-measurement.json": {
+    "status": "passed",
+    "runtime": "runner_local",
+    "local_requests": 6689,
+    "local_write_requests": 215,
+    "remote_heavy_qa_requests": 0,
+    "cleanup_verified": true,
+    "replacement_diagnostics": [],
+    "cleanup_diagnostics": [],
+    "cleanup_diagnostics_dropped": 0,
+    "cleanup_readback": {
+      "status": "cleanup_verified",
+      "users": 0,
+      "fixture_runs": 0
+    }
+  },
+  "platform-smoke-measurement.json": {
+    "status": "passed",
+    "vercel_smoke_requests": 3,
+    "vercel_write_requests": 0
+  },
+  "head": "64590d84a982f9269a29266f576dc7179ddace1c",
+  "tree": "e952c120fcdc76939d74984ce2855f2582428657",
+  "pr": 158,
+  "run": 40648871128,
+  "conclusion": "success",
+  "seo_run": 40648871130,
+  "seo": "success",
+  "typecheck": "passed",
+  "focused_cleanup_checks": 19,
+  "diagnostic_checks": "passed",
+  "required_qa": "passed",
+  "m1_suite": "passed",
+  "independent_code": "Go",
+  "production": "OFF_unchanged",
+  "old_root": {
+    "owned_users": 2,
+    "mappings": 0,
+    "read_only_verified": true,
+    "cleanup_writes": 0
+  },
+  "new_root": {
+    "owned_users": 0,
+    "mappings": 0,
+    "read_only_verified": true
+  },
+  "external_counts": {
+    "local_and_agent_focused_paid_external_calls": 0,
+    "official_ci_qa_provider_calls": "not_separately_metered",
+    "production_meal_operations": 0
+  }
+}

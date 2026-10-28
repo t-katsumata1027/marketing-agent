@@ -21,3 +21,9 @@ src/mina/contracts/rescue_v3/* -text whitespace=cr-at-eol,-blank-at-eof
 
 investigations/preparation-recovery-20261028/logeats-qa-cleanup-plan-20261028-g01.md -text
 investigations/preparation-recovery-20261028/logeats-qa-cleanup-independent-review-20261028-g01.md -text
+investigations/preparation-recovery-20261028/logeats-qa-cleanup-code-review-20261028-g01.md -text whitespace=cr-at-eol,-blank-at-eof
+investigations/preparation-recovery-20261028/logeats-qa-cleanup-execution-20261028-g01.json -text whitespace=cr-at-eol,-blank-at-eof
+investigations/preparation-recovery-20261028/logeats-qa-cleanup-code-review-20261028-g02.md -text whitespace=cr-at-eol,-blank-at-eof
+investigations/preparation-recovery-20261028/logeats-qa-cleanup-execution-20261028-g02.json -text whitespace=cr-at-eol,-blank-at-eof
+investigations/preparation-recovery-20261028/logeats-qa-cleanup-release-plan-20261028-g02.md -text whitespace=cr-at-eol,-blank-at-eof
+investigations/preparation-recovery-20261028/logeats-qa-cleanup-release-review-20261028-g02.md -text whitespace=cr-at-eol,-blank-at-eof
