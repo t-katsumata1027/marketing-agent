@@ -1,0 +1,68 @@
+{
+  "file": "/var/lib/mina-agent/scoped-prepare-20261028/execution-held.json",
+  "sha256": "021f9c99208adfa3b420a2ab48a27b54ff4d5c55477fbf9f6b2d9b69fd9e2900",
+  "case_uuid": "b414b8f2-368c-4ad9-8beb-9ae867c5e36e",
+  "planned_prepare_uuid": "7251f4e7-597c-4320-a224-1d0a1089e25c",
+  "state": "not_executed_release_gate_failed",
+  "files": {
+    "agent_acceptance.json": {
+      "sha256": "fc64959b96ee6942dec633bc6c4b103732f1ea352c4a05676f9989995fe61b51",
+      "bytes": 603,
+      "mode": "0o600"
+    },
+    "deployment_approval.json": {
+      "sha256": "295c2f87e6eaf17dabeb3d53650ffd2421b7a61bff1daf4324d7c6842578fa75",
+      "bytes": 638,
+      "mode": "0o600"
+    },
+    "execution_approval.json": {
+      "sha256": "268e74b95c589064d780f52dce6d4d04a2df7ede90527a948a7ce5c291e0d0c3",
+      "bytes": 1318,
+      "mode": "0o600"
+    },
+    "executor-v2.py": {
+      "sha256": "8d56a29539d91e3ff2672d405ca4c84ae7cca36a6223405f98e03d4da953f97f",
+      "bytes": 16271,
+      "mode": "0o600"
+    },
+    "executor.py": {
+      "sha256": "0145524a287300e70dcd9c9f854cf558e5d1fd902564d13961cd00f539064e73",
+      "bytes": 16201,
+      "mode": "0o600"
+    },
+    "implementation_review.json": {
+      "sha256": "abcdb1e46f36b4fe8fce8700b3f57be257296c5ce34d259123dc7f6b8e80afa5",
+      "bytes": 662,
+      "mode": "0o600"
+    },
+    "independent-operator-review.md": {
+      "sha256": "c1703c2a44b54981def3bd3c2610fe08df210e4c3e6fc2b668d5fea6976326a3",
+      "bytes": 4317,
+      "mode": "0o600"
+    },
+    "native-anchors-20261028-g01.json": {
+      "sha256": "0f2ab7f359186e5ba41e54cdbb9a709631f418bc25bb2dcb89a539e9787b2094",
+      "bytes": 3197,
+      "mode": "0o600"
+    },
+    "preflight.json": {
+      "sha256": "986ec8ff814310a26bcb5d1b24752143f99bec19e3535c503dac2636f1138086",
+      "bytes": 104067,
+      "mode": "0o600"
+    },
+    "provider_acceptance.json": {
+      "sha256": "83494014c5f43690ecfafb294d207a4d4f17b6d5ac0d45b32fac7c294283de85",
+      "bytes": 708,
+      "mode": "0o600"
+    },
+    "settings.json": {
+      "sha256": "4f5b014fef43d2d076866fe6b8ed62ef408f23f6eaf5f9f03992824168b26868",
+      "bytes": 2581,
+      "mode": "0o600"
+    }
+  },
+  "case_activated": false,
+  "provider_release_run": "40626952820",
+  "provider_attempts": 2,
+  "restored": false
+}
