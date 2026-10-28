@@ -17,6 +17,7 @@
 - native metadataは実画像の合格証明とは区別する。`read_started_at <= checked_at <= now < valid_until`、最長120秒、自己digest・3食正本/世代/解析/画像を照合する。
 - CLIは明示`--execute`または`--lookup`だけ。新5原本・private context実SHA・固定codeを検証する。管理協調からP/C、再点検/新版再承認候補、Discord8件まで一プロセスで接続する。serviceの救済OFFとSNS予約/公開禁止は維持する。
 - Discordはカードをpendingにする時点で「準備専用・公開停止中」「提案時刻」を固定する。送信開始後不明は保持し再送しない。入口失敗・期限切れ時も当日pendingだけを失効し、他日・sending/unknownは変えない。
+- 永続prepare_only lockの日の承認カードは、通常daemonのclaim対象からも外す。operatorがfinish直後に停止しても、期限後にdaemonが先行送信しない。期限checkpointを持つ限定operatorだけが既存の版・候補・hold照合を維持してclaimする。
 
 ## 独立レビューと検証
 
@@ -31,6 +32,8 @@
 - 実root/既存mina-agent UID995で、root原本読取、group書込/非root所有/symlink/置換可能親/領域外の拒否、Agentによるauthority置換拒否の7境界成功。業務接続/実課金0。`/run`の専用一時領域は削除。
 
 Windowsでのfile port結合はroot所有権検査だけを合成し、実UID検査とは分けている。本体handlerのDB/R2/AI/Drive/Discordは隔離fixture・合成応答であり、本番E2Eや実費測定ではない。
+
+固定30042ab5のCI40682139885は成功（Mina733成功/75skip・一般32成功）。CI merge treeと固定head treeの完全一致、382ファイル配布物/activation_allowed=falseも確認。固定head局所独立Go原本のSHAは81b5c83bd698ec25a2cff728064927d05bc609be2a6c96d8adeefbb0f0063c88。後続のdaemon通知フェンスは独立SQLite10条件・実HTTP2経路成功/局所差分Goを取得し、別固定版・最終CIへ進める。既存CI成功を後続未検証コードへ流用しない。
 
 ## 残件と次の承認
 

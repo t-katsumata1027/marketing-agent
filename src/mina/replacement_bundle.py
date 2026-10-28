@@ -48,8 +48,12 @@ def approval_allowed(db,target,channel,slot=None,revision=None,candidate_digest=
     if not rows:raise PublicationHeld()
     if slot is not None and not any(r['slot']==slot and (revision is None or r['revision']==revision) and (candidate_digest is None or r['digest']==candidate_digest) for r in rows):raise PublicationHeld()
 
-def notice_allowed(db,row,channel):
+def notice_allowed(db,row,channel,*,scoped_operator=False):
     try:
+        from .scoped_preparation import locked
+        # 準備専用日は、期限を検査する限定operatorだけが承認カードを送る。
+        # 常駐daemonに渡すと、operator停止・期限後にもpendingを送信し得る。
+        if locked(db,row['target_date']) and not scoped_operator:return False
         table='candidates' if channel=='x' else 'instagram_candidates'
         candidate=db.execute('SELECT * FROM '+table+' WHERE target_date=? AND slot=?',(row['target_date'],row['slot'])).fetchone()
         if not candidate or candidate['state']!='approval_pending' or candidate['revision']!=row['revision']:return False

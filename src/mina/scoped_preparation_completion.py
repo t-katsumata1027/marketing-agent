@@ -41,7 +41,7 @@ def _notify_once(flow,completed,client):
             with store.transaction() as db:
                 flow.checkpoint(db,saved=True)
                 records=db.execute('SELECT * FROM '+table+" WHERE target_date=? AND state='pending' AND kind='approval' ORDER BY id",(target,)).fetchall()
-                row=next((r for r in records if notice_allowed(db,r,channel)),None)
+                row=next((r for r in records if notice_allowed(db,r,channel,scoped_operator=True)),None)
                 if not row:break
                 payload=json.loads(row['payload'])
                 from .scoped_preparation import KEY,approval_notice

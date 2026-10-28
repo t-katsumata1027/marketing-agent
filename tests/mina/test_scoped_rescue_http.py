@@ -510,6 +510,12 @@ class ScopedRescueHttpTests(unittest.TestCase):
         self.assertTrue(finished['publication_hold']);self.assertFalse(finished['discord_sent'])
         if getattr(self,'refresh_pregrant',False):
             from src.mina.scoped_preparation_completion import notify_once
+            from src.mina.instagram_store import InstagramStore
+            # operatorの完了/失敗にかかわらず、常駐処理が先行してカードを送らない。
+            self.store.issue_cards(TARGET,self.now);ig=InstagramStore(self.store.path)
+            for row in ig.rows(TARGET):ig.queue_approval(row)
+            self.assertIsNone(self.store.claim_notice())
+            background=Mock();self.assertEqual(ig.send_notices(background),0);background.send.assert_not_called()
             if getattr(self,'expired_notification',False):
                 from src.mina.instagram_store import InstagramStore
                 from src.mina.scoped_preparation import APPROVAL_PREFIX
