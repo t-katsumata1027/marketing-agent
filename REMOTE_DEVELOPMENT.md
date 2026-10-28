@@ -1,5 +1,10 @@
 # サブPCでの開発
 
+## 2026年10月28日11:50・遅延準備専用Agentを配置、救済OFF
+
+本人①承認で1c5224b6を最終CI40622843938（Mina702成功/71skip・一般32成功）、実HTTP20/局所55/独立5/専用UID Linux90成功・独立Go後に配置。切替71表全行同一、追加5台帳は空、配置後業務19表保持・3service/5timer・巡回live/失敗0。新旧救済OFF/新config未設定を実processで確認。退避/var/lib/mina-agent/deployment-review-recovery-scoped-1c5224b6、旧コード/opt/marketing-agent-rollback-review-scoped-1c5224b6。本体f4aee73固定受入・Schema同一。準備専用は実行承認原本へ束縛し、永続公開禁止で全承認・marker削除・通常hold解除後も送信を拒否する。実課金/権限発行/食事変更/Discord・SNS0、当日候補/試行0、hold1/旧期限/UUID保持。②の15:00絶対終了候補は未承認。詳細はMINA_SCOPED_PREPARATION_20261028.mdと独立レビュー、SCOPED_LATE_DEPLOYMENT.json。
+
+
 ## 2026年10月27日20:37・native保留と通知巡回の最終補修
 
 最終a34005ef、CI40497133180・Linux103・独立Go。切替71表同一/DB移行なし、既存業務19表保持、3service/5timer active、実巡回live/失敗0。通常の将来日不足枠収集ON・当日救済OFFを実processで照合。退避は/var/lib/mina-agent/deployment-review-recovery-a34005ef、旧コードは/opt/marketing-agent-rollback-review-a34005ef。28日はM1朝昼夕保存/朝夕点検済、昼画像保留・実1799.4kcal・旧20時失効を保持し、PDC/試行/候補0。救済v2の朝食制約を迂回せず、昼救済の担当調査依頼は送信済み、回答・新契約待ち。MINA_PREPARATION_RECOVERY_20261028.md最終追記を参照。

@@ -32,3 +32,12 @@ scripts/deploy_mina_scoped_off.pyを使用。稼働a34005efを検査し、新旧
 提案表示は朝15:30・昼16:00・夕19:15・日次21:30。準備専用の表示であり、予約・公開はしない。後の実公開時刻/公開可への変換は別計画・承認とする。
 他2食native anchorは管理側の読取成果物として正本版/画像SHA/解析digest/OGP24hexへ束縛する。Agentへ管理資格を渡さない。新鮮な3食・全外部一覧/予約・不明費用・共通試行・期限・所有holdを再照合する。
 ②は新画像/解析/独立点検/Drive、単一権限/Pと必要時DまたはC、日次/OGP、準備候補とDiscord説明までを具体化する。旧朝夕再登録/再訂正・SNS公開は含めない。waivedは費用0を意味しない。
+
+
+## ①の完了結果
+
+固定1c5224b6d0fe1670ee9b874b08688eeac42da12fを2026-10-28 11:50 JSTに配置した。最終CI40622843938はMina773件中702成功/71skip、一般32成功。HTTP20、局所55、独立5、Linux専用UID90成功。独立レビューはコード/隔離/条件付きOFF配置Go。
+配布362ファイル/activation_allowed=false。配置operatorのGit LF SHAは984c08aaf2742607291de565448aefdda30b7ad057aea171353a56b86d59030d。初回の送信前SHA照合は作業CRLFとの差で停止し、本番変更0のまま独立確認後に配布LF版で実行した。
+切替時71表全行不変、新空5台帳のみ。配置後19業務表不変・当日候補/試行0・hold epoch1/held・旧期限/UUID保持。実3service/5timer・新巡回live/失敗0、新旧救済false/新config未設定を確認した。
+保護退避は/var/lib/mina-agent/deployment-review-recovery-scoped-1c5224b6、旧コードは/opt/marketing-agent-rollback-review-scoped-1c5224b6。
+本体変更・権限発行・実課金・食事変更・Discord/SNS送信は0。②の実行承認は未取得で、権限や時間窓を発行していない。

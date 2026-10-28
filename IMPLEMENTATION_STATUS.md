@@ -1,5 +1,10 @@
 # みな運用の実装・サブPC配置状況
 
+## 2026年10月28日11:50・遅延準備専用Agentを配置、救済OFF
+
+本人①承認で1c5224b6を最終CI40622843938（Mina702成功/71skip・一般32成功）、実HTTP20/局所55/独立5/専用UID Linux90成功・独立Go後に配置。切替71表全行同一、追加5台帳は空、配置後業務19表保持・3service/5timer・巡回live/失敗0。新旧救済OFF/新config未設定を実processで確認。退避/var/lib/mina-agent/deployment-review-recovery-scoped-1c5224b6、旧コード/opt/marketing-agent-rollback-review-scoped-1c5224b6。本体f4aee73固定受入・Schema同一。準備専用は実行承認原本へ束縛し、永続公開禁止で全承認・marker削除・通常hold解除後も送信を拒否する。実課金/権限発行/食事変更/Discord・SNS0、当日候補/試行0、hold1/旧期限/UUID保持。②の15:00絶対終了候補は未承認。詳細はMINA_SCOPED_PREPARATION_20261028.mdと独立レビュー、SCOPED_LATE_DEPLOYMENT.json。
+
+
 ## 2026年10月27日・v3 Agent統合を実装、隔離受入・独立レビュー中、本番未反映
 
 本人A承認によりv3専用adapter/所有台帳/原本封印/他2食receipt/個別RPC/Drive/日次/source verifierを実装した。Schema実SHA baf76695は同一、本体隔離参照は858e2bbbへ更新。実M1原本→native昼hold→実operator→P/2画像/実Drive→C→Flow.finish/新日次→4X4IG8画像→全source照合の通しと、case期限後/OFFの新版判断後RO照合を確認。OAuth秘密はDBへ残さずprocessing/not_savedは終端にしない。旧UUID・期限を保持して完成後のstageだけ通常の読取承認照合へ渡す。固定8a160e29の局所49成功・独立43成功/Go、配布358ファイル・無効化manifestを確認。最終CI待ち。10/28 00:06本番ROでもa34005ef/hold1/候補0/v3表なし、配置/実課金/登録/置換/Discord・SNS送信0。本体専用Previewと本番OGP24hex取得元は停止条件。詳細はMINA_SCOPED_RESCUE_IMPLEMENTATION_20261028.md。
