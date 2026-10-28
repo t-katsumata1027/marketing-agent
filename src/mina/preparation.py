@@ -38,6 +38,9 @@ class PreparationJournal:
                     raise ValueError("準備対象の版が変わっています。既存の外部状態を照合してください")
                 if previous["state"] == "complete":
                     return json.loads(previous["result"])
+                if previous['state'] == 'known_rejected':
+                    from .generation_receipts import rejection, GeneratedPlanRejected
+                    raise GeneratedPlanRejected(rejection(previous))
                 if previous['state']=='held':
                     held=json.loads(previous['result'])
                     raise QualityHold('保存済み工程の品質保留を保持しています',held['step'],held['reason_codes'])
@@ -48,7 +51,9 @@ class PreparationJournal:
             self.store.audit.emit('creation',target,slot,None,stage,'started',details={'step_sha256':digest},db=db)
         self.store.record_preparation_progress(target,step,step_status(step))
         try:
-            result = operation()
+            from .generation_receipts import operation as generation_operation
+            with generation_operation(target, step, digest):
+                result = operation()
             raw = json.dumps(result, ensure_ascii=False, allow_nan=False)
             if len(raw.encode("utf-8")) > 131072:
                 raise ValueError("工程結果が大きすぎます")
@@ -63,6 +68,16 @@ class PreparationJournal:
                 self.store.audit.emit('creation',target,slot,None,stage,'stopped','deadline_exceeded',db=db)
             raise
         except QualityHold as error:
+            from .generation_receipts import GeneratedPlanRejected, rejection
+            if isinstance(error, GeneratedPlanRejected):
+                receipt = error.receipt
+                rejection({'state': 'known_rejected', 'target_date': target, 'step': step,
+                    'digest': digest, 'result': json.dumps(receipt)})
+                with self.store.transaction() as db:
+                    db.execute("UPDATE preparation_steps SET state='known_rejected',result=? WHERE target_date=? AND step=? AND state='started'",
+                        (json.dumps(receipt), target, step))
+                    self.store.audit.emit('creation', target, slot, None, stage, 'held', error.audit_reason, db=db)
+                raise
             with self.store.transaction() as db:
                 db.execute("UPDATE preparation_steps SET state='held',result=? WHERE target_date=? AND step=? AND state='started'",
                     (json.dumps({'classification':'quality_hold','step':error.step,'reason_codes':error.reason_codes}),target,step))
@@ -82,7 +97,8 @@ def prepare_images(store, draft_path: Path, directory: Path, client, replacement
     draft = json.loads(draft_path.read_text(encoding="utf-8-sig"))
     if draft.get("state") != "draft_unreviewed":
         raise ValueError("未レビューの献立下書きが必要です")
-    validate_plan({"meals": draft["meals"], "daily_comment": draft["daily_comment"]})
+    from .menu_budget import validate_draft_plan
+    validate_draft_plan(draft,store)
     from datetime import date
     date.fromisoformat(draft["target_date"])
     target = draft["target_date"]

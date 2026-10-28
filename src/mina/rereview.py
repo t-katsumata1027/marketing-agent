@@ -24,7 +24,8 @@ def rereview_day(store, target, round_key, images, ai, client, host, output, clo
     source_commit = release_commit(root, source_commit)
     if draft.get('target_date') != target:
         raise ValueError('同じ対象日の献立資料が必要です')
-    validate_plan({'meals': draft['meals'], 'daily_comment': draft['daily_comment']})
+    from .menu_budget import validate_draft_plan
+    validate_draft_plan(draft,store)
     rows = store.list_day(target)
     if len(rows) != 4 or {row['slot'] for row in rows} != set(SLOTS):
         raise ValueError('同じ対象日の4候補が必要です')

@@ -18,8 +18,11 @@ def capture(store, precondition, owner, epoch, now, target, slot, case_uuid=None
         if not exists(db,'preparation_steps'):
             raise ValueError('rescue_origin_missing')
         steps=[dict(r) for r in db.execute('SELECT * FROM preparation_steps WHERE target_date=? ORDER BY step',(target,))]
-        if not steps or any(r['state'] not in ('complete','held') for r in steps):
+        if not steps or any(r['state'] not in ('complete','held','known_rejected') for r in steps):
             raise ValueError('rescue_origin_unresolved')
+        from .generation_receipts import rejection
+        for row in steps:
+            if row['state']=='known_rejected':rejection(row)
         rows=[dict(r) for r in db.execute('SELECT * FROM mina_requests WHERE target_date=? ORDER BY request_key',(target,))]
         if not rows or any(r['phase']!='complete' or json.loads(r['observation'] or '{}').get('persistence')!='saved' for r in rows):
             raise ValueError('rescue_origin_unresolved')
@@ -61,7 +64,7 @@ def capture(store, precondition, owner, epoch, now, target, slot, case_uuid=None
     for row in steps:
         if not row['step'].startswith(f'meal_replan:{slot}:'): continue
         number=row['step'].split(':')[-1]
-        if number not in ('1','2') or row['state']!='complete' or not 0<row['started']<=now.timestamp():
+        if number not in ('1','2') or row['state'] not in ('complete','known_rejected') or not 0<row['started']<=now.timestamp():
             raise ValueError('rescue_attempt_origin_invalid')
         result=json.loads(row['result'] or '{}')
         if not result or result.get('reservation_only'): raise ValueError('rescue_attempt_origin_invalid')

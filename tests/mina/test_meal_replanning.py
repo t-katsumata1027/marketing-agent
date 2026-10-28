@@ -19,7 +19,8 @@ class MealReplanningTests(unittest.TestCase):
                     context=json.loads(content)
                     changed=context['foods']['dinner'][1]['name']!='魚'
                     calls.append((flow[2].images,len(flow[4].calls)))
-                    return {'breakfast':[300,300],'lunch':[300,300],'dinner':[300,300] if changed else [200,200]}
+                    values={'breakfast':[300,300],'lunch':[300,300],'dinner':[300,300] if changed else [200,200]}
+                    return {slot:values[slot] for slot in context['foods']}
                 return structured(instructions,content,schema,name)
             flow[2].structured=estimate
             prepare()

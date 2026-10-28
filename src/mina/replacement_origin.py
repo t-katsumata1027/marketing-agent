@@ -95,6 +95,10 @@ def originals(db, target, slot, binding):
         raise ValueError('migration_unverified')
     for step in steps:
         if step['step'].startswith('meal_replan:' + slot + ':'):
+            if step['state']=='known_rejected':
+                from .generation_receipts import rejection
+                rejection(step)
+                continue
             value=json.loads(step['result'] or '{}')
             if not value.get('reservation_only'):
                 # 旧再計画は提案原本と対象日を保持する。工程名だけの復元を認めない。
@@ -102,8 +106,8 @@ def originals(db, target, slot, binding):
                 try:
                     uuid.UUID(value['round'])
                     if value['draft']['target_date'] != target:raise ValueError()
-                    from .generation import validate_plan
-                    validate_plan({k:value['draft'][k] for k in ('meals','daily_comment')})
+                    from .menu_budget import validate_draft_plan
+                    validate_draft_plan(value['draft'],db=db)
                     image_step=by_step['image:'+slot+':'+value['round']]
                     key_step=by_step['meal_request_key:'+slot+':'+value['round']]
                     registered=by_step['meal_register:'+slot+':'+value['round']]

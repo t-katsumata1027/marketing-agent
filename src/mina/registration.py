@@ -52,7 +52,8 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
     if capture_round is not None:
         MealClient.request_key(capture_round)
     day = date.fromisoformat(target)
-    validate_plan({'meals': draft['meals'], 'daily_comment': draft['daily_comment']})
+    from .menu_budget import validate_draft_plan
+    validate_draft_plan(draft,store)
     if draft.get('state') != 'draft_unreviewed' or saved.get('state') != 'images_drive_verified' or saved.get('target_date') != target or set(saved.get('images', {})) != set(MEAL_SLOTS):
         raise ValueError('同じ対象日の下書きとDrive確認済み3画像が必要です')
     # どの枠の書き込みも始める前に、全画像の版と再読取証跡を確認する。

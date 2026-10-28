@@ -24,7 +24,8 @@ def rebind_day(store, target, round_key, bindings, evidence, images, draft, ai, 
         raise ValueError('明示した同じ対象日の4要求が必要です')
     if draft.get('target_date') != target:
         raise ValueError('新しい正本に対応する献立資料が必要です')
-    validate_plan({'meals': draft['meals'], 'daily_comment': draft['daily_comment']})
+    from .menu_budget import validate_draft_plan
+    validate_draft_plan(draft,store)
     if set(images) != set(SLOTS) - {'daily'}:
         raise ValueError('明示した原本画像3枚が必要です')
     rows = store.list_day(target)

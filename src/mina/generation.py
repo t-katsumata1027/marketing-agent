@@ -237,34 +237,48 @@ class OpenAIClient:
         return result
 
 
-def validate_plan(plan: dict):
+class PlanValidationError(ValueError):
+    """生成された献立データ自体の検査拒否。外部根拠の異常とは分ける。"""
+    def __init__(self,message,reason_code='generated_plan_invalid'):
+        self.reason_code=reason_code
+        super().__init__(message)
+
+
+def validate_plan(plan: dict, *, calorie_basis=None, target_date=None):
     """下書き段階の基本検査。実際の解析値・画像の確認と混同しない。"""
     if not isinstance(plan, dict) or set(plan) != {"meals", "daily_comment"} or not isinstance(plan["meals"], dict) or set(plan["meals"]) != set(MEAL_SLOTS):
-        raise ValueError("3食と日次コメントが必要です")
+        raise PlanValidationError("3食と日次コメントが必要です")
     comments = [plan["daily_comment"]]
     total = 0
     for meal in plan["meals"].values():
         if not isinstance(meal, dict) or set(meal) != set(MEAL_SCHEMA["properties"]):
-            raise ValueError("献立案の形式が不正です")
+            raise PlanValidationError("献立案の形式が不正です")
         if not isinstance(meal["estimated_calories"], int) or isinstance(meal["estimated_calories"], bool) or not 250 <= meal["estimated_calories"] <= 1000:
-            raise ValueError("食事の想定量が不自然です")
+            raise PlanValidationError("食事の想定量が不自然です")
         total += meal["estimated_calories"]
         # LogEatsの訂正APIが受け取れる20明細に合わせ、調味料を削って通さない。
         if not isinstance(meal["foods"], list) or not 2 <= len(meal["foods"]) <= 20:
-            raise ValueError("食品構成を確認してください")
+            raise PlanValidationError("食品構成を確認してください")
         for food in meal["foods"]:
             if not isinstance(food, dict) or set(food) != {"name", "amount"} or not all(isinstance(v, str) and 0 < len(v) <= 100 for v in food.values()):
-                raise ValueError("料理名・量が不正です")
+                raise PlanValidationError("料理名・量が不正です")
         if not isinstance(meal["menu"], str) or not 0 < len(meal["menu"]) <= 300 or not isinstance(meal["image_description"], str) or not 0 < len(meal["image_description"]) <= 2000:
-            raise ValueError("献立と画像の説明が必要です")
+            raise PlanValidationError("献立と画像の説明が必要です")
         comments.append(meal["comment"])
+    if calorie_basis is not None:
+        from .menu_budget import PlanBudget
+        if type(calorie_basis) is not PlanBudget:
+            raise ValueError('概算予算の検証型が不正です')
+        total = calorie_basis.total(plan, target_date)
+        if calorie_basis.invalid_slots():
+            raise PlanValidationError('食品別概算の一食量が範囲外です')
     if not 1800 <= total <= 2000:
-        raise ValueError("3食合計の想定量が範囲外です")
+        raise PlanValidationError("3食合計の想定量が範囲外です",'daily_energy_out_of_range')
     for comment in comments:
         if not isinstance(comment, str) or not 0 < len(comment) <= 120 or any(c in comment for c in "\r\n") or any(word in comment for word in ("食べた", "作った", "美味しかった", "必ず痩せ", "治療", "疾病予防")):
-            raise ValueError("一言コメントの表現が不正です")
+            raise PlanValidationError("一言コメントの表現が不正です")
     if len(set(comments)) != 4:
-        raise ValueError("一言コメントが重複しています")
+        raise PlanValidationError("一言コメントが重複しています")
 
 
 def meal_image_description(meal):
