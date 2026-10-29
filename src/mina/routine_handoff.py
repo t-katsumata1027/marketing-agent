@@ -25,7 +25,9 @@ def visible(value):
     for e in value.get('embeds',[]):
         item={k:e[k] for k in ('title','description','url','color','timestamp') if k in e}
         for key in ('image','thumbnail'):
-            if key in e:item[key]={'url':e[key].get('url')}
+            if key in e:
+                from .notice_attachment import normalized_image
+                item[key]={'url':normalized_image(e[key].get('url'),value.get('attachments',[]))}
         if 'footer' in e:item['footer']={k:e['footer'][k] for k in ('text','icon_url') if k in e['footer']}
         if 'author' in e:item['author']={k:e['author'][k] for k in ('name','url','icon_url') if k in e['author']}
         if 'fields' in e:item['fields']=[{'name':f.get('name'),'value':f.get('value'),'inline':f.get('inline',False)} for f in e['fields']]
@@ -99,7 +101,11 @@ def transmit(store,notice,platform,client):
 
 def reconcile(store,platform,notice_id,client):
     """GETだけで採用し、履歴0件を未受付の証明にしない。"""
-    with store.transaction() as db:r=db.execute('SELECT * FROM routine_notice_receipts WHERE platform=? AND notice_id=?',(platform,notice_id)).fetchone()
+    with store.transaction() as db:
+        from .notice_reissue import protected_notice
+        # 実添付の照会は専用CDN検査を通す。通常照会による成功への丸めを拒否する。
+        if protected_notice(db,platform,notice_id):return False
+        r=db.execute('SELECT * FROM routine_notice_receipts WHERE platform=? AND notice_id=?',(platform,notice_id)).fetchone()
     if not r or r['state'] not in ('unknown','dispatching','sent'):return False
     old=dict(r);wire=json.loads(r['payload'])
     if fingerprint(wire)!=r['payload_digest'] or fingerprint(buttons(wire))!=r['token_binding'] or wire['nonce']!=r['nonce'] or client.identity()!=r['author'] or client.channel!=r['channel']:raise ValueError('通知照会の版/著者/宛先が不一致です')
@@ -140,6 +146,8 @@ def maintain_notices(store,platform,client):
         table='notices' if platform=='x' else 'instagram_notices'
         with store.transaction() as db:
             n=db.execute('SELECT * FROM '+table+' WHERE id=?',(row['notice_id'],)).fetchone()
+            from .notice_reissue import protected_notice
+            if protected_notice(db,platform,row['notice_id']):continue
             if not n or n['state']!='outcome_unknown':continue
             count=db.execute('SELECT count FROM routine_notice_lookups WHERE platform=? AND notice_id=?',(platform,row['notice_id'])).fetchone()
             if count and count[0]>=3:continue

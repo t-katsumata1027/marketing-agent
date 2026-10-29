@@ -82,6 +82,16 @@ class CohortTests(unittest.TestCase):
   self.sent('meals');self.approve('meals');self.sent('daily');self.approve('daily')
   with self.store.transaction() as db:db.execute("UPDATE instagram_candidates SET state='outcome_unknown' WHERE slot='daily'")
   self.assertEqual(len(self.store.claim_due(self.xs[0].scheduled_at)),1)
+ def test_approved_expired_breakfast_never_reposts_but_lunch_can_proceed(self):
+  self.sent('meals');self.approve('meals')
+  with self.store.transaction() as db:
+   for table in ('candidates','instagram_candidates'):db.execute('UPDATE '+table+" SET state='expired',nonce_hash=NULL WHERE slot='breakfast'")
+  self.assertEqual(self.store.claim_due(self.xs[0].scheduled_at),[])
+  self.assertEqual([v['slot'] for v in self.store.claim_due(self.xs[1].scheduled_at)],['lunch'])
+ def test_unapproved_expired_breakfast_never_enables_lunch(self):
+  self.sent('meals');self.approve('meals')
+  with self.store.transaction() as db:db.execute("UPDATE candidates SET state='expired',actor=NULL,approved=NULL,nonce_hash=NULL WHERE slot='breakfast'")
+  self.assertEqual(self.store.claim_due(self.xs[1].scheduled_at),[])
  def test_old_parent_or_receipt_binding_mutation_stops_claim(self):
   self.sent('meals');self.approve('meals')
   with self.store.transaction() as db:db.execute("UPDATE next_saved_jobs SET deadline=3")

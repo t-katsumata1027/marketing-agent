@@ -111,7 +111,7 @@ class InstagramStore:
                 (target_date,slot,revision,kind,payload) VALUES(?,'prepare',1,'preparation_held',?)''',
                        (target, json.dumps(payload, ensure_ascii=False)))
 
-    def queue_approval(self, row):
+    def queue_approval(self, row, connection=None):
         """承認ボタンはInstagram専用の一度だけ使える乱数に結び付ける。"""
         token = secrets.token_urlsafe(24)
         hashed = hashlib.sha256(token.encode()).hexdigest()
@@ -134,7 +134,7 @@ class InstagramStore:
                        {'type': 2, 'style': style, 'label': label, 'custom_id': 'minaig:' + action + ':' + token}
                        for action, label, style in (('approve', 'Instagramを承認', 3), ('reject', '差戻し', 2), ('skip', '見送り', 4))]}]}
         approval_notice(payload,c.source)
-        with self.transaction() as db:
+        with (self.transaction() if connection is None else nullcontext(connection)) as db:
             actual = db.execute('SELECT * FROM instagram_candidates WHERE target_date=? AND slot=?',
                                 (c.target_date, c.slot)).fetchone()
             from .replacement_bundle import approval_allowed
