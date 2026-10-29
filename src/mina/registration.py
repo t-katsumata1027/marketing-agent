@@ -211,7 +211,8 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
         captured, preview = ogp(slot, normalized, '-corrected' if variant else '')
         review_suffix = ':' + capture_round if capture_round else ''
         from .meal_review_recovery import review_once
-        review_response=ai.review_response(response) if callable(getattr(ai,'review_response',None)) else response
+        review_method=getattr(type(ai),'review_response',None)
+        review_response=review_method(ai,response) if callable(review_method) else response
         review = review_once(journal,target, 'meal_review:' + slot + variant + review_suffix, {'image_sha256': info['sha256'], 'meal': meal, 'response': review_response, 'ogp_digest': captured['digest'], 'policy_sha256':selected_policy},
                              lambda: ai.review_meal(raw, meal, review_response, captured['meta']))
         from .review_diagnostics import record_findings,record_verdict
@@ -228,7 +229,8 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
             normalized = validate_write(response, slot, target, host, operation=operation, logged_at=logged, input_comment=meal['comment'])
             input_hash = completed_request(meal_client.request_state(key, operation), key, operation, response['result'])
             captured, preview = ogp(slot, normalized, '-corrected')
-            review_response=ai.review_response(response) if callable(getattr(ai,'review_response',None)) else response
+            review_method=getattr(type(ai),'review_response',None)
+            review_response=review_method(ai,response) if callable(review_method) else response
             review = review_once(journal,target, 'meal_review:' + slot + ':corrected' + review_suffix,
                 {'image_sha256':info['sha256'],'meal':meal,'response':review_response,'ogp_digest':captured['digest'],'policy_sha256':selected_policy},
                 lambda:ai.review_meal(raw, meal, review_response, captured['meta']))
