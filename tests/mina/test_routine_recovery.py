@@ -68,9 +68,9 @@ class RoutineTests(unittest.TestCase):
             rows=list(db.execute('SELECT state,usage_status FROM routine_provider_calls'))
         self.assertEqual([tuple(r) for r in rows],[('unknown','unmeasured'),('complete','unmeasured')])
     def test_weight_forms_and_full_mapping(self):
-        for amount,w in [('炊飯後220g',220),('80g（千切り）',80),('1/2個（可食部25g）',25),('0.2kg',200)]:self.assertEqual(explicit_grams(amount),w)
+        for amount,w in [('炊飯後220g',220),('80g（千切り）',80),('1/2個（可食部25g）',25),('0.2kg',200),('約80g',80),('大さじ1（約15g）',15),('およそ0.08kg',80)]:self.assertEqual(explicit_grams(amount),w)
         self.assertIsNone(explicit_grams('1杯'))
-        for amount in ('80～100g','80g+20g','0g','-20g','−20g','1e2g','約80g'):
+        for amount in ('80～100g','80g+20g','0g','-20g','−20g','1e2g'):
             with self.assertRaises(ValueError):explicit_grams(amount)
         meal={'foods':[{'name':'ご飯','amount':'炊飯後220g'},{'name':'塩','amount':'1g'}]}
         foods=[{**f,'calories':0,'protein':0,'fat':0,'carbs':0} for f in meal['foods']]
@@ -78,6 +78,10 @@ class RoutineTests(unittest.TestCase):
         original={'result':{'analysis':{'foods':[{},{}]}}};validate_mapping(value,meal,original)
         bad=copy.deepcopy(value);bad['foods'][0].update(protein=300,calories=1200)
         with self.assertRaises(ValueError):validate_mapping(bad,meal,original)
+        approximate=copy.deepcopy(value);approximate['foods'][0]['amount']='約80g'
+        self.assertEqual(validate_mapping(approximate,meal,original)[0],{'food_index':0,'weight_status':'approximate_reference','grams':80})
+        approximate['foods'][0].update(protein=300,calories=1200)
+        with self.assertRaises(ValueError):validate_mapping(approximate,meal,original)
         for change in ('missing','duplicate','fraction','major_split'):
             bad=copy.deepcopy(value)
             if change=='missing':bad['dish_mapping'].pop()
