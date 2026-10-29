@@ -10,7 +10,7 @@ def record_request(store, query, subject=None):
     operation = 'publish' if 'createPost(' in query else 'read'
     ts = datetime.now(UTC).timestamp()
     with store.transaction() as db:
-        from .buffer_budget import check,PROBE,RESERVATION,REFRESH,reservation,continuation_refresh_check
+        from .buffer_budget import check,PROBE,RESERVATION,REFRESH,REFRESH_TABLE,reservation,continuation_refresh_check
         grant=PROBE.get();budget=RESERVATION.get();probe=False
         if grant:
             from .buffer_trial import ORGANIZATIONS
@@ -25,7 +25,9 @@ def record_request(store, query, subject=None):
         refresh=REFRESH.get()
         if refresh:
             from .buffer_trial import ORGANIZATIONS
-            row=db.execute('SELECT * FROM buffer_continuation_refresh WHERE grant_id=?',(refresh,)).fetchone()
+            refresh_table=REFRESH_TABLE.get()
+            if refresh_table not in ('buffer_continuation_refresh','buffer_lunch_refresh'):raise ProbeError('buffer_refresh_scope_invalid')
+            row=db.execute('SELECT * FROM '+refresh_table+' WHERE grant_id=?',(refresh,)).fetchone()
             if probe or budget or query!=ORGANIZATIONS or not row or row['subject']!=subject or row['state']!='reserved' or row['deadline']<=ts:raise ProbeError('buffer_refresh_unavailable')
             continuation_refresh_check(db,subject,ts)
         else:check(db,subject,ts,exclude=budget,probe=probe)
@@ -37,7 +39,7 @@ def record_request(store, query, subject=None):
         key=db.execute('INSERT INTO buffer_api_usage(requested,operation) VALUES(?,?)', (ts, operation)).lastrowid
         if probe:db.execute("UPDATE buffer_quota_probes SET state='started',request_id=? WHERE grant_id=? AND state='reserved'",(key,grant))
         if budget:db.execute('UPDATE '+budget_table+' SET remaining=remaining-1 WHERE budget_id=?',(budget,))
-        if refresh:db.execute("UPDATE buffer_continuation_refresh SET state='started',request_id=? WHERE grant_id=?",(key,refresh))
+        if refresh:db.execute('UPDATE '+refresh_table+" SET state='started',request_id=? WHERE grant_id=?",(key,refresh))
         return key
 
 

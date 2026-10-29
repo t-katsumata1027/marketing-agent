@@ -6,6 +6,7 @@ from .buffer_trial import ProbeError,ORGANIZATIONS
 PROBE=contextvars.ContextVar('buffer_quota_probe',default=None)
 RESERVATION=contextvars.ContextVar('buffer_budget_reservation',default=None)
 REFRESH=contextvars.ContextVar('buffer_budget_refresh',default=None)
+REFRESH_TABLE=contextvars.ContextVar('buffer_budget_refresh_table',default='buffer_continuation_refresh')
 WINDOWS=(900,86400,2592000)
 
 def subject(token):return hashlib.sha256(token.encode()).hexdigest()
@@ -17,9 +18,11 @@ def setup(db):
     db.execute('CREATE TABLE IF NOT EXISTS buffer_retry_deadlines(subject TEXT PRIMARY KEY,until REAL NOT NULL,request_id INTEGER NOT NULL)')
     db.execute('CREATE TABLE IF NOT EXISTS buffer_continuation_reservations(budget_id TEXT PRIMARY KEY,subject TEXT NOT NULL,target_date TEXT NOT NULL,remaining INTEGER NOT NULL,original INTEGER NOT NULL,deadline REAL NOT NULL,state TEXT NOT NULL)')
     db.execute('CREATE TABLE IF NOT EXISTS buffer_continuation_refresh(grant_id TEXT PRIMARY KEY,subject TEXT NOT NULL,deadline REAL NOT NULL,state TEXT NOT NULL,request_id INTEGER)')
+    db.execute('CREATE TABLE IF NOT EXISTS buffer_lunch_reservations(budget_id TEXT PRIMARY KEY,subject TEXT NOT NULL,target_date TEXT NOT NULL,remaining INTEGER NOT NULL,original INTEGER NOT NULL,deadline REAL NOT NULL,state TEXT NOT NULL)')
+    db.execute('CREATE TABLE IF NOT EXISTS buffer_lunch_refresh(grant_id TEXT PRIMARY KEY,subject TEXT NOT NULL,deadline REAL NOT NULL,state TEXT NOT NULL,request_id INTEGER)')
 
 def reservation(db,key):
-    for table in ('buffer_request_reservations','buffer_continuation_reservations'):
+    for table in ('buffer_request_reservations','buffer_continuation_reservations','buffer_lunch_reservations'):
         if db.execute("SELECT 1 FROM sqlite_master WHERE name=?",(table,)).fetchone():
             row=db.execute('SELECT * FROM '+table+' WHERE budget_id=?',(key,)).fetchone()
             if row:return table,row
@@ -40,7 +43,7 @@ def limits(db,key,now):
 def outstanding(db,now,exclude=None):
     if not db.execute("SELECT 1 FROM sqlite_master WHERE name='buffer_request_reservations'").fetchone():return 0
     total=0
-    for table in ('buffer_request_reservations','buffer_continuation_reservations'):
+    for table in ('buffer_request_reservations','buffer_continuation_reservations','buffer_lunch_reservations'):
         if db.execute("SELECT 1 FROM sqlite_master WHERE name=?",(table,)).fetchone():total+=db.execute('SELECT COALESCE(sum(remaining),0) FROM '+table+" WHERE state='active' AND deadline>? AND budget_id<>?",(now,exclude or '')).fetchone()[0]
     return total
 
@@ -183,8 +186,9 @@ def grant_continuation_refresh(store,grant_id,key,deadline):
         continuation_refresh_check(db,key,time.time())
         db.execute('INSERT INTO buffer_continuation_refresh VALUES(?,?,?,?,NULL)',(grant_id,key,deadline,'reserved'))
 
-def run_continuation_refresh(store,api,grant_id):
-    key=subject(api._token);token=REFRESH.set(grant_id)
+def run_continuation_refresh(store,api,grant_id,table='buffer_continuation_refresh'):
+    if table not in ('buffer_continuation_refresh','buffer_lunch_refresh'):raise ProbeError('buffer_refresh_scope_invalid')
+    key=subject(api._token);token=REFRESH.set(grant_id);scope=REFRESH_TABLE.set(table)
     try:
         result=api._request(ORGANIZATIONS)
         with store.transaction() as db:
@@ -192,11 +196,32 @@ def run_continuation_refresh(store,api,grant_id):
             orgs=result.get('account',{}).get('organizations',[])
             if not expected or sum(isinstance(o,dict) and isinstance(o.get('id'),str) and subject(o['id'])==expected[0] for o in orgs)!=1:raise ProbeError('buffer_probe_organization_mismatch')
             values=observations(db,key,time.time(),raw=True)
-            row=db.execute('SELECT * FROM buffer_continuation_refresh WHERE grant_id=?',(grant_id,)).fetchone()
+            row=db.execute('SELECT * FROM '+table+' WHERE grant_id=?',(grant_id,)).fetchone()
             if not row or row['state']!='started' or values is None or any(r['request_id']!=row['request_id'] for r in values):raise ProbeError('buffer_quota_verification_required')
-            db.execute("UPDATE buffer_continuation_refresh SET state='complete' WHERE grant_id=?",(grant_id,))
+            db.execute('UPDATE '+table+" SET state='complete' WHERE grant_id=?",(grant_id,))
         return [{'window':r['window'],'quota':r['quota'],'remaining':r['remaining']} for r in values]
     except BaseException:
-        with store.transaction() as db:db.execute("UPDATE buffer_continuation_refresh SET state='unknown' WHERE grant_id=? AND state='started'",(grant_id,))
+        with store.transaction() as db:db.execute('UPDATE '+table+" SET state='unknown' WHERE grant_id=? AND state='started'",(grant_id,))
         raise
-    finally:REFRESH.reset(token)
+    finally:REFRESH.reset(token);REFRESH_TABLE.reset(scope)
+
+def grant_lunch_refresh(store,grant_id,key,deadline):
+    """16:30の別本人承認。旧refresh/予約/期限を変更せず一回だけ追記する。"""
+    from .clients import MealClient
+    MealClient.request_key(grant_id)
+    if os.name!='posix' or os.geteuid()!=0 or not time.time()<deadline<=__import__('datetime').datetime.fromisoformat('2026-10-29T07:30:00+00:00').timestamp():raise ProbeError('buffer_refresh_authorization_invalid')
+    with store.transaction() as db:
+        setup(db)
+        if db.execute('SELECT 1 FROM buffer_lunch_refresh').fetchone():raise ProbeError('buffer_refresh_reissue_forbidden')
+        continuation_refresh_check(db,key,time.time())
+        db.execute('INSERT INTO buffer_lunch_refresh VALUES(?,?,?,?,NULL)',(grant_id,key,deadline,'reserved'))
+
+def lunch_reserve(store,budget_id,key,units,deadline):
+    from .clients import MealClient
+    MealClient.request_key(budget_id)
+    if type(units) is not int or not 1<=units<=78 or not time.time()<deadline<=__import__('datetime').datetime.fromisoformat('2026-10-29T07:30:00+00:00').timestamp():raise ProbeError('buffer_budget_invalid')
+    with store.transaction() as db:
+        setup(db);check(db,key,time.time(),units,8)
+        if db.execute('SELECT 1 FROM buffer_lunch_reservations').fetchone():raise ProbeError('buffer_continuation_reissue_forbidden')
+        if not db.execute("SELECT 1 FROM buffer_lunch_refresh WHERE subject=? AND state='complete' AND deadline>=?",(key,deadline)).fetchone():raise ProbeError('buffer_quota_verification_required')
+        db.execute('INSERT INTO buffer_lunch_reservations VALUES(?,?,?,?,?,?,?)',(budget_id,key,'2026-10-29',units,units,deadline,'active'))

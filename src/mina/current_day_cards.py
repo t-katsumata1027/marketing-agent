@@ -102,7 +102,10 @@ def deliver(gate,discord,base,verify):
     with gate.store.transaction() as db:
         rows=list(db.execute('SELECT * FROM current_day_cards WHERE recovery_uuid=? ORDER BY platform,slot',(gate.approval['recovery_uuid'],)))
     if len(rows)!=8 or {(r['platform'],r['slot']) for r in rows}!={(p,s) for p in ('x','instagram') for s in SLOTS}:raise ValueError('点検済み8カードが揃っていません')
+    selected=getattr(gate,'delivery_slots',tuple(SLOTS))
+    if not selected or not set(selected)<=set(SLOTS):raise ValueError('送付対象枠が不正です')
     for row in rows:
+        if row['slot'] not in selected:continue
         payload=json.loads(row['payload'])
         if (fingerprint(payload)!=row['digest'] or payload.get('scheduled_at') is not None or payload['source'].get(KEY)!=marker(gate)
                 or (payload.get('contract_version'),payload.get('target_date'),payload.get('platform'),payload.get('slot'))!=(VERSION,TARGET,row['platform'],row['slot'])):raise ValueError('準備カードの版が不正です')

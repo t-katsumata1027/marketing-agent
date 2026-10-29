@@ -103,4 +103,5 @@ def finish(gate,draft,images,out,drive,meal,ai,host,evidence,reader,discord,comm
         if current.get('nutrition_targets')!=payload['source']['nutrition_targets']:raise ValueError('栄養目標がカード合成後に変わりました')
         verify_source(candidate,meal,host,reader,clock=gate.clock)
     deliver(gate,discord,out/'cards',verify)
-    return {'target_date':TARGET,'state':'preparation_cards_delivered','x_cards':4,'instagram_cards':4,'scheduled_at':None,'publication_forbidden':True}
+    count=len(getattr(gate,'delivery_slots',('breakfast','lunch','dinner','daily')))
+    return {'target_date':TARGET,'state':'preparation_cards_delivered','x_cards':count,'instagram_cards':count,'scheduled_at':None,'publication_forbidden':True}

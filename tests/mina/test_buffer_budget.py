@@ -19,6 +19,17 @@ def headers(day=600,missing=False):
     return h
 
 class BudgetTests(unittest.TestCase):
+    def test_lunch_approval_uses_separate_claim_and_preserves_old_deadlines(self):
+        run_probe(self.store,self.api(),self.grant);grant=str(uuid.uuid4());deadline=END+3600
+        with patch('src.mina.buffer_budget.os.geteuid',return_value=0):grant_lunch_refresh(self.store,grant,self.key,deadline)
+        run_continuation_refresh(self.store,self.api(),grant,'buffer_lunch_refresh')
+        budget=str(uuid.uuid4());lunch_reserve(self.store,budget,self.key,78,deadline)
+        with using(budget):record_request(self.store,ORGANIZATIONS,subject=self.key)
+        with self.store.transaction() as db:
+            self.assertEqual(db.execute('SELECT deadline FROM buffer_quota_probes').fetchone()[0],END)
+            self.assertEqual(db.execute('SELECT remaining FROM buffer_lunch_reservations').fetchone()[0],77)
+        with self.assertRaises(ProbeError):lunch_reserve(self.store,str(uuid.uuid4()),self.key,1,deadline)
+        with self.assertRaises(ProbeError):run_continuation_refresh(self.store,self.api(),grant,'buffer_lunch_refresh')
     def test_continuation_refresh_once_and_preserves_old_reservation(self):
         run_probe(self.store,self.api(),self.grant)
         old=str(uuid.uuid4());reserve(self.store,old,self.key,'2026-10-29',30,END);release(self.store,old)
