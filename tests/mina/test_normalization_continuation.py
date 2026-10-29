@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest.mock import Mock,patch
 import test_tolerance_case as tolerance
 import test_quality_case as quality
-from src.mina.tolerance_review import validate,INSTRUCTIONS,POLICY,schema
+from src.mina.tolerance_review import validate,LEGACY_INSTRUCTIONS as INSTRUCTIONS,POLICY,schema
 from src.mina.normalization_checkpoint import capture,verify,VERSION,legacy_policy_sha256
 from src.mina.normalization_continuation import NormalizationGate,execute
 from src.mina.preparation import fingerprint

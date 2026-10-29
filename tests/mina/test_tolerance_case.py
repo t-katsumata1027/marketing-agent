@@ -184,5 +184,12 @@ class ToleranceReviewTests(unittest.TestCase):
         self.assertEqual(validate(value,meal,'image_acceptable')['status'],'hold')
         value=positive(self.meal);value.update(status='hold',blocking=[{'code':'food_missing','region':'left','food_index':0}]);value['checks']['food_identity']='hold'
         self.assertEqual(validate(value,self.meal,'image_acceptable')['status'],'hold')
+    def test_recipe_mixture_for_french_toast_does_not_hide_separate_egg(self):
+        meal={'menu':'フレンチトースト','image_description':'卵と牛乳を含ませて焼いた食パン','foods':[{'name':'食パン'},{'name':'卵'},{'name':'牛乳'},{'name':'バター'},{'name':'すりごま'}]}
+        value=positive(meal)
+        for index in (1,2,3,4):value['foods'][index]['presence']='mixed_ingredient'
+        self.assertEqual(validate(value,meal,'image_acceptable')['status'],'image_acceptable')
+        meal['menu']='二色丼'
+        self.assertEqual(validate(value,meal,'image_acceptable')['status'],'hold')
 
 if __name__=='__main__':unittest.main()

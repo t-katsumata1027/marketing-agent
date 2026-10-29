@@ -12,6 +12,8 @@ normalization_checkpointは旧toleranceの原本を引き継ぎ、19call・102fi
 
 ## 実行範囲と停止
 
+保存後点検の事前確認で、フレンチトーストの混合卵/牛乳、バター、すりごまにも個別の可視性を求めないようrecipe roleを固定した。調理法に「卵と牛乳を含ませて焼いた」、献立にフレンチトースト、食品に食パンが揃う場合だけ卵/牛乳の混合を許可する。二色丼の卵等は不可。旧送信指示はLEGACY_INSTRUCTIONSとして保持し、新指示/役割集合/validator版は新policy SHAへ束縛する。旧CLIの送信証明には旧指示だけを使う。
+
 一度限りの別normalization continuationは既定OFF。root所有承認3原本、固定コード、現在0食/日次なし、全状態全ページ外部予約、公開hold/所有世代、全旧原本のfresh確認を必要とする。旧heldをissuedへ戻さず、新caseの再発行もしない。
 
 送信前のJournal.started/input_digestとcase-callは同TX。ai:image/review_imageと、structuredの画像工程を拒否する。許可するAIは未開始の保存後食品解析・既存一回訂正案・実OGP点検だけ。量の概算許容/警告原本/同policy SHAを維持し、画像由来holdでM1訂正に入らない。
