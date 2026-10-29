@@ -64,7 +64,7 @@ def register(store,config,config_sha,display,ig=None):
             db.execute('UPDATE notice_reissues SET new_notice_id=? WHERE request_uuid=?',(notice['id'],config['request_uuid']))
     return asset
 
-def run(path):
+def run(path,resume_registered=False,continuation_path=None):
     from .current_day_cli import protected_json
     from .readiness import release_commit
     from .store import Store
@@ -74,25 +74,51 @@ def run(path):
     from .routine_handoff import transmit
     config,sha=protected_json(path,root_owned=True);uuid.UUID(config['request_uuid'])
     if config['contract_version']!=VERSION or config['target_date']!=m.TARGET or config['slot']!='dinner' or config['not_after']!=END.isoformat() or not config['approval_reference']:raise ValueError('再通知専用権限が不一致です')
-    release_commit(Path(__file__).resolve().parents[2],config['commit'])
+    continuation=None;continuation_sha=None
+    if resume_registered:
+        if not continuation_path:raise ValueError('送信前継続の別原本が必要です')
+        continuation,continuation_sha=protected_json(continuation_path,root_owned=True)
+        if (continuation.get('contract_version')!=VERSION or continuation.get('mode')!='finish_registered_before_post'
+            or continuation.get('config_sha256')!=sha or continuation.get('request_uuid')!=config['request_uuid']
+            or continuation.get('new_revision')!=config['old_revision']+1 or continuation.get('not_after')!=END.isoformat()
+            or not continuation.get('approval_reference')):raise ValueError('送信前継続の別原本が不一致です')
+        release_commit(Path(__file__).resolve().parents[2],continuation['commit'])
+    else:release_commit(Path(__file__).resolve().parents[2],config['commit'])
     os.environ['MINA_PUBLISH_ENABLED']='false';os.environ['MINA_INSTAGRAM_PUBLISH_ENABLED']='false'
     store=Store('/var/lib/mina-agent/mina.sqlite3');ig=InstagramStore(store.path);client=DiscordClient(os.environ['DISCORD_BOT_TOKEN'],config['channel'])
     display=client.message(config['old_message_id'])
     token=scope.set(config['request_uuid'])
-    try:return deliver(store,ig,client,config,sha,display,path)
+    try:
+        if resume_registered:
+            with store.transaction() as db:
+                record=db.execute('SELECT * FROM notice_reissues WHERE request_uuid=?',(config['request_uuid'],)).fetchone()
+                if (not record or record['state']!='registered' or record['config_sha']!=sha or record['case_uuid']!=config['case_uuid']
+                    or record['platform']!='instagram' or record['slot']!='dinner' or record['new_revision']!=config['old_revision']+1
+                    or record['new_notice_id']!=continuation['notice_id']
+                    or record['old_revision']!=config['old_revision'] or json.loads(record['asset'])!=config['asset']
+                    or db.execute("SELECT 1 FROM routine_notice_receipts WHERE platform='instagram' AND notice_id=?",(record['new_notice_id'],)).fetchone()):raise ValueError('送信前停止の原本を確認できません。元受領照会が必要です')
+                old=json.loads(record['old_row']);current=db.execute("SELECT * FROM instagram_candidates WHERE target_date=? AND slot='dinner'",(m.TARGET,)).fetchone()
+                if not current or current['state']!='approval_pending' or current['revision']!=record['new_revision'] or any(current[k]!=old[k] for k in ('payload','digest','scheduled')):raise ValueError('送信前停止の候補版が変わりました')
+            return send_registered(store,ig,client,config,sha,path,continuation_reference=(continuation_path,continuation_sha))
+        return deliver(store,ig,client,config,sha,display,path)
     finally:scope.reset(token)
 
 def deliver(store,ig,client,config,sha,display,path):
+    register(store,config,sha,display,ig=ig)
+    return send_registered(store,ig,client,config,sha,path)
+
+def send_registered(store,ig,client,config,sha,path,continuation_reference=None):
     from .notice_attachment import AttachedDiscord
     from .routine_handoff import transmit
     from .current_day_cli import protected_json
-    asset=register(store,config,sha,display,ig=ig)
+    asset=config['asset']
     row=next(r for r in ig.rows(m.TARGET) if r['slot']=='dinner')
     with store.transaction() as db:
         notice=dict(db.execute("SELECT * FROM instagram_notices WHERE target_date=? AND slot='dinner' AND revision=? AND kind='approval'",(m.TARGET,row['revision'])).fetchone())
         if not m.notice(db,notice,'instagram'):raise ValueError('再通知の対象・期限が変わりました')
     def guard():
         if protected_json(path,root_owned=True)[1]!=sha:raise ValueError('再通知権限が変わりました')
+        if continuation_reference and protected_json(continuation_reference[0],root_owned=True)[1]!=continuation_reference[1]:raise ValueError('送信前継続の別原本が変わりました')
         with store.transaction() as db:
             current=db.execute('SELECT * FROM instagram_notices WHERE id=?',(notice['id'],)).fetchone()
             if not current or current['state']!='sending' or current['payload']!=notice['payload'] or not m.notice(db,current,'instagram'):raise ValueError('再通知の期限・claim所有が変わりました')
@@ -113,4 +139,7 @@ def deliver(store,ig,client,config,sha,display,path):
     finally:external_guard.reset(guard_token)
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('--config',required=True);run(parser.parse_args().config)
+    parser=argparse.ArgumentParser();parser.add_argument('--config',required=True);parser.add_argument('--finish-registered',action='store_true');parser.add_argument('--continuation');args=parser.parse_args()
+    # -mの__main__と通常importでContextVarを二重生成しない。
+    from .notice_reissue import run as canonical_run
+    canonical_run(args.config,resume_registered=args.finish_registered,continuation_path=args.continuation)

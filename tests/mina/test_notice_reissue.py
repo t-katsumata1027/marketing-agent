@@ -63,7 +63,16 @@ class ReissueTests(unittest.TestCase):
   a['embeds'][0]['image']['width']=0
   with self.assertRaises(ValueError):validate_actual(a,self.asset,Opener(self.raw))
   with self.assertRaises(ValueError):validate_actual(self.actual(),self.asset,Opener(b'wrong'))
+ def test_module_entry_uses_canonical_scope_and_explicit_pre_send_finish(self):
+  import runpy
+  with patch('sys.argv',['notice_reissue','--config','sealed','--finish-registered']),patch('src.mina.notice_reissue.run') as main:
+   runpy.run_module('src.mina.notice_reissue',run_name='__main__')
+  main.assert_called_once_with('sealed',resume_registered=True,continuation_path=None)
  def test_complete_operator_uses_one_multipart_and_same_id_get(self):
+  self.operator(False)
+ def test_registered_before_post_finishes_same_nonce_and_never_registers_again(self):
+  self.operator(True)
+ def operator(self,resume):
   outer=self
   class Client:
    channel=outer.f.discord.channel;posts=0
@@ -75,11 +84,19 @@ class ReissueTests(unittest.TestCase):
   class Response(io.BytesIO):pass
   class Opener:
    def open(self,*a,**k):return Response(outer.raw)
-  with patch('src.mina.current_day_cli.protected_json',return_value=(self.config,'f'*64)),patch('src.mina.readiness.release_commit'),patch('src.mina.store.Store',return_value=self.store),patch('src.mina.instagram_store.InstagramStore',return_value=self.ig),patch('src.mina.clients.DiscordClient',return_value=client),patch('src.mina.notice_attachment.build_opener',return_value=Opener()),patch.dict('os.environ',{'DISCORD_BOT_TOKEN':'fake'}):r.run('fake')
+  continuation={}
+  if resume:
+   r.register(self.store,self.config,'f'*64,self.display,ig=self.ig)
+   with self.store.transaction() as db:
+    notice=db.execute("SELECT * FROM instagram_notices WHERE slot='dinner' AND revision=2").fetchone();old_wire=notice['payload']
+   continuation={'contract_version':r.VERSION,'mode':'finish_registered_before_post','config_sha256':'f'*64,'request_uuid':self.config['request_uuid'],'notice_id':notice['id'],'new_revision':2,'not_after':r.END.isoformat(),'approval_reference':'同じ送信前要求の継続','commit':'d'*40}
+  def protected(path,**kwargs):return (continuation,'e'*64) if path=='continuation' else (self.config,'f'*64)
+  with patch('src.mina.current_day_cli.protected_json',side_effect=protected),patch('src.mina.readiness.release_commit'),patch('src.mina.store.Store',return_value=self.store),patch('src.mina.instagram_store.InstagramStore',return_value=self.ig),patch('src.mina.clients.DiscordClient',return_value=client),patch('src.mina.notice_attachment.build_opener',return_value=Opener()),patch.dict('os.environ',{'DISCORD_BOT_TOKEN':'fake'}):r.run('fake',resume_registered=resume,continuation_path='continuation' if resume else None)
   self.assertEqual(client.posts,1)
   with self.store.transaction() as db:
    self.assertTrue(m.receipts(db,m.job(db,m.TARGET),'meals'));self.assertEqual(db.execute('SELECT state FROM notice_reissues').fetchone()[0],'sent')
    self.assertIsNone(m.members(db,m.job(db,m.TARGET),'meals',True))
+   if resume:self.assertEqual(db.execute('SELECT payload FROM instagram_notices WHERE id=?',(notice['id'],)).fetchone()[0],old_wire)
   self.assertEqual(self.store.claim_due(self.f.xs[0].scheduled_at),[])
   with self.store.transaction() as db:new_notice=json.loads(db.execute("SELECT payload FROM instagram_notices WHERE slot='dinner' AND revision=2").fetchone()[0])
   token=new_notice['components'][0]['components'][0]['custom_id'];self.ig.decide(token,'human',self.f.now)
