@@ -10,6 +10,28 @@ from .tolerance_review import policy_sha256
 class NormalizationGate(ToleranceGate):
     TABLE='current_day_normalization_continuations';FLAG='MINA_CURRENT_DAY_NORMALIZATION_ENABLED'
     CONTRACT=VERSION;ID_FIELD='normalization_continuation_uuid'
+    def issue(self,state,receipt):
+        deadline=super().issue(state,receipt)
+        self.cache_inventory()
+        return deadline
+    def cache_inventory(self):
+        if self.latest_inventory is None:return
+        with self.store.transaction() as db:
+            self.authority(db,('issued','running'),True);self.receipt(db)
+            db.execute('CREATE TABLE IF NOT EXISTS normalization_inventory_cache(case_uuid TEXT PRIMARY KEY,approval_digest TEXT NOT NULL,channels_digest TEXT NOT NULL,owner TEXT NOT NULL,epoch INTEGER NOT NULL,receipt TEXT NOT NULL)')
+            db.execute('INSERT OR REPLACE INTO normalization_inventory_cache VALUES(?,?,?,?,?,?)',(self.approval[self.ID_FIELD],fingerprint(self.approval),fingerprint(self.inventory.channels),self.approval['recovery_uuid'],1,json.dumps(self.latest_inventory)))
+    def refresh_external(self):
+        if self.latest_inventory is None:
+            from .replacement_client import timestamp
+            with self.store.transaction() as db:
+                self.authority(db,('issued','running'),True)
+                if db.execute("SELECT 1 FROM sqlite_master WHERE name='normalization_inventory_cache'").fetchone():
+                    row=db.execute('SELECT * FROM normalization_inventory_cache WHERE case_uuid=?',(self.approval[self.ID_FIELD],)).fetchone()
+                    if row and (row['approval_digest'],row['channels_digest'],row['owner'],row['epoch'])==(fingerprint(self.approval),fingerprint(self.inventory.channels),self.approval['recovery_uuid'],1):
+                        receipt=json.loads(row['receipt'])
+                        if 0<=(self.clock()-timestamp(receipt['read_started_at'])).total_seconds()<90:
+                            self.latest_inventory=receipt;self.receipt(db)
+        super().refresh_external();self.cache_inventory()
     def verify_source(self,db):
         verify(db,self.snapshot)
         from .clients import MealClient

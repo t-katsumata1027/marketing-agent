@@ -83,8 +83,7 @@ class BufferTrialClient:
             remaining=(self.connection_deadline-self.connection_clock()).total_seconds()
             if remaining<=0:raise OperationalFailure('retry_deadline','connection')
             timeout=min(timeout,remaining)
-        if self._on_request is not None:
-            self._on_request(query)
+        request_id=self._on_request(query) if self._on_request is not None else None
         self.calls += 1
         try:
             if self._transport is not None:
@@ -96,6 +95,8 @@ class BufferTrialClient:
                              'Content-Type': 'application/json', 'Cache-Control': 'no-store'})
                 with build_opener(NoRedirect()).open(request, timeout=timeout) as response:
                     raw = response.read(262145)
+                    observer=getattr(self,'on_headers',None)
+                    if observer:observer(response.headers,request_id)
                 if len(raw) > 262144:
                     raise ProbeError('buffer_response_too_large')
                 result = json.loads(raw)
@@ -103,6 +104,8 @@ class BufferTrialClient:
             raise
         except HTTPError as error:
             code = error.code
+            observer=getattr(self,'on_headers',None)
+            if observer:observer(error.headers,request_id)
             if can_retry and code in (502,503,504):
                 raise TransientBufferRead('connection_http_transient','connection',code) from None
             raise ProbeError('buffer_http_' + str(code),code) from None

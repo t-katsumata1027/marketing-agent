@@ -6,19 +6,32 @@ import re
 from .buffer_trial import ProbeError
 
 
-def record_request(store, query):
+def record_request(store, query, subject=None):
     operation = 'publish' if 'createPost(' in query else 'read'
     ts = datetime.now(UTC).timestamp()
     with store.transaction() as db:
-        for seconds, limit in ((900, 90), (86400, 240), (2592000, 2900)):
-            if db.execute('SELECT count(*) FROM buffer_api_usage WHERE requested>=?', (ts - seconds,)).fetchone()[0] >= limit:
-                raise ProbeError('buffer_local_quota_stop')
+        from .buffer_budget import check,PROBE,RESERVATION
+        grant=PROBE.get();budget=RESERVATION.get();probe=False
+        if grant:
+            from .buffer_trial import ORGANIZATIONS
+            row=db.execute('SELECT * FROM buffer_quota_probes WHERE grant_id=?',(grant,)).fetchone()
+            if query!=ORGANIZATIONS or not row or row['subject']!=subject or row['state']!='reserved' or row['deadline']<=ts:raise ProbeError('buffer_probe_unavailable')
+            probe=True
+        if budget:
+            row=db.execute('SELECT * FROM buffer_request_reservations WHERE budget_id=?',(budget,)).fetchone()
+            from .buffer_trial import ORGANIZATIONS,CHANNELS
+            from .replacement_inventory import POSTS
+            if query not in (ORGANIZATIONS,CHANNELS,POSTS) or not row or row['subject']!=subject or row['state']!='active' or row['deadline']<=ts or row['remaining']<=0:raise ProbeError('buffer_reservation_unavailable')
+        check(db,subject,ts,exclude=budget,probe=probe)
         if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='buffer_api_remaining'").fetchone():
             for row in db.execute('SELECT * FROM buffer_api_remaining WHERE expires>?', (ts,)):
                 later = db.execute('SELECT count(*) FROM buffer_api_usage WHERE id>?', (row['checkpoint'],)).fetchone()[0]
                 if row['remaining'] - later <= 5:
                     raise ProbeError('buffer_remote_quota_stop')
-        db.execute('INSERT INTO buffer_api_usage(requested,operation) VALUES(?,?)', (ts, operation))
+        key=db.execute('INSERT INTO buffer_api_usage(requested,operation) VALUES(?,?)', (ts, operation)).lastrowid
+        if probe:db.execute("UPDATE buffer_quota_probes SET state='started',request_id=? WHERE grant_id=? AND state='reserved'",(key,grant))
+        if budget:db.execute('UPDATE buffer_request_reservations SET remaining=remaining-1 WHERE budget_id=?',(budget,))
+        return key
 
 
 def record_headers(store, headers):

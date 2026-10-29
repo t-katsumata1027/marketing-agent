@@ -14,14 +14,19 @@ class BufferInventoryAdapter:
         self.api,self.organization=api,organization_id
         self.usage_counted=True
 
+    def begin_check(self):
+        self._channels=None
+
     def __call__(self,channel,binding,target,cursor):
         from .buffer_trial import ORGANIZATIONS,CHANNELS
         from .instagram_domain import HANDLE
         from .domain import JST
         from datetime import datetime
-        organizations=self.api._request(ORGANIZATIONS)['account']['organizations']
-        if sum(o.get('id')==self.organization for o in organizations)!=1:raise ValueError('external_dispatch_unverified')
-        rows=self.api._request(CHANNELS,{'input':{'organizationId':self.organization}})['channels']
+        if getattr(self,'_channels',None) is None:
+            organizations=self.api._request(ORGANIZATIONS)['account']['organizations']
+            if sum(o.get('id')==self.organization for o in organizations)!=1:raise ValueError('external_dispatch_unverified')
+            self._channels=self.api._request(CHANNELS,{'input':{'organizationId':self.organization}})['channels']
+        rows=self._channels
         matches=[r for r in rows if r.get('id')==binding]
         service='twitter' if channel=='x' else 'instagram';name=ACCOUNT if channel=='x' else HANDLE
         if len(matches)!=1 or matches[0].get('service')!=service or matches[0].get('name','').lstrip('@').lower()!=name.lower() or any(matches[0].get(k) is not False for k in ('isDisconnected','isLocked','isQueuePaused')):
@@ -52,6 +57,8 @@ class ExternalInventory:
 
     def check(self,target):
         started=self.clock();pages=[]
+        begin=getattr(self.read_page,'begin_check',None)
+        if callable(begin):begin()
         for channel,binding in self.channels.items():
             cursor=None;seen=set()
             for _ in range(100):

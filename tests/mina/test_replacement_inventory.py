@@ -50,8 +50,8 @@ class InventoryTests(unittest.TestCase):
   api._transport=lambda q,v:{'data':query(q,v)}
   inventory=ExternalInventory(self.store,BufferInventoryAdapter(api,'org'),lambda:NOW,{'x':'x','instagram':'ig'})
   self.assertEqual(len(inventory.check(TARGET)['pages']),2)
-  self.assertEqual(api.calls,6)
-  with self.store.transaction() as db:self.assertEqual(db.execute('SELECT count(*) FROM buffer_api_usage').fetchone()[0],6)
+  self.assertEqual(api.calls,4)
+  with self.store.transaction() as db:self.assertEqual(db.execute('SELECT count(*) FROM buffer_api_usage').fetchone()[0],4)
  def test_actual_client_without_quota_callback_is_rejected_before_transport(self):
   api=BufferTrialClient('synthetic-test-token',transport=Mock())
   with self.assertRaisesRegex(ValueError,'quota_unverified'):BufferInventoryAdapter(api,'org')
