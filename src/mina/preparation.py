@@ -31,6 +31,11 @@ class PreparationJournal:
         stage,slot=step_context(step)
         started=time.monotonic()
         digest = fingerprint(inputs)
+        # 外部生成中に120秒を超えても、次の工程はTX外の実一覧更新から照合する。
+        # 台帳内でネットワークを待たず、停止済みjobの再開も認めない。
+        from .current_day_gate import CURRENT
+        gate=CURRENT.get()
+        if gate is not None and target==gate.approval['target_date']:gate.refresh_external()
         with self.store.transaction() as db:
             previous = db.execute("SELECT * FROM preparation_steps WHERE target_date=? AND step=?", (target, step)).fetchone()
             if previous:

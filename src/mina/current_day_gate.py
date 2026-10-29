@@ -68,6 +68,17 @@ class Gate:
         return deadline
 
     def refresh_external(self):
+        # 長い生成の後でも、停止済み/期限後の権限で新しい外部一覧を取得しない。
+        if os.getenv('MINA_CURRENT_DAY_RECOVERY_ENABLED','false').lower()!='true':raise ValueError('current_day_recovery_disabled')
+        self.check_code()
+        with self.store.transaction() as db:
+            row=db.execute('SELECT * FROM current_day_jobs WHERE target_date=?',(TARGET,)).fetchone()
+            if (not row or row['state'] not in ('issued','running') or row['approval_digest']!=fingerprint(self.approval)
+                    or row['origin_digest']!=self.approval['origin_digest'] or json.loads(row['approval'])!=self.approval
+                    or self.clock()<timestamp(row['activated_at']) or (timestamp(row['deadline'])-self.clock()).total_seconds()<60):
+                raise ValueError('外部予約を再取得できる当日権限がありません')
+            from .current_day_origin import stored,verify_stored_rows
+            verify_stored_rows(db,stored(db))
         if self.latest_inventory is not None and 0<=(self.clock()-timestamp(self.latest_inventory['read_started_at'])).total_seconds()<90:return
         if self.inventory is None:raise ValueError('外部予約の再取得adapterがありません')
         self.latest_inventory=self.inventory.check(TARGET)
@@ -138,6 +149,8 @@ def require_stage(store,target,db=None):
     """別承認日の工程は通常CLIから再生成しない。読取検査とは分ける。"""
     if target!=TARGET:return
     if db is None:
+        gate=CURRENT.get()
+        if gate is not None and gate.store.path==store.path:gate.refresh_external()
         with store.transaction() as connection:return require_stage(store,target,connection)
     if not exists(db,'current_day_jobs') or not db.execute('SELECT 1 FROM current_day_jobs WHERE target_date=?',(TARGET,)).fetchone():return
     gate=CURRENT.get()

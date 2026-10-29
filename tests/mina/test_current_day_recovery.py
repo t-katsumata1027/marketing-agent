@@ -179,6 +179,36 @@ class CurrentDayRecoveryTests(unittest.TestCase):
         with self.assertRaises(ValueError):self.run_pipeline()
         self.assertEqual(self.ai.images,0);self.assertEqual(self.meal.calls,[])
 
+    def test_long_image_refreshes_real_inventory_before_next_journal_step(self):
+        self.issue();original=self.ai.image
+        def image(description):
+            self.clock[0]+=timedelta(seconds=130)
+            return original(description)
+        self.ai.image=image
+        result=self.run_pipeline()
+        self.assertEqual(result['state'],'preparation_cards_delivered')
+        self.assertEqual(self.ai.images,3);self.assertEqual(self.discord.send_files.call_count,8)
+        with self.store.transaction() as db:
+            self.assertGreaterEqual(db.execute('SELECT count(*) FROM replacement_inventory_checks').fetchone()[0],4)
+
+    def test_inventory_change_during_long_image_stops_before_review(self):
+        self.issue();original=self.ai.image;review=Mock(wraps=self.ai.review_image);self.ai.review_image=review
+        def image(description):
+            self.clock[0]+=timedelta(seconds=130)
+            self.inventory.read_page=Mock(side_effect=ValueError('隔離：生成中に予約状態が不明'))
+            return original(description)
+        self.ai.image=image
+        with self.assertRaises(ValueError):self.run_pipeline()
+        review.assert_not_called();self.assertEqual(self.meal.calls,[]);self.discord.send_files.assert_not_called()
+
+    def test_terminal_job_does_not_refresh_inventory_or_restart(self):
+        self.issue()
+        with self.assertRaises(RuntimeError):
+            with self.gate.running():raise RuntimeError('隔離：実行停止')
+        self.gate.latest_inventory=None;self.inventory.check=Mock()
+        with self.assertRaises(ValueError):self.gate.refresh_external()
+        self.inventory.check.assert_not_called()
+
     def test_legacy_1c_code_blocks_even_after_hold_release_or_marker_damage(self):
         import sys,types
         root=Path(__file__).parent/'fixtures/legacy-1c-preparation'
