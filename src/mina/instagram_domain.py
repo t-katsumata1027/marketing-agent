@@ -89,7 +89,9 @@ class InstagramCandidate:
                     asset.get('height') != (1350 if self.slot == 'daily' else 1920)):
                 raise ValueError('Instagram画像の規格が不正です')
         sha(self.source['bundle_sha256'])
-        if set(self.source.get('x_digests', {})) != set(SLOTS):
+        from .next_meals import KEY,valid_source
+        if KEY in self.source:valid_source(self)
+        elif set(self.source.get('x_digests', {})) != set(SLOTS):
             raise ValueError('X用4枠と同じ正本の対応が必要です')
         for value in self.source['x_digests'].values():
             sha(value)

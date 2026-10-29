@@ -34,6 +34,9 @@ def maybe_refresh(api,store,token):
         if not policy:
             from .next_saved import handoff_policy
             policy=handoff_policy(db,target)
+        if not policy:
+            from .next_meals import handoff_policy
+            policy=handoff_policy(db,target)
         if not policy:return
         if run is None:
             claim=getattr(api,'routine_publication_claim',None)
@@ -42,7 +45,7 @@ def maybe_refresh(api,store,token):
             from .publication_hold import require_clear
             from .domain import Candidate
             from .instagram_domain import InstagramCandidate
-            require_clear(db,target)
+            require_clear(db,target,(platform,expected))
             row=db.execute('SELECT * FROM '+table+' WHERE target_date=? AND slot=?',(target,expected['slot'])).fetchone()
             if not row or row['state']!='dispatching' or not row['actor'] or row['approved'] is None or (row['target_date'],row['revision'],row['digest'])!=(expected['target_date'],expected['revision'],expected['digest']):raise ProbeError('buffer_routine_claim_changed')
             if (Candidate if platform=='x' else InstagramCandidate)(**json.loads(row['payload'])).digest!=row['digest']:raise ProbeError('buffer_routine_claim_changed')

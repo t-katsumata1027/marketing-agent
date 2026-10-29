@@ -46,7 +46,7 @@ def configure_policy(store, channel, now, review_until):
 def bind_route(db, row, channel):
     """外部送信前に日時枠と承認版を一意に保存する。"""
     from .publication_hold import require_clear
-    require_clear(db, row['target_date'])
+    require_clear(db, row['target_date'],('x',dict(row)))
     if row['slot'] not in SLOTS or row['approved'] is None or not row['actor']:
         raise ProbeError('buffer_approved_slot_required')
     c = Candidate(**json.loads(row['payload']))
@@ -210,7 +210,7 @@ class BufferPublisher:
                    'schedulingType':'automatic','mode':'shareNow','saveToDraft':False,'needsApproval':False}
         with self.store.transaction() as db:
             from .publication_hold import require_clear
-            require_clear(db, self.row['target_date'])
+            require_clear(db, self.row['target_date'],('x',dict(self.row)))
             row = db.execute('SELECT * FROM candidates WHERE target_date=? AND slot=?',
                              (self.row['target_date'],self.row['slot'])).fetchone()
             if (not row or row['state'] != 'dispatching' or row['revision'] != self.row['revision']

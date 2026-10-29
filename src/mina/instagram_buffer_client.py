@@ -26,7 +26,7 @@ class InstagramBufferClient:
         maybe_refresh(self,self.store,self.token)
         if query.lstrip().startswith('mutation'):
             from .publication_hold import require_buffer_mutation
-            require_buffer_mutation(self.store, getattr(self, 'publication_target', None))
+            require_buffer_mutation(self.store, getattr(self, 'publication_target', None),getattr(self,'routine_publication_claim',None))
         from .buffer_budget import subject,observe
         identity=subject(self.token);request_id=record_request(self.store, query,subject=identity)
         try:

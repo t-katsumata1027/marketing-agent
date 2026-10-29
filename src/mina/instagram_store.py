@@ -189,7 +189,7 @@ class InstagramStore:
             db.execute("UPDATE instagram_candidates SET state='expired',nonce_hash=NULL WHERE state IN ('approved','approval_pending') AND scheduled<?", (ts - 120,))
             rows = db.execute("SELECT * FROM instagram_candidates WHERE state='approved' AND scheduled<=? AND scheduled>=? ORDER BY scheduled", (ts, ts - 120)).fetchall()
             from .scoped_preparation import blocked
-            row = next((r for r in rows if not held(db, r['target_date']) and not blocked(json.loads(r['payload']))), None)
+            row = next((r for r in rows if not held(db, r['target_date'],('instagram',dict(r))) and not blocked(json.loads(r['payload']))), None)
             if not row:
                 return None
             c = InstagramCandidate(**json.loads(row['payload']))
@@ -200,7 +200,7 @@ class InstagramStore:
 
     def begin(self, row, request, now):
         with self.transaction() as db:
-            require_clear(db, row['target_date'])
+            require_clear(db, row['target_date'],('instagram',dict(row)))
             current = db.execute('SELECT * FROM instagram_candidates WHERE target_date=? AND slot=?',
                                  (row['target_date'], row['slot'])).fetchone()
             if (not current or current['state'] != 'dispatching' or current['digest'] != row['digest'] or

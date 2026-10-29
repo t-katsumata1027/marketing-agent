@@ -31,8 +31,11 @@ def exists(db, table):
     return db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone() is not None
 
 
-def held(db, target):
+def held(db, target, publication=None):
     """旧DBは読取だけで扱い、停止行があれば機能無効化後も保護する。"""
+    if publication is not None:
+        from .next_meals import publication_allowed
+        if publication_allowed(db,target,publication):return False
     from .post_late import clear
     if clear(db,target):return False
     from .scoped_preparation import locked
@@ -43,12 +46,12 @@ def held(db, target):
     return row is not None and row['state'] != 'released'
 
 
-def require_clear(db, target):
-    if held(db, target):
+def require_clear(db, target, publication=None):
+    if held(db, target,publication):
         raise PublicationHeld()
 
 
-def require_buffer_mutation(store=None, target=None):
+def require_buffer_mutation(store=None, target=None, publication=None):
     """調停先のない単体Buffer書込みは新機能有効時に拒否する。読取照会は継続する。"""
     if store is None:
         if os.getenv('MINA_MEAL_REPLACEMENT_ENABLED', 'false').lower() == 'true':
@@ -62,7 +65,12 @@ def require_buffer_mutation(store=None, target=None):
         return
     with store.transaction() as db:
         if target is not None:
-            require_clear(db, target)
+            require_clear(db, target,publication)
+            from .next_meals import job
+            if job(db,target):
+                platform,row=publication;table='candidates' if platform=='x' else 'instagram_candidates'
+                current=db.execute('SELECT state FROM '+table+' WHERE target_date=? AND slot=?',(target,row['slot'])).fetchone()
+                if not current or current['state']!='dispatching':raise PublicationHeld()
         else:
             from .scoped_preparation import locked
             if locked(db) or (exists(db, 'publication_holds') and db.execute(
@@ -74,7 +82,7 @@ def require_claim(store, row, table='candidates'):
     if table not in ('candidates', 'instagram_candidates'):
         raise ValueError('公開台帳が不正です')
     with store.transaction() as db:
-        require_clear(db, row['target_date'])
+        require_clear(db, row['target_date'],('x' if table=='candidates' else 'instagram',dict(row)))
         current = db.execute('SELECT state,digest,revision,payload FROM '+table+' WHERE target_date=? AND slot=?',
                              (row['target_date'], row['slot'])).fetchone()
         if (not current or current['state'] != 'dispatching' or current['digest'] != row['digest']

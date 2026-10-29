@@ -51,6 +51,9 @@ def prepare(store,notice,platform):
         if not policy:
             from .next_saved import handoff_policy
             policy=handoff_policy(db,target)
+        if not policy:
+            from .next_meals import handoff_policy
+            policy=handoff_policy(db,target)
         if not policy:return None
         if notice['kind']!='approval':return None
         current_notice(db,notice,platform)

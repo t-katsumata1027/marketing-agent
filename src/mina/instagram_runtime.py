@@ -131,6 +131,8 @@ class InstagramRuntime:
         return {'target_date': target, 'notices_sent': self.notify(target)}
 
     def verify(self, candidate):
+        from .next_meals import KEY as MEALS,verify_ig as verify_meals
+        if MEALS in candidate.source:return verify_meals(self,candidate)
         from .post_late import KEY as LATE,verify_candidate
         if LATE in candidate.source:return verify_candidate(self.store,candidate)
         from .post_promotion import KEY,verify_ig

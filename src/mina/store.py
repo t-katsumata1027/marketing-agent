@@ -272,7 +272,7 @@ class Store:
             rows = db.execute("""SELECT * FROM candidates c WHERE state='approved' AND scheduled<=? AND scheduled>=?
                 AND NOT EXISTS(SELECT 1 FROM publication_retries r WHERE r.target_date=c.target_date AND r.slot=c.slot AND r.revision=c.revision AND r.next_at>?) ORDER BY scheduled""", (ts, ts - grace_seconds,ts)).fetchall()
             from .scoped_preparation import blocked
-            rows = [row for row in rows if not held(db, row['target_date']) and not blocked(json.loads(row['payload']))]
+            rows = [row for row in rows if not held(db, row['target_date'],('x',dict(row))) and not blocked(json.loads(row['payload']))]
             for row in rows:
                 db.execute("UPDATE candidates SET state='dispatching',dispatch_started=? WHERE target_date=? AND slot=?", (ts, row["target_date"], row["slot"]))
                 self.audit.emit('publication',row['target_date'],row['slot'],row['revision'],'preparation','started',
@@ -284,11 +284,11 @@ class Store:
         ts = instant(now).timestamp()
         with self.transaction() as db:
             self.expire_due(db,now,grace_seconds)
-            rows = db.execute("""SELECT target_date,payload FROM candidates c WHERE state='approved' AND scheduled BETWEEN ? AND ?
+            rows = db.execute("""SELECT * FROM candidates c WHERE state='approved' AND scheduled BETWEEN ? AND ?
                 AND NOT EXISTS(SELECT 1 FROM publication_retries r WHERE r.target_date=c.target_date AND r.slot=c.slot AND r.revision=c.revision AND r.next_at>?)""",
                               (ts-grace_seconds, ts,ts)).fetchall()
             from .scoped_preparation import blocked
-            return any(not held(db, row['target_date']) and not blocked(json.loads(row['payload'])) for row in rows)
+            return any(not held(db, row['target_date'],('x',dict(row))) and not blocked(json.loads(row['payload'])) for row in rows)
 
     def expire_due(self,db,now,grace_seconds):
         rows=db.execute("SELECT * FROM candidates WHERE state IN ('approval_pending','approved') AND scheduled<?",(instant(now).timestamp()-grace_seconds,)).fetchall()

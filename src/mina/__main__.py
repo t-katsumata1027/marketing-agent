@@ -96,6 +96,8 @@ def cycle(store: Store, now: datetime):
         promotion_maintain(store)
         from .next_saved import maintain as next_saved_maintain
         next_saved_maintain(store)
+        from .next_meals import maintain as next_meals_maintain
+        next_meals_maintain(store)
     target = (now.astimezone(JST).date() + timedelta(days=1)).isoformat()
     today = now.astimezone(JST).date().isoformat()
     # 夜間準備が日付を跨いで完成した場合も、当日分の追加承認を処理する。
