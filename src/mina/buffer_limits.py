@@ -10,7 +10,7 @@ def record_request(store, query, subject=None):
     operation = 'publish' if 'createPost(' in query else 'read'
     ts = datetime.now(UTC).timestamp()
     with store.transaction() as db:
-        from .buffer_budget import check,PROBE,RESERVATION
+        from .buffer_budget import check,PROBE,RESERVATION,REFRESH,reservation,continuation_refresh_check
         grant=PROBE.get();budget=RESERVATION.get();probe=False
         if grant:
             from .buffer_trial import ORGANIZATIONS
@@ -18,11 +18,17 @@ def record_request(store, query, subject=None):
             if query!=ORGANIZATIONS or not row or row['subject']!=subject or row['state']!='reserved' or row['deadline']<=ts:raise ProbeError('buffer_probe_unavailable')
             probe=True
         if budget:
-            row=db.execute('SELECT * FROM buffer_request_reservations WHERE budget_id=?',(budget,)).fetchone()
+            budget_table,row=reservation(db,budget)
             from .buffer_trial import ORGANIZATIONS,CHANNELS
             from .replacement_inventory import POSTS
             if query not in (ORGANIZATIONS,CHANNELS,POSTS) or not row or row['subject']!=subject or row['state']!='active' or row['deadline']<=ts or row['remaining']<=0:raise ProbeError('buffer_reservation_unavailable')
-        check(db,subject,ts,exclude=budget,probe=probe)
+        refresh=REFRESH.get()
+        if refresh:
+            from .buffer_trial import ORGANIZATIONS
+            row=db.execute('SELECT * FROM buffer_continuation_refresh WHERE grant_id=?',(refresh,)).fetchone()
+            if probe or budget or query!=ORGANIZATIONS or not row or row['subject']!=subject or row['state']!='reserved' or row['deadline']<=ts:raise ProbeError('buffer_refresh_unavailable')
+            continuation_refresh_check(db,subject,ts)
+        else:check(db,subject,ts,exclude=budget,probe=probe)
         if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='buffer_api_remaining'").fetchone():
             for row in db.execute('SELECT * FROM buffer_api_remaining WHERE expires>?', (ts,)):
                 later = db.execute('SELECT count(*) FROM buffer_api_usage WHERE id>?', (row['checkpoint'],)).fetchone()[0]
@@ -30,7 +36,8 @@ def record_request(store, query, subject=None):
                     raise ProbeError('buffer_remote_quota_stop')
         key=db.execute('INSERT INTO buffer_api_usage(requested,operation) VALUES(?,?)', (ts, operation)).lastrowid
         if probe:db.execute("UPDATE buffer_quota_probes SET state='started',request_id=? WHERE grant_id=? AND state='reserved'",(key,grant))
-        if budget:db.execute('UPDATE buffer_request_reservations SET remaining=remaining-1 WHERE budget_id=?',(budget,))
+        if budget:db.execute('UPDATE '+budget_table+' SET remaining=remaining-1 WHERE budget_id=?',(budget,))
+        if refresh:db.execute("UPDATE buffer_continuation_refresh SET state='started',request_id=? WHERE grant_id=?",(key,refresh))
         return key
 
 

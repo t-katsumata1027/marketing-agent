@@ -18,7 +18,8 @@ class NormalizationGate(ToleranceGate):
             from .buffer_trial import ProbeError
             from .replacement_client import timestamp
             key=RESERVATION.get()
-            row=db.execute('SELECT * FROM buffer_request_reservations WHERE budget_id=?',(key,)).fetchone() if key and db.execute("SELECT 1 FROM sqlite_master WHERE name='buffer_request_reservations'").fetchone() else None
+            from .buffer_budget import reservation
+            _,row=reservation(db,key) if key else (None,None)
             prior=db.execute('SELECT deadline FROM '+self.TABLE+' WHERE target_date=?',(TARGET,)).fetchone() if db.execute('SELECT 1 FROM sqlite_master WHERE name=?',(self.TABLE,)).fetchone() else None
             minimum=1 if prior else 10*(len(self.latest_inventory['pages'])+2) if self.latest_inventory else 60
             until=timestamp(prior['deadline']).timestamp() if prior else min(timestamp(self.approval['not_after']).timestamp(),self.clock().timestamp()+900)

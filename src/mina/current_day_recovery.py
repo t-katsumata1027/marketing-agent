@@ -76,7 +76,7 @@ def execute(gate,base,ai,drive,meal,host,evidence,capture,discord,commit):
         return result
 
 
-def finish(gate,draft,images,out,drive,meal,ai,host,evidence,reader,discord,commit,meal_policy_sha256=None):
+def finish(gate,draft,images,out,drive,meal,ai,host,evidence,reader,discord,commit,meal_policy_sha256=None,saved_images=None):
     """初回と限定継続で、登録・実点検・準備カードの同じ工程を使う。"""
     from .registration import register_day
     from .daily_pipeline import write_artifact
@@ -84,7 +84,12 @@ def finish(gate,draft,images,out,drive,meal,ai,host,evidence,reader,discord,comm
     from .domain import Candidate
     from .m1_contract import validate_state,verify_source
     # 初回の通常保存。旧日の画像・Drive参照は変更しない。
-    saved=save_images_to_drive(gate.store,images,drive);write_artifact(out/'drive.json',saved)
+    if saved_images is None:
+        saved=save_images_to_drive(gate.store,images,drive);write_artifact(out/'drive.json',saved)
+    else:
+        from .partial_day_continuation import PartialGate
+        if not isinstance(gate,PartialGate) or saved_images!=gate.snapshot['partial']['drive']:raise ValueError('別のDrive完了原本は再利用しません')
+        saved=saved_images
     # 品質不合格の訂正は既存契約内で一回。未保存拒否や保存画像保留から再登録しない。
     reviewed=register_day(gate.store,draft,saved,out/'ogp',meal,ai,host,capture=reader,allow_correction=True,meal_policy_sha256=meal_policy_sha256)
     write_artifact(out/'posts-reviewed.json',reviewed)

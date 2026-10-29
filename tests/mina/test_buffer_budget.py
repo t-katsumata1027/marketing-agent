@@ -19,6 +19,26 @@ def headers(day=600,missing=False):
     return h
 
 class BudgetTests(unittest.TestCase):
+    def test_continuation_refresh_once_and_preserves_old_reservation(self):
+        run_probe(self.store,self.api(),self.grant)
+        old=str(uuid.uuid4());reserve(self.store,old,self.key,'2026-10-29',30,END);release(self.store,old)
+        refresh=str(uuid.uuid4());deadline=END+1800
+        with patch('src.mina.buffer_budget.os.geteuid',return_value=0):grant_continuation_refresh(self.store,refresh,self.key,deadline)
+        api=self.api();run_continuation_refresh(self.store,api,refresh)
+        with self.assertRaises(ProbeError):run_continuation_refresh(self.store,api,refresh)
+        budget=str(uuid.uuid4());continuation_reserve(self.store,budget,self.key,40,deadline)
+        with using(budget):record_request(self.store,ORGANIZATIONS,subject=self.key)
+        release(self.store,budget)
+        with self.store.transaction() as db:
+            self.assertEqual(tuple(db.execute('SELECT remaining,original,state FROM buffer_request_reservations').fetchone()),(0,30,'closed'))
+            self.assertEqual(tuple(db.execute('SELECT remaining,original,state FROM buffer_continuation_reservations').fetchone()),(0,40,'closed'))
+    def test_continuation_refresh_unknown_cannot_resend(self):
+        run_probe(self.store,self.api(),self.grant);key=str(uuid.uuid4())
+        with patch('src.mina.buffer_budget.os.geteuid',return_value=0):grant_continuation_refresh(self.store,key,self.key,END+1800)
+        api=self.api(error=TimeoutError('隔離不明'))
+        with self.assertRaises(TimeoutError):run_continuation_refresh(self.store,api,key)
+        with self.assertRaises(ProbeError):run_continuation_refresh(self.store,api,key)
+        self.assertEqual(api.calls,1)
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup);self.store=Store(Path(self.tmp.name)/'db');self.key=subject('isolated-key');self.grant=str(uuid.uuid4())
         self.tp=patch('src.mina.buffer_budget.time.time',return_value=NOW.timestamp());self.tp.start();self.addCleanup(self.tp.stop)

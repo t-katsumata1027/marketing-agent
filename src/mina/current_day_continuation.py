@@ -38,6 +38,15 @@ class ContinuationGate(Gate):
     def validate_scope(self,approval):
         """派生した一度限りの契約は、別の対象制約もここで検査する。"""
 
+    def validate_initial_state(self,state):
+        if state['meal_count']!=0 or state.get('daily_share') is not None:raise ValueError('既存正本がある日は継続しません')
+
+    def validate_requests(self,db):
+        from .current_day_checkpoint import rows
+        from .publication_hold import exists
+        for t in ('mina_requests','meal_replacement_requests','replacement_attempts','candidates','instagram_candidates','publication_mutation_leases','buffer_publication','instagram_attempts'):
+            if exists(db,t) and rows(db,t):raise ValueError('要求・公開・予約がある日は継続しません')
+
     def authority(self,db,states,sending):
         self.enabled();self.parent(db)
         actual=next((r[2] for r in db.execute('PRAGMA database_list') if r[1]=='main'),None)
@@ -79,15 +88,15 @@ class ContinuationGate(Gate):
         for key in ('recovery_uuid',self.ID_FIELD):MealClient.request_key(a[key])
         end=timestamp(a['not_after'])
         if (a[self.ID_FIELD]==a['recovery_uuid'] or now.astimezone(JST).date().isoformat()!=TARGET or end.astimezone(JST).date().isoformat()!=TARGET or (end-now).total_seconds()<60):raise ValueError('継続の日時・IDが不正です')
-        if validate_state(state,TARGET,now)!=a['initial_state_version'] or state['meal_count']!=0 or state.get('daily_share') is not None:raise ValueError('既存正本がある日は継続しません')
+        if validate_state(state,TARGET,now)!=a['initial_state_version']:raise ValueError('初回の正本版が不一致です')
+        self.validate_initial_state(state)
         if (receipt.get('account')!=ACCOUNT or receipt.get('target_date')!=TARGET or not receipt.get('pages')
                 or {p['channel'] for p in receipt['pages']}!={'x','instagram'}):raise ValueError('継続の全外部一覧不足')
         with self.store.transaction() as db:
             self.parent(db);self.latest_inventory=receipt;self.receipt(db)
             from .current_day_checkpoint import rows
             from .publication_hold import exists
-            for t in ('mina_requests','meal_replacement_requests','replacement_attempts','candidates','instagram_candidates','publication_mutation_leases','buffer_publication','instagram_attempts'):
-                if exists(db,t) and rows(db,t):raise ValueError('要求・公開・予約がある日は継続しません')
+            self.validate_requests(db)
             if exists(db,'current_day_cards') and db.execute('SELECT 1 FROM current_day_cards WHERE recovery_uuid=?',(a['recovery_uuid'],)).fetchone():raise ValueError('既存の準備カード・送付があります')
             calls=[dict(r) for r in db.execute('SELECT * FROM current_day_calls WHERE recovery_uuid=? ORDER BY id',(a['recovery_uuid'],))]
             if calls!=self.snapshot['calls'] or rows(db,'preparation_steps')!=self.snapshot['tables']['preparation_steps']:raise ValueError('停止後に別の操作・工程が追加されています')
