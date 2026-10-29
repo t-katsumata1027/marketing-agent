@@ -70,7 +70,7 @@ class RoutineTests(unittest.TestCase):
     def test_weight_forms_and_full_mapping(self):
         for amount,w in [('炊飯後220g',220),('80g（千切り）',80),('1/2個（可食部25g）',25),('0.2kg',200)]:self.assertEqual(explicit_grams(amount),w)
         self.assertIsNone(explicit_grams('1杯'))
-        for amount in ('80～100g','80g+20g','0g'):
+        for amount in ('80～100g','80g+20g','0g','-20g','−20g','1e2g','約80g'):
             with self.assertRaises(ValueError):explicit_grams(amount)
         meal={'foods':[{'name':'ご飯','amount':'炊飯後220g'},{'name':'塩','amount':'1g'}]}
         foods=[{**f,'calories':0,'protein':0,'fat':0,'carbs':0} for f in meal['foods']]

@@ -137,6 +137,7 @@ def validate_mapping(value,meal,original):
 def explicit_grams(amount):
     """日本語の修飾付き単一重量は読む。複数重量・範囲は推測しない。"""
     text=amount.lower().replace('ｇ','g').replace('ｋｇ','kg')
+    if re.search(r'[-−－]\s*\d|\d\s*[eE][+-]?\d|約|およそ',text):raise ValueError('負重量/指数/概数を明示重量へ変換しません')
     matches=list(re.finditer(r'(?<![\d.])(\d+(?:\.\d+)?)\s*(kg|g)(?![a-z])',text))
     if not matches:return None
     if len(matches)!=1 or re.search(r'\d\s*[-～〜~]\s*\d',text):raise ValueError('明示重量が複数/範囲で未確認です')

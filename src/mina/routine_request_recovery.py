@@ -1,7 +1,7 @@
 """M1の応答喪失を元UUIDの正式照会だけで照合し、明示した互換投影へ結ぶ。"""
-import copy,hashlib,json,time
+import copy,hashlib,json,time,re
 from datetime import UTC,datetime
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit,unquote
 from .preparation import fingerprint
 from .m1_contract import CONTRACT,completed_request,normalized_comment,validate_result,validate_state
 from .replacement_contract import canonical
@@ -21,7 +21,10 @@ def expected_hash(request):
         at=datetime.fromisoformat(p['logged_at']).astimezone(UTC).isoformat(timespec='milliseconds').replace('+00:00','Z')
         image=request['image'];mime='image/png' if image.startswith(b'\x89PNG\r\n\x1a\n') else 'image/jpeg'
         common.update(strict_meal_type=True,mime=mime,image_sha256=request['image_sha256'],meal_type=p['meal_type'],logged_at=at)
-    elif op=='meal_correction':common.update(reason=p['reason'],share_short_id=urlsplit(p['share_url']).path.rsplit('/',1)[-1],foods=foods(p['foods']))
+    elif op=='meal_correction':
+        parsed=urlsplit(p['share_url']);short=unquote(parsed.path.rsplit('/',1)[-1],errors='strict')
+        if parsed.scheme!='https' or parsed.hostname!='www.log-eats.com' or parsed.username or parsed.password or parsed.query or parsed.fragment or not re.fullmatch('/s/[^/]+',parsed.path) or not re.fullmatch('[a-z0-9_-]{4,32}',short):raise ValueError('訂正先短縮URLの形式が不正です')
+        common.update(reason=p['reason'],share_short_id=short,foods=foods(p['foods']))
     elif op=='daily_share':common.update(date=p['date'],expected_meal_count=3)
     else:raise ValueError('M1投影の操作範囲外です')
     return 'ih1_'+hashlib.sha256(canonical(common)).hexdigest()
