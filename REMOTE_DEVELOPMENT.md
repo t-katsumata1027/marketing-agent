@@ -1,5 +1,9 @@
 # サブPCでの開発
 
+## 2026年10月30日08:14・朝二件公開済み、最終個別判定補修を配置
+
+稼働495d8e16366d6162f031b9b9d5d9e31fa441d358、CI40971068148/独立Go/Linux29成功。切替133台帳全行保持、3サービスactive、救済OFF維持。退避 `/var/lib/mina-agent/deployment-review-recovery-scoped-495d8e16`、旧ソース `/opt/marketing-agent-rollback-review-scoped-495d8e16`。朝食X/IGは8:03に各一回published、旧expired/07:30/承認を履歴保存。他六件は承認済み・旧時刻を維持。夕IG再通知は既知ID1565496682743992350の実画像GET検証と本人再承認完了。再公開・再送はしない。本体/食事/AI/画像生成変更0。`IMPLEMENTATION_STATUS.md`冒頭と `MINA_BREAKFAST_DIRECT_20261030.md` を参照。
+
 ## 2026年10月28日14時台・②承認後も本体ON release gate未合格、食事/投稿未操作
 
 本人②承認で管理担当と連携し、same case/P/15:00とcase初回+15分/原本5件/限定executorを固定・独立Go取得した。サービスONと権限発行の混同は未実行のまま訂正。ON run40626952820 attempt1はprovider管理GET500、診断/独立Go後の正式failed-job attempt2はCore72成功だがcleanup=falseで最終未合格。Production/postdeployはskip。担当はDoppler0/Production metadata復帰と旧OFF Deploymentを確認。14:02の管理READ ONLYでもcases0/未完了0。Agentは1c5224b6・救済OFF/同hold/旧期限/UUID保持、新case/PDC/生成解析/食事変更/Discord候補/SNS0。原本一覧と未実行executorを保護領域に保存し、第三回・QA迂回・期限延長をしない。本体担当のQA限定修正計画は独立Goだが実装未承認。詳細はMINA_SCOPED_EXECUTION_20261028.md、依頼文はLOGEATS_QA_CLEANUP_REQUEST_20261028.md。今日の投稿案復旧は未完了。

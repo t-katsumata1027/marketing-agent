@@ -15,6 +15,8 @@ from src.mina.routine_handoff import matches
 class ReissueTests(unittest.TestCase):
  def setUp(self):
   self.f=fixture.CohortTests();self.f.setUp();self.addCleanup(self.f.doCleanups);self.store=self.f.store;self.ig=self.f.ig
+  # 限定契約の日付を試験時計へ固定し、翌日以降のCIでも実時計に依存しない。
+  clock_patch=patch('src.mina.notice_reissue.datetime',wraps=datetime);clock_patch.start().now.return_value=self.f.now;self.addCleanup(clock_patch.stop)
   self.path=Path(self.f.tmp.name)/'dinner-story.jpg';image=io.BytesIO();Image.new('RGB',(1080,1920),'white').save(image,'JPEG');self.raw=image.getvalue();self.path.write_bytes(self.raw)
   self.asset={'path':str(self.path),'sha256':hashlib.sha256(self.raw).hexdigest(),'role':'dinner_story','width':1080,'height':1920,'mime_type':'image/jpeg','size':len(self.raw),'url':'https://drive.google.com/uc?id=fixture'}
   with self.store.transaction() as db:

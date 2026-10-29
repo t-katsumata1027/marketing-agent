@@ -1,3 +1,9 @@
+## 2026年10月30日08:14・朝X/IG公開済み、個別承認判定を本番反映
+
+朝食は本人の最新直接指示に束縛した別権限で同一本文/画像のまま各一回公開。X 08:03:26 JST `https://twitter.com/EatsLog88161/status/2115942615744913508`、IG 08:03:35 JST `https://www.instagram.com/stories/log_eats/4018940045843061994`。旧expired・07:30・旧本人承認は履歴保持、昼夕日次の六承認・時刻も維持。夕IGの画像付き再通知一件は実CDN全文SHA/1080×1920/本文/三ボタンを同IDで検証し、本人が新版2を承認済み。再POSTなし。
+
+Agent最終495d8e16を独立Go・Linux29件・CI40971068148成功（Mina1074件/75skip、一般32件）後に配置。切替133表全行同一、3サービスactive、救済OFF。公開条件を当該memberの本人判断・版・同ID受領へ分離し、別投稿の差戻し/未承認/正常expiredでは止めない。unknown、版/画像変更、片欠け判断、送信排他は維持。Discord embedへ取り込まれたuploadの表現を実バイト検査付きで扱い、生GETも保持。7要求・47工程・旧case/hold/画像保持、本体・食事・AI・画像生成追加0。退避 `/var/lib/mina-agent/deployment-review-recovery-scoped-495d8e16`。詳細は `MINA_BREAKFAST_DIRECT_20261030.md` と `MINA_IG_RENOTICE_20261030.md`。Log-Eats本体のOGP恒久修正は担当側の計画Go・実装未承認のまま。
+
 ## 2026年10月30日00:30・3食保存済み、OGP障害で承認カード未送付
 
 本人は10/29公開を中止し、10/30の朝昼夕承認依頼を先行指定。Agent f1c57c0b（CI40899869833成功・独立Go/45件・実原本DBcopyの六通知Fake通し）を配置、切替123表全行不変。実3食552/723/692＝1967kcal、七M1要求complete、元画像と旧保留を保持。IG3合成は独立実画像点検publishable。日次OGPがp3なのに実2写真で朝欠落、六件先行の実OGP読取も朝HTML画像HTTP500で停止。承認候補/新承認カード0、追加食事/AI/日次再送/Drive配信/SNS0。旧caseはheld、旧first/00:30期限は維持し再起動しない。mina-agent/gateway/instagramはactiveへ復帰。Log-Eats担当へ本人承認済みの調査・修正計画・独立レビューだけを依頼し開始確認、本体変更は0。詳細はLOGEATS_OGP_RECOVERY_REQUEST_20261030.md。全8案又は六案完成・恒久運用可能とは報告しない。

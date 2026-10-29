@@ -25,3 +25,7 @@ M1/実native画像/共有HTMLを読取照合し、Buffer全状態全ページを
 8cc5c5d3を独立Go・CI40969698646成功後に配置。切替132台帳全行不変・救済OFF・3サービスactive。実正本/native画像/共有HTML/Buffer全状態全ページを照合後、専用unit一回で最新指示を発行し、通常サービスが各一回公開した。新publish_atは08:03:09 JST、旧expired/07:30/旧承認は履歴に保持。X route `6ae3d0bb6385db216a1249ce` は画像付き1POSTと同ID GET照合後sent/published、IG `6ae3d0b9ba1ca51fd3e3178d` はaccepted後に同ID照会でpublished。IG公開URLは `https://www.instagram.com/stories/log_eats/4018940045843061994`。他六件の本人判断・時刻は不変。本体・食事・AI・追加画像生成0。
 
 さらに原本整合検査では、未承認のまま期限切れになった別投稿も非公開終端として扱い、他の承認済み投稿を止めない。全承認の完成観測では未承認のままであり、当該expiredは公開できない。片欠けのactor/approved・未知attempt・版/予定改変は拒否する。
+
+## 最終局所補修の配置
+
+495d8e16は独立Go・Linux29成功、CI40971068148成功（Mina1074件/75skip、一般32件）後に配置。切替133台帳全行不変、救済OFF、3サービスactive。今回の配置で朝食を再実行していない。X実公開 `https://twitter.com/EatsLog88161/status/2115942615744913508` とIG実公開を再読取確認、旧7要求・47工程・holdは一致。他六件は承認済みを維持している。
