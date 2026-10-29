@@ -131,6 +131,7 @@ class BufferPublisher:
     def __init__(self, store, row, route, api, clock=None, timer=None, sleep=None):
         self.store, self.row, self.route, self.api = store, row, route, api
         self.api.publication_target = row['target_date']
+        self.api.routine_publication_claim=('x',dict(row))
         self.clock = clock or (lambda: datetime.now(UTC))
         self.timer, self.sleep = timer or time.monotonic, sleep or time.sleep
         self.proof = None

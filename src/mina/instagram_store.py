@@ -250,6 +250,8 @@ class InstagramStore:
                            (row['target_date'], row['slot'], row['revision'], state, json.dumps(payload, ensure_ascii=False)))
 
     def send_notices(self, client):
+        from .routine_handoff import maintain_notices,transmit
+        maintain_notices(self,'instagram',client)
         from .replacement_bundle import notice_allowed
         sent = 0
         while True:
@@ -260,7 +262,7 @@ class InstagramStore:
                     break
                 db.execute("UPDATE instagram_notices SET state='sending' WHERE id=?", (row['id'],))
             try:
-                client.send(json.loads(row['payload']))
+                transmit(self,row,'instagram',client)
             except Exception:
                 with self.transaction() as db:
                     db.execute("UPDATE instagram_notices SET state='outcome_unknown' WHERE id=?", (row['id'],))

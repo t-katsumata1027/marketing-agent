@@ -62,6 +62,8 @@ class BufferTrialClient:
         self.audit_context=None
 
     def _request(self, query, variables=None):
+        from .routine_buffer import maybe_refresh
+        maybe_refresh(self,getattr(self,'publication_store',None),self._token)
         if query.lstrip().startswith('mutation'):
             from .publication_hold import require_buffer_mutation
             require_buffer_mutation(getattr(self, 'publication_store', None), getattr(self, 'publication_target', None))

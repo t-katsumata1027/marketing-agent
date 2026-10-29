@@ -2,7 +2,7 @@
 import hashlib,json,time,uuid
 from .external_guard import guard,normal_retry,managed
 
-NAMES=frozenset(('mina_independent_review','mina_ogp_review','mina_meal_correction','mina_daily_draft','mina_meal_replan','mina_menu_nutrition_check'))
+NAMES=frozenset(('mina_independent_review','mina_ogp_review','mina_meal_correction','mina_daily_draft','mina_meal_replan','mina_menu_nutrition_check','mina_routine_quality_review'))
 FATAL=frozenset(('invalid_json_schema','invalid_request_error','unsupported_parameter','insufficient_quota','model_not_found','context_length_exceeded'))
 
 

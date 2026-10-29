@@ -57,12 +57,14 @@ def notify_day(store: Store, target: str, now: datetime):
 
 def send_notifications(store: Store, client):
     """通知成否不明を保留し、同じカードを自動重複送信しない。"""
+    from .routine_handoff import maintain_notices,transmit
+    maintain_notices(store,'x',client)
     count = 0
     while (notice := store.claim_notice()) is not None:
         try:
             slot=notice['slot'] if notice['slot'] in SLOTS else None
             with store.audit.operation('system',notice['target_date'],slot,notice['revision'],'notification'):
-                client.send(json.loads(notice["payload"]))
+                transmit(store,notice,'x',client)
         except Exception:
             store.finish_notice(notice["id"], "outcome_unknown")
             break

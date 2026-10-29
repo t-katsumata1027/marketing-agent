@@ -29,10 +29,13 @@ def record_request(store, query, subject=None):
         if refresh:
             from .buffer_trial import ORGANIZATIONS
             refresh_table=REFRESH_TABLE.get()
-            if refresh_table not in ('buffer_continuation_refresh','buffer_lunch_refresh','buffer_dinner_refresh','buffer_promotion_refresh'):raise ProbeError('buffer_refresh_scope_invalid')
+            if refresh_table not in ('buffer_continuation_refresh','buffer_lunch_refresh','buffer_dinner_refresh','buffer_promotion_refresh','buffer_routine_refresh'):raise ProbeError('buffer_refresh_scope_invalid')
             row=db.execute('SELECT * FROM '+refresh_table+' WHERE grant_id=?',(refresh,)).fetchone()
             if probe or budget or query!=ORGANIZATIONS or not row or row['subject']!=subject or row['state']!='reserved' or row['deadline']<=ts:raise ProbeError('buffer_refresh_unavailable')
-            continuation_refresh_check(db,subject,ts)
+            if refresh_table=='buffer_routine_refresh':
+                from .routine_buffer import check_refresh
+                check_refresh(db,subject,ts)
+            else:continuation_refresh_check(db,subject,ts)
         else:check(db,subject,ts,exclude=budget,probe=probe)
         if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='buffer_api_remaining'").fetchone():
             for row in db.execute('SELECT * FROM buffer_api_remaining WHERE expires>?', (ts,)):

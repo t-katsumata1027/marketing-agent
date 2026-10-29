@@ -141,6 +141,40 @@ class DiscordClient:
                             payload, {"Authorization": f"Bot {self.token}",
                                       "User-Agent": "DiscordBot (https://github.com/t-katsumata1027/marketing-agent, 1.0)"})
 
+    def _read(self,path):
+        """通知照会のGET先を同じBot/チャンネルへ固定する。"""
+        from urllib.request import build_opener
+        from .drive import NoRedirect
+        if path!='users/@me' and not path.startswith('channels/'+self.channel+'/messages'):raise ValueError('Discord照会先が不正です')
+        request=Request('https://discord.com/api/v10/'+path,headers={'Authorization':'Bot '+self.token,'User-Agent':'DiscordBot (https://github.com/t-katsumata1027/marketing-agent, 1.0)','Cache-Control':'no-store'})
+        with build_opener(NoRedirect()).open(request,timeout=20) as response:raw=response.read(1048577)
+        if len(raw)>1048576:raise ValueError('Discord照会の応答が過大です')
+        return json.loads(raw)
+
+    def identity(self):
+        return self._read('users/@me')['id']
+
+    def message(self,key):
+        if not isinstance(key,str) or not key.isdigit():raise ValueError('DiscordメッセージIDが不正です')
+        return self._read('channels/'+self.channel+'/messages/'+key)
+
+    def history_since(self,started):
+        from datetime import datetime
+        from urllib.parse import urlencode
+        messages=[];seen=set();before=None
+        for _ in range(10):
+            page=self._read('channels/'+self.channel+'/messages?'+urlencode({'limit':100,**({'before':before} if before else {})}))
+            if not isinstance(page,list):raise ValueError('Discord履歴の形式が不正です')
+            if not page:return {'messages':messages,'complete':True}
+            for message in page:
+                if not isinstance(message.get('id'),str) or not message['id'].isdigit() or message['id'] in seen or message.get('channel_id')!=self.channel:raise ValueError('Discord履歴のID/宛先が不正です')
+                seen.add(message['id']);messages.append(message)
+            times=[datetime.fromisoformat(m['timestamp'].replace('Z','+00:00')) for m in page]
+            if any(t.tzinfo is None for t in times) or times!=sorted(times,reverse=True):raise ValueError('Discord履歴の時刻順が不正です')
+            if min(times)<started:return {'messages':messages,'complete':True}
+            before=page[-1]['id']
+        return {'messages':messages,'complete':False}
+
     def send_files(self,payload,files):
         """限定準備カードのJPEGを添付する。一度のPOST以外へ自動退避しない。"""
         from pathlib import Path

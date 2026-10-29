@@ -202,7 +202,8 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
         normalized = validate_write(response, slot, target, host, operation=operation, logged_at=logged, input_comment=meal['comment'])
         if response['result']['image_sha256'] != info['sha256']:
             raise ValueError('登録入力画像の版が一致しません')
-        lookup = meal_client.request_state(key, operation)
+        from .routine_request_recovery import completed_lookup
+        lookup = completed_lookup(requests,key,meal_client,operation)
         input_hash = completed_request(lookup, key, operation, response['result'])
         requests.record(key, 'complete', {'persistence': 'saved', 'stage': 'completed'})
         if operation == 'meal_register' and lookup.get('image_sha256') != info['sha256']:
@@ -218,16 +219,18 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
         from .review_diagnostics import record_findings,record_verdict
         record_findings(store,ai,target,slot,'meal_review',info['sha256'])
         record_verdict(store,target,slot,'meal_review',review)
+        from .routine_recovery import CURRENT as ROUTINE
+        routine=ROUTINE.get()
         if (allow_correction and operation == 'meal_register' and review.get('status') == 'hold' and review.get('reason_codes') and
                 set(review['reason_codes']) <= {'image_analysis_mismatch','nutrition_semantic_mismatch'} and
-                (meal_policy_sha256 is None or ai.allow_correction(meal,response,review))):
+                (ai.allow_correction(meal,response,review) if routine is not None else meal_policy_sha256 is None or ai.allow_correction(meal,response,review))):
             from .correction import correct_meal_once
             original = response
             response, key = correct_meal_once(journal, requests, meal_client, ai, check_state, target, slot, meal, raw, original, host)
             operation = 'meal_correction'
             completed[slot] = response
             normalized = validate_write(response, slot, target, host, operation=operation, logged_at=logged, input_comment=meal['comment'])
-            input_hash = completed_request(meal_client.request_state(key, operation), key, operation, response['result'])
+            input_hash = completed_request(completed_lookup(requests,key,meal_client,operation), key, operation, response['result'])
             captured, preview = ogp(slot, normalized, '-corrected')
             review_method=getattr(type(ai),'review_response',None)
             review_response=review_method(ai,response) if callable(review_method) else response
@@ -250,7 +253,8 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
                          'approval_source': {'request_key': key, 'operation': operation, 'input_hash': input_hash,
                             'result_sha256': normalized['result_sha256'], 'result_version': response['result']['result_version'],
                             'stored_image_sha256': response['result']['stored_image_sha256'],
-                            'ogp_revision': normalized['ogp']['revision'], 'ogp_source_version': normalized['source_version']}}
+                            'ogp_revision': normalized['ogp']['revision'], 'ogp_source_version': normalized['source_version'],
+                            **({'ogp_image_url':captured['meta']['og:image'],'ogp_image_sha256':captured['meta']['image_sha256']} if routine is not None else {})}}
     if collection_slots is not None:
         # 保存済み朝食の保留を解除せず、昼夕点検の結果だけを返す。日次生成・公開なし。
         check_state()
@@ -271,7 +275,8 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
                                  lambda: requests.execute_once(key, meal_client,
                                      lambda: meal_client.json_write('/api/internal/mina/daily-share', daily_payload, request_key=key)))
     daily = validate_write(daily_response, 'daily', target, host, input_comment=draft['daily_comment'], meals=outputs)
-    daily_hash = completed_request(meal_client.request_state(key, 'daily_share'), key, 'daily_share', daily_response['result'])
+    from .routine_request_recovery import completed_lookup
+    daily_hash = completed_request(completed_lookup(requests,key,meal_client,'daily_share'), key, 'daily_share', daily_response['result'])
     requests.record(key, 'complete', {'persistence': 'saved', 'stage': 'completed'})
     if daily['source_version'] != request['expected_state_version']:
         raise ValueError('日次集計の生成元版が不一致です')
@@ -288,7 +293,8 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
                         'image_sha256': fingerprint({slot: saved['images'][slot]['sha256'] for slot in MEAL_SLOTS}),
                         'approval_source': {'request_key': key, 'operation': 'daily_share', 'input_hash': daily_hash,
                             'result_sha256': daily['result_sha256'], 'result_version': daily_response['result']['result_version'],
-                            'ogp_revision': daily['ogp']['revision'], 'ogp_source_version': daily['source_version']}}
+                            'ogp_revision': daily['ogp']['revision'], 'ogp_source_version': daily['source_version'],
+                            **({'ogp_image_url':captured['meta']['og:image'],'ogp_image_sha256':captured['meta']['image_sha256']} if routine is not None else {})}}
     final_version = check_state()
     if final_version != daily['source_version']:
         raise ValueError('レビュー中に日全体の正本が変更されています')

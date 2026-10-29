@@ -62,7 +62,11 @@ def policy_sha256():return fingerprint({'policy':POLICY,'instructions':INSTRUCTI
 
 def scoped_policy(default,provided):
     """通常経路の既定版は保持し、明示した限定caseだけが新policyを使う。"""
-    if provided is None:return default
+    if provided is None:
+        from .routine_recovery import CURRENT as ROUTINE
+        normal=ROUTINE.get()
+        if normal is not None:normal.check();return normal.sha
+        return default
     from .current_day_gate import CURRENT
     gate=CURRENT.get()
     if gate is None or getattr(gate,'portion_policy_sha256',None)!=provided or provided!=policy_sha256():raise ValueError('概算許容policyの承認範囲外です')

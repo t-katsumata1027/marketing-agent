@@ -21,6 +21,9 @@ class InstagramBufferClient:
             raise ProbeError('buffer_key_missing_or_invalid')
 
     def _request(self, query, variables=None):
+        from .routine_buffer import maybe_refresh
+        self._token=self.token
+        maybe_refresh(self,self.store,self.token)
         if query.lstrip().startswith('mutation'):
             from .publication_hold import require_buffer_mutation
             require_buffer_mutation(self.store, getattr(self, 'publication_target', None))
