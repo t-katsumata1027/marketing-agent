@@ -27,7 +27,7 @@ class DeliveryTests(unittest.TestCase):
                     row={'recovery_uuid':'owner','platform':platform,'slot':slot,'payload':json.dumps(payload),'digest':fingerprint(payload),'state':state,'message_id':None};self.cards.append(row)
                     db.execute('INSERT INTO current_day_cards VALUES(?,?,?,?,?,?,?)',tuple(row.values()))
         self.snapshot={'owner':'owner','parent':[{'target_date':'2026-10-29','state':'held','recovery_uuid':'owner'}],'cards':self.cards,'files':[{'path':str(self.path.resolve()),'sha256':asset['sha256']}],'old_lookup':{}}
-        self.approval={'spec':VERSION,'target_date':'2026-10-29','mode':'discord_only','allow_unknown_resend':True,'delivery_uuid':str(uuid.uuid4()),'checkpoint_digest':fingerprint(self.snapshot),'not_after':'2026-10-29T08:30:00Z'}
+        self.approval={'spec':VERSION,'target_date':'2026-10-29','mode':'discord_only','allow_unknown_resend':True,'delivery_uuid':str(uuid.uuid4()),'checkpoint_digest':fingerprint(self.snapshot),'not_after':'2026-10-29T08:30:00.000Z'}
         self.gate=Delivery(self.store,self.approval,self.snapshot,lambda:self.now,lambda:None,'123','456');self.sent=[];self.messages={};outer=self
         class Discord:
             def send_files(self,payload,files):

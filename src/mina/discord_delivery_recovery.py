@@ -1,6 +1,6 @@
 """旧不明を保持した四案送付専用case。食事/AI/画像生成/SNS操作を持たない。"""
 import hashlib,json,os
-from datetime import timedelta
+from datetime import datetime,timedelta
 from pathlib import Path
 from .current_day_origin import TARGET
 from .current_day_checkpoint import rows,file_record
@@ -14,7 +14,7 @@ VERSION='mina-discord-delivery-recovery-v1'
 SELECTED={(p,s) for p in ('x','instagram') for s in ('dinner','daily')}
 
 def content(payload):
-    original=timestamp(payload['original_scheduled_at']).astimezone(JST).strftime('%m/%d %H:%M JST')
+    original=datetime.fromisoformat(payload['original_scheduled_at']).astimezone(JST).strftime('%m/%d %H:%M JST')
     return f"【準備専用・公開停止】{TARGET} {LABELS[payload['slot']]} / {payload['platform']}\n公開時刻：未定。元の予定は{original}。遅延公開は未承認です。\n{payload['body']}"
 
 def capture(db,config):
@@ -65,7 +65,7 @@ class Delivery:
         if os.getenv('MINA_DISCORD_DELIVERY_RECOVERY_ENABLED','false').lower()!='true' or a['spec']!=VERSION or a['target_date']!=TARGET or a['mode']!='discord_only' or a['allow_unknown_resend'] is not True or fingerprint(self.s)!=a['checkpoint_digest'] or not self.author.isdigit() or not self.channel.isdigit():raise ValueError('送付専用承認が不正です')
         MealClient.request_key(a['delivery_uuid'])
         end=timestamp(a['not_after'])
-        if now.astimezone(JST).date().isoformat()!=TARGET or not now<end<=timestamp('2026-10-29T08:30:00Z') or (end-now).total_seconds()<60:raise ValueError('送付専用日時が不正です')
+        if now.astimezone(JST).date().isoformat()!=TARGET or not now<end<=timestamp('2026-10-29T08:30:00.000Z') or (end-now).total_seconds()<60:raise ValueError('送付専用日時が不正です')
         with self.store.transaction() as db:
             self.source(db)
             db.execute('CREATE TABLE IF NOT EXISTS current_day_discord_delivery_jobs(target_date TEXT PRIMARY KEY,case_uuid TEXT NOT NULL UNIQUE,approval_digest TEXT NOT NULL,activated_at TEXT NOT NULL,deadline TEXT NOT NULL,state TEXT NOT NULL)')
