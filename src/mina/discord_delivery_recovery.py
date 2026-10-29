@@ -38,6 +38,7 @@ def capture(db,config):
     return {'spec':VERSION,'target_date':TARGET,'parent':parent,'owner':owner,'cards':cards,'files':list(files.values()),'old_lookup':config}
 
 class Delivery:
+    jobs="current_day_discord_delivery_jobs"
     def __init__(self,store,approval,snapshot,clock,check_code,own_author,channel):
         self.store,self.a,self.s,self.clock,self.check_code,self.author,self.channel=store,approval,snapshot,clock,check_code,own_author,channel
     def source(self,db):
@@ -108,7 +109,7 @@ class Delivery:
     def run(self,discord,reader,verify):
         with self.store.transaction() as db:
             self.check(db,True)
-            if db.execute("UPDATE current_day_discord_delivery_jobs SET state='running' WHERE case_uuid=? AND state='issued'",(self.a['delivery_uuid'],)).rowcount!=1:raise ValueError('送付専用の二重実行を拒否します')
+            if db.execute(f"UPDATE {self.jobs} SET state='running' WHERE case_uuid=? AND state='issued'",(self.a['delivery_uuid'],)).rowcount!=1:raise ValueError('送付専用の二重実行を拒否します')
         try:
             # 全四件の入力/正本/OGPを先に照合し、後半不一致の部分送付を防ぐ。
             for original in self.s['cards']:
@@ -141,9 +142,9 @@ class Delivery:
                     self.source(db)
                     db.execute("UPDATE current_day_discord_delivery_attempts SET state='sent',message_id=?,receipt=? WHERE case_uuid=? AND platform=? AND slot=?",(receipt['message_id'],json.dumps(receipt),self.a['delivery_uuid'],old['platform'],old['slot']))
                     if db.execute("UPDATE current_day_cards SET state='sent',message_id=? WHERE recovery_uuid=? AND platform=? AND slot=? AND digest=? AND state IN ('prepared','unknown')",(receipt['message_id'],self.s['owner'],old['platform'],old['slot'],old['digest'])).rowcount!=1:raise ValueError('元カードの受領反映が競合しました')
-            with self.store.transaction() as db:db.execute("UPDATE current_day_discord_delivery_jobs SET state='complete' WHERE case_uuid=?",(self.a['delivery_uuid'],))
+            with self.store.transaction() as db:db.execute(f"UPDATE {self.jobs} SET state='complete' WHERE case_uuid=?",(self.a['delivery_uuid'],))
         except BaseException:
-            with self.store.transaction() as db:db.execute("UPDATE current_day_discord_delivery_jobs SET state='held' WHERE case_uuid=?",(self.a['delivery_uuid'],))
+            with self.store.transaction() as db:db.execute(f"UPDATE {self.jobs} SET state='held' WHERE case_uuid=?",(self.a['delivery_uuid'],))
             raise
         return {'target_date':TARGET,'discord_sent':4,'sns_published':0,'food_writes':0,'ai_calls':0,'old_unknown_origin_preserved':True}
 

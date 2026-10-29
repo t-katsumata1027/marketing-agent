@@ -8,11 +8,13 @@ from .preparation import fingerprint
 
 def main():
     parser=argparse.ArgumentParser(description='夕食/日次のDiscord送付専用')
-    parser.add_argument('command',choices=('activate','run','reconcile'));parser.add_argument('--config',required=True);a=parser.parse_args()
+    parser.add_argument('command',choices=('activate','run','reconcile','continuation_activate','continuation_run'));parser.add_argument('--config',required=True);a=parser.parse_args()
     if os.getenv('MINA_DISCORD_DELIVERY_RECOVERY_ENABLED','false').lower()!='true':raise ValueError('discord_delivery_recovery_disabled')
     envelope,_=protected_json(a.config,root_owned=True)
     adopted='original_config' in envelope
-    settings,code=config(a.config,Path(__file__).resolve().parents[2],version=VERSION,extras=('checkpoint','own_author','original_config') if adopted else ('checkpoint','own_author'))
+    continuing=a.command.startswith('continuation_')
+    if continuing and not adopted:raise ValueError('別継続には旧構成の採用証跡が必要です')
+    settings,code=config(a.config,Path(__file__).resolve().parents[2],version=VERSION,extras=('checkpoint','own_author','original_config','continuation_approval') if continuing else ('checkpoint','own_author','original_config') if adopted else ('checkpoint','own_author'))
     approval=settings['approval']
     if adopted:
         original,original_sha=protected_json(settings['original_config']['path'],root_owned=True)
@@ -36,8 +38,12 @@ def main():
     require_live();store=Store(settings['database']);reader=DiscordReader(os.environ['DISCORD_BOT_TOKEN'],settings['discord_channel'])
     if reader.identity()!=settings['own_author']:raise ValueError('Discord著者が承認と不一致です')
     gate=Delivery(store,approval,snapshot,lambda:datetime.now(UTC),check,settings['own_author'],settings['discord_channel'])
-    if a.command=='activate':print(json.dumps({'deadline':gate.issue().isoformat(),'food_writes':0,'ai_calls':0}));return
+    if continuing:
+        from .discord_delivery_continuation import Continuation
+        gate=Continuation(store,approval,snapshot,lambda:datetime.now(UTC),check,settings['own_author'],settings['discord_channel'],continuation=settings['continuation_approval'])
+    if a.command in ('activate','continuation_activate'):print(json.dumps({'deadline':gate.issue().isoformat(),'food_writes':0,'ai_calls':0}));return
     if a.command=='reconcile':print(json.dumps(gate.reconcile(reader)));return
+    if continuing:gate.reconcile_old(reader)
     raw=scoped_meal()
     class ReadOnly:
         def day_state(self,*args):return raw.day_state(*args)
