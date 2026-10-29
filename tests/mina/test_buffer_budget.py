@@ -93,5 +93,16 @@ class BudgetTests(unittest.TestCase):
         with self.store.transaction() as db:
             db.execute('UPDATE buffer_retry_deadlines SET until=0');db.execute('UPDATE buffer_rate_observations SET expires=0')
         with self.assertRaises(ProbeError):record_request(self.store,ORGANIZATIONS,subject=self.key)
+    def test_x_and_instagram_share_verified_subject_but_other_token_cannot(self):
+        from src.mina.buffer_publisher import production_client
+        from src.mina.instagram_buffer_client import InstagramBufferClient
+        run_probe(self.store,self.api(),self.grant)
+        with patch.dict('os.environ',{'BUFFER_API_KEY':'isolated-key'}):client=production_client(self.store)
+        client._transport=lambda *a:{'data':{'ok':True}}
+        self.assertEqual(client._request(ORGANIZATIONS),{'ok':True})
+        ig=InstagramBufferClient(self.store,'isolated-key',lambda *a:{'data':{'ok':True}})
+        self.assertEqual(ig._request(ORGANIZATIONS),{'ok':True})
+        wrong=InstagramBufferClient(self.store,'other',lambda *a:self.fail('別キーで送信しません'))
+        with self.assertRaises(ProbeError):wrong._request(ORGANIZATIONS)
 
 if __name__=='__main__':unittest.main()
