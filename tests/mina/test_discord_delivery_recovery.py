@@ -56,3 +56,15 @@ class DeliveryTests(unittest.TestCase):
         self.gate.issue();self.now+=timedelta(minutes=14,seconds=1)
         with self.assertRaises(ValueError):self.gate.run(self.discord,self.reader,lambda p:None)
         self.assertEqual(self.sent,[])
+    def test_other_sender_state_change_blocks_all_posts(self):
+        self.gate.issue()
+        with self.store.transaction() as db:db.execute("UPDATE current_day_cards SET state='sent',message_id='999' WHERE platform='x' AND slot='daily'")
+        with self.assertRaises(ValueError):self.gate.run(self.discord,self.reader,lambda p:None)
+        self.assertEqual(self.sent,[])
+    def test_four_source_checks_finish_before_first_post(self):
+        self.gate.issue();checked=[]
+        def verify(payload):
+            checked.append(payload)
+            if len(checked)==4:raise ValueError('四件目不一致')
+        with self.assertRaises(ValueError):self.gate.run(self.discord,self.reader,verify)
+        self.assertEqual(len(checked),4);self.assertEqual(self.sent,[])

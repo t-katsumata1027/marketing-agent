@@ -50,8 +50,11 @@ class Delivery:
         for file in self.s['files']:
             if file_record(file['path'])!=file:raise ValueError('添付原本が変わりました')
         for row in self.s['cards']:
-            actual=db.execute('SELECT payload,digest FROM current_day_cards WHERE recovery_uuid=? AND platform=? AND slot=?',(self.s['owner'],row['platform'],row['slot'])).fetchone()
+            actual=db.execute('SELECT * FROM current_day_cards WHERE recovery_uuid=? AND platform=? AND slot=?',(self.s['owner'],row['platform'],row['slot'])).fetchone()
             if not actual or (actual['payload'],actual['digest'])!=(row['payload'],row['digest']):raise ValueError('送付内容が変わりました')
+            if (actual['state'],actual['message_id'])!=(row['state'],row['message_id']):
+                attempt=db.execute('SELECT * FROM current_day_discord_delivery_attempts WHERE case_uuid=? AND platform=? AND slot=?',(self.a['delivery_uuid'],row['platform'],row['slot'])).fetchone() if db.execute("SELECT 1 FROM sqlite_master WHERE name='current_day_discord_delivery_attempts'").fetchone() else None
+                if not attempt or attempt['state']!='sent' or actual['state']!='sent' or not actual['message_id'] or actual['message_id']!=attempt['message_id'] or json.loads(attempt['original'])!=row or not json.loads(attempt['receipt']).get('assets_verified'):raise ValueError('別経路の送付状態変更を検出しました')
     def check(self,db=None,sending=False):
         if db is None:
             with self.store.transaction() as connection:return self.check(connection,sending)
@@ -84,6 +87,10 @@ class Delivery:
             self.check(db,True)
             if db.execute("UPDATE current_day_discord_delivery_jobs SET state='running' WHERE case_uuid=? AND state='issued'",(self.a['delivery_uuid'],)).rowcount!=1:raise ValueError('送付専用の二重実行を拒否します')
         try:
+            # 全四件の入力/正本/OGPを先に照合し、後半不一致の部分送付を防ぐ。
+            for original in self.s['cards']:
+                if (original['platform'],original['slot']) in SELECTED:verify(json.loads(original['payload']))
+            self.check(sending=True)
             for old in self.s['cards']:
                 if (old['platform'],old['slot']) not in SELECTED:continue
                 payload=json.loads(old['payload']);verify(payload);self.check(sending=True)
