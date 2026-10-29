@@ -58,6 +58,9 @@ class InstagramCandidate:
 
     @property
     def scheduled_at(self):
+        from .morning_late import proposed as breakfast_late
+        value=breakfast_late(self.source,self.target_date,self.slot)
+        if value is not None:return value
         from .post_late import proposed as late
         value=late(self.source,self.target_date)
         if value is not None:return value

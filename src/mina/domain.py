@@ -60,6 +60,9 @@ class Candidate:
 
     @property
     def scheduled_at(self) -> datetime:
+        from .morning_late import proposed as breakfast_late
+        value=breakfast_late(self.approval_source,self.target_date,self.slot)
+        if value is not None:return value
         from .post_late import proposed as late
         value=late(self.approval_source,self.target_date)
         if value is not None:return value

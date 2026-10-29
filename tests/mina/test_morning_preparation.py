@@ -76,7 +76,20 @@ class CohortTests(unittest.TestCase):
   with self.store.transaction() as db:self.assertTrue(all(m.receipts(db,m.job(db,m.TARGET),c) for c in m.COHORTS))
  def test_cancel_or_missing_receipt_never_counts_as_all_approved(self):
   self.sent('meals');self.approve('meals')
-  with self.store.transaction() as db:db.execute("UPDATE candidates SET state='cancelled' WHERE slot='lunch'")
+  with self.store.transaction() as db:db.execute("UPDATE candidates SET state='cancelled' WHERE slot='breakfast'")
+  self.assertEqual(self.store.claim_due(self.xs[0].scheduled_at),[])
+  self.assertEqual([v['slot'] for v in self.store.claim_due(self.xs[1].scheduled_at)],['lunch'])
+ def test_other_meal_return_or_unapproved_platform_does_not_block_approved_breakfast(self):
+  self.sent('meals')
+  with self.store.transaction() as db:
+   token=json.loads(db.execute("SELECT payload FROM notices WHERE slot='breakfast'").fetchone()[0])['components'][0]['components'][0]['custom_id']
+   db.execute("UPDATE instagram_candidates SET state='changes_requested' WHERE slot='dinner'")
+  self.store.decide(token,'human',self.now)
+  self.assertEqual([v['slot'] for v in self.store.claim_due(self.xs[0].scheduled_at)],['breakfast'])
+  self.assertIsNone(self.ig.claim_due(self.xs[0].scheduled_at))
+ def test_own_missing_receipt_still_blocks_even_with_explicit_button_approval(self):
+  self.sent('meals');self.approve('meals')
+  with self.store.transaction() as db:db.execute("UPDATE routine_notice_receipts SET state='unknown' WHERE platform='x' AND notice_id=(SELECT id FROM notices WHERE slot='breakfast')")
   self.assertEqual(self.store.claim_due(self.xs[0].scheduled_at),[])
  def test_unknown_blocks_only_affected_cohort(self):
   self.sent('meals');self.approve('meals');self.sent('daily');self.approve('daily')

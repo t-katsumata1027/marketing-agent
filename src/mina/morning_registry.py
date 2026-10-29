@@ -63,17 +63,21 @@ def members(db,r,cohort,decided=False):
         values.append((dict(v),dict(c)))
     return values
 
-def receipts(db,r,cohort):
+def receipts(db,r,cohort,only=None):
     if not exists(db,'routine_notice_receipts'):return False
     rows=list(db.execute('SELECT * FROM routine_notice_receipts WHERE target_date=? AND policy_id=?',(TARGET,r['case_uuid'])))
     from .routine_handoff import buttons,visible
     expected={(m['platform'],m['slot']):dict(m) for m in db.execute('SELECT * FROM morning_members WHERE case_uuid=? AND cohort=?',(r['case_uuid'],cohort))}
     if set(expected)!={(platform,s) for platform in ('x','instagram') for s in COHORTS[cohort]}:return False
+    if only is not None:
+        if only not in expected:return False
+        expected={only:expected[only]}
     if len({v['message_id'] for v in rows if v['message_id']})!=sum(bool(v['message_id']) for v in rows):return False
     table_rows=[];seen=set();origin=json.loads(r['origin'])
     for row in rows:
         table='notices' if row['platform']=='x' else 'instagram_notices';notice=db.execute('SELECT * FROM '+table+' WHERE id=?',(row['notice_id'],)).fetchone()
         if not notice or notice['slot'] not in COHORTS[cohort]:continue
+        if only is not None and (row['platform'],notice['slot'])!=only:continue
         from .notice_reissue import historical_receipt
         if historical_receipt(db,r,row,notice):continue
         key=(row['platform'],notice['slot']);member=expected.get(key)
@@ -87,7 +91,7 @@ def receipts(db,r,cohort):
                 or wire['nonce']!=row['nonce'] or actual['token_binding']!=row['token_binding']
                 or actual['visible_digest']!=fingerprint(visible(wire)) or actual['verification'] not in ('same_id_get','complete_history_get')):return False
         except (KeyError,TypeError,ValueError):return False
-    return len(table_rows)==len(COHORTS[cohort])*2 and set(expected)==seen
+    return len(table_rows)==len(expected) and set(expected)==seen
 
 def approval(db,target,platform,slot=None,revision=None,digest=None):
     r=job(db,target)
@@ -120,9 +124,15 @@ def publication_allowed(db,target,publication):
     platform,expected=publication
     if not isinstance(expected,dict) or expected.get('target_date')!=target or expected.get('slot') not in (*MEALS,'daily'):return False
     cohort='daily' if expected['slot']=='daily' else 'meals';c=db.execute('SELECT state FROM morning_cohorts WHERE case_uuid=? AND cohort=?',(r['case_uuid'],cohort)).fetchone()
-    if not c or c['state']!='ready' or not receipts(db,r,cohort):return False
-    values=members(db,r,cohort,True)
-    return values is not None and any(v['platform']==platform and v['slot']==expected['slot'] and row['state'] in ('approved','dispatching') and all(row[k]==expected.get(k) for k in ('revision','digest','payload','actor','approved')) for v,row in values)
+    if not c or c['state'] not in ('staged','notified','ready'):return False
+    values=members(db,r,cohort)
+    if values is None:return False
+    from .morning_late import authorized
+    for v,row in values:
+        if (v['platform']==platform and v['slot']==expected['slot'] and row['state'] in ('approved','dispatching') and row['actor'] and row['approved'] is not None
+            and all(row[k]==expected.get(k) for k in ('revision','digest','payload','actor','approved'))):
+            return authorized(db,r,platform,row) or receipts(db,r,cohort,only=(platform,row['slot']))
+    return False
 
 def handoff_policy(db,target):
     r=job(db,target)
@@ -149,7 +159,9 @@ def verify_ig(runtime,candidate):
     valid_ig_source(candidate);cohort='daily' if candidate.slot=='daily' else 'meals'
     with runtime.store.transaction() as db:
         r=job(db,TARGET)
-        if not r or members(db,r,cohort,True) is None:raise ValueError('Instagramの承認正本が変わりました')
+        if not r or members(db,r,cohort) is None:raise ValueError('Instagramの承認正本が変わりました')
+        current=db.execute('SELECT * FROM instagram_candidates WHERE target_date=? AND slot=?',(TARGET,candidate.slot)).fetchone()
+        if not current or not current['actor'] or current['approved'] is None or current['state'] not in ('approved','dispatching'):raise ValueError('当該Instagramの本人承認がありません')
         value=material(db,r,cohort)
         if value['igs'][candidate.slot]!=asdict(candidate):raise ValueError('Instagramの画像版が変わりました')
     bundle=value['bundle'];manifest=value['manifest']

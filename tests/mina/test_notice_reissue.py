@@ -97,7 +97,7 @@ class ReissueTests(unittest.TestCase):
    self.assertTrue(m.receipts(db,m.job(db,m.TARGET),'meals'));self.assertEqual(db.execute('SELECT state FROM notice_reissues').fetchone()[0],'sent')
    self.assertIsNone(m.members(db,m.job(db,m.TARGET),'meals',True))
    if resume:self.assertEqual(db.execute('SELECT payload FROM instagram_notices WHERE id=?',(notice['id'],)).fetchone()[0],old_wire)
-  self.assertEqual(self.store.claim_due(self.f.xs[0].scheduled_at),[])
+  self.assertEqual([v['slot'] for v in self.store.claim_due(self.f.xs[0].scheduled_at)],['breakfast'])
   with self.store.transaction() as db:new_notice=json.loads(db.execute("SELECT payload FROM instagram_notices WHERE slot='dinner' AND revision=2").fetchone()[0])
   token=new_notice['components'][0]['components'][0]['custom_id'];self.ig.decide(token,'human',self.f.now)
   with self.store.transaction() as db:self.assertEqual(db.execute("SELECT state FROM morning_cohorts WHERE cohort='meals'").fetchone()[0],'ready')
