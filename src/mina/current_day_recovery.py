@@ -71,20 +71,31 @@ def execute(gate,base,ai,drive,meal,host,evidence,capture,discord,commit):
         seed_legacy(gate,draft)
         repair=AutomaticImageRepair(gate.store,draft,path,out/'images',ai,drive,clock=gate.clock)
         images=repair.images();write_artifact(out/'images-reviewed.json',images)
-        # 初回の通常保存。旧日の画像・Drive参照は変更しない。
-        saved=save_images_to_drive(gate.store,images,drive);write_artifact(out/'drive.json',saved)
-        # 品質不合格の訂正は既存契約内で一回。未保存拒否や保存画像保留から再登録しない。
-        reviewed=register_day(gate.store,draft,saved,out/'ogp',meal,ai,host,capture=reader,allow_correction=True)
-        write_artifact(out/'posts-reviewed.json',reviewed)
-        cards=make(gate,reviewed,saved,evidence,commit,host,meal,reader,out/'cards')
-        write_artifact(out/'prepared-cards.json',cards)
-        def verify(payload):
-            candidate=Candidate(**payload['source']['candidate'])
-            candidate.validate_content(host)
-            if payload['platform']=='x' and payload['body']!=candidate.content:raise ValueError('X準備本文が点検版と一致しません')
-            current=meal.day_state(TARGET);validate_state(current,TARGET,gate.clock())
-            if current.get('nutrition_targets')!=payload['source']['nutrition_targets']:raise ValueError('栄養目標がカード合成後に変わりました')
-            verify_source(candidate,meal,host,reader,clock=gate.clock)
-        deliver(gate,discord,out/'cards',verify)
+        result=finish(gate,draft,images,out,drive,meal,ai,host,evidence,reader,discord,commit)
         if original.read_bytes()!=raw:raise ValueError('旧原本が別処理で変更されています')
-        return {'target_date':TARGET,'state':'preparation_cards_delivered','x_cards':4,'instagram_cards':4,'scheduled_at':None,'publication_forbidden':True}
+        return result
+
+
+def finish(gate,draft,images,out,drive,meal,ai,host,evidence,reader,discord,commit):
+    """初回と限定継続で、登録・実点検・準備カードの同じ工程を使う。"""
+    from .registration import register_day
+    from .daily_pipeline import write_artifact
+    from .current_day_cards import make,deliver
+    from .domain import Candidate
+    from .m1_contract import validate_state,verify_source
+    # 初回の通常保存。旧日の画像・Drive参照は変更しない。
+    saved=save_images_to_drive(gate.store,images,drive);write_artifact(out/'drive.json',saved)
+    # 品質不合格の訂正は既存契約内で一回。未保存拒否や保存画像保留から再登録しない。
+    reviewed=register_day(gate.store,draft,saved,out/'ogp',meal,ai,host,capture=reader,allow_correction=True)
+    write_artifact(out/'posts-reviewed.json',reviewed)
+    cards=make(gate,reviewed,saved,evidence,commit,host,meal,reader,out/'cards')
+    write_artifact(out/'prepared-cards.json',cards)
+    def verify(payload):
+        candidate=Candidate(**payload['source']['candidate'])
+        candidate.validate_content(host)
+        if payload['platform']=='x' and payload['body']!=candidate.content:raise ValueError('X準備本文が点検版と一致しません')
+        current=meal.day_state(TARGET);validate_state(current,TARGET,gate.clock())
+        if current.get('nutrition_targets')!=payload['source']['nutrition_targets']:raise ValueError('栄養目標がカード合成後に変わりました')
+        verify_source(candidate,meal,host,reader,clock=gate.clock)
+    deliver(gate,discord,out/'cards',verify)
+    return {'target_date':TARGET,'state':'preparation_cards_delivered','x_cards':4,'instagram_cards':4,'scheduled_at':None,'publication_forbidden':True}

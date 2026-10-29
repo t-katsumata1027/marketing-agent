@@ -25,18 +25,18 @@ def protected_json(path,root_owned=False):
     return json.loads(raw,object_pairs_hook=json_object),hashlib.sha256(raw).hexdigest()
 
 
-def config(path,root):
+def config(path,root,*,version=VERSION,extras=()):
     from .readiness import release_commit
     document,_=protected_json(path,root_owned=True)
-    if set(document)!={'approval','database','directory','host','organization_id','channels','references','history','discord_channel'}:raise ValueError('当日構成の形式が不正です')
+    if set(document)!={'approval','database','directory','host','organization_id','channels','references','history','discord_channel',*extras}:raise ValueError('当日構成の形式が不正です')
     if document['host']!='www.log-eats.com' or not isinstance(document['discord_channel'],str) or not document['discord_channel'].isdigit():raise ValueError('承認されたAPI/送付先が不正です')
     approval=document['approval']
-    if approval.get('target_date')!=TARGET or approval.get('spec')!=VERSION or not re.fullmatch('[0-9a-f]{40}',approval.get('code_commit','')):raise ValueError('当日構成の版が不正です')
+    if approval.get('target_date')!=TARGET or approval.get('spec')!=version or not re.fullmatch('[0-9a-f]{40}',approval.get('code_commit','')):raise ValueError('当日構成の版が不正です')
     binding=fingerprint({k:v for k,v in document.items() if k!='references'})
     if set(document['references'])!={'implementation_review','deployment_approval','execution_approval'}:raise ValueError('別承認3原本が必要です')
     for role,reference in document['references'].items():
         proof,sha=protected_json(reference['path'],root_owned=True)
-        expected={'role':role,'contract_version':VERSION,'config_digest':binding,'verdict':'Go' if role=='implementation_review' else 'approved'}
+        expected={'role':role,'contract_version':version,'config_digest':binding,'verdict':'Go' if role=='implementation_review' else 'approved'}
         if sha!=reference['sha256'] or proof!=expected:raise ValueError('当日承認原本の範囲・版が一致しません')
     history= document['history']
     if set(history)!={'path','sha256'}:raise ValueError('履歴原本の参照形式が不正です')
