@@ -79,6 +79,8 @@ class DeliveryTests(unittest.TestCase):
         self.reader.asset=original
         self.assertEqual(self.gate.reconcile(self.reader)['post_count'],0)
         self.assertEqual(len(self.sent),1)
+        with self.store.transaction() as db:
+            record=json.loads(db.execute('SELECT unknown_record FROM current_day_discord_delivery_reconciliations').fetchone()[0]);self.assertEqual(record['state'],'unknown');self.assertEqual(record['message_id'],'101')
         result=self.gate.run(self.discord,self.reader,lambda p:None)
         self.assertEqual(result['discord_sent'],4);self.assertEqual(len(self.sent),4)
         with self.assertRaises(ValueError):self.gate.reconcile(self.reader)

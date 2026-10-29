@@ -97,6 +97,8 @@ class Delivery:
             latest=db.execute('SELECT * FROM current_day_discord_delivery_jobs WHERE case_uuid=?',(self.a['delivery_uuid'],)).fetchone()
             actual=db.execute('SELECT * FROM current_day_discord_delivery_attempts WHERE case_uuid=? AND platform=? AND slot=?',(self.a['delivery_uuid'],row['platform'],row['slot'])).fetchone()
             if dict(actual)!=row or dict(latest)!=dict(job):raise ValueError('照会継続が競合しました')
+            db.execute('CREATE TABLE IF NOT EXISTS current_day_discord_delivery_reconciliations(case_uuid TEXT,platform TEXT,slot TEXT,unknown_record TEXT,verified_receipt TEXT,PRIMARY KEY(case_uuid,platform,slot))')
+            db.execute('INSERT INTO current_day_discord_delivery_reconciliations VALUES(?,?,?,?,?)',(self.a['delivery_uuid'],row['platform'],row['slot'],json.dumps(row),json.dumps(receipt)))
             db.execute("UPDATE current_day_discord_delivery_attempts SET state='sent',receipt=? WHERE case_uuid=? AND platform=? AND slot=?",(json.dumps(receipt),self.a['delivery_uuid'],row['platform'],row['slot']))
             old=json.loads(row['original'])
             if db.execute("UPDATE current_day_cards SET state='sent',message_id=? WHERE recovery_uuid=? AND platform=? AND slot=? AND state=? AND message_id IS NULL",(row['message_id'],self.s['owner'],row['platform'],row['slot'],old['state'])).rowcount!=1:raise ValueError('照会受領反映が競合しました')
@@ -151,7 +153,10 @@ def verify_receipt(result,inputs,reader):
     current=reader.message(result['id'])
     from urllib.parse import urlsplit,unquote
     def assets(value):
-        found={a['filename']:a['url'] for a in value.get('attachments',[])}
+        found={}
+        for item in value.get('attachments',[]):
+            if item['filename'] in found:raise ValueError('Discord添付画像名が重複しています')
+            found[item['filename']]=item['url']
         for embed in value.get('embeds',[]):
             url=embed.get('image',{}).get('url')
             if url:
