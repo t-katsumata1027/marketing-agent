@@ -178,7 +178,11 @@ class Candidate:
             raise PostLengthError(self.slot,length)
         if self.api_quality != "pass" or self.secondary_review != "publishable":
             raise ValueError("API品質または二次レビューが不合格です")
-        if any(value is not True for value in (self.ogp_verified, self.history_verified, self.legacy_schedule_clear)):
+        from .native_media import selected as native_selected,validate as validate_native
+        native=native_selected(self)
+        if native:validate_native(self)
+        if (any(value is not True for value in (self.history_verified,self.legacy_schedule_clear))
+                or (self.ogp_verified is not True and not native)):
             raise ValueError("OGP・履歴・既存予約の確認が必要です")
         if self.slot == "daily" and self.meal_count != 3:
             raise ValueError("日次まとめには確認済み3食が必要です")

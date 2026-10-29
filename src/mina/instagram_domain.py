@@ -90,7 +90,9 @@ class InstagramCandidate:
                 raise ValueError('Instagram画像の規格が不正です')
         sha(self.source['bundle_sha256'])
         from .next_meals import KEY,valid_source
-        if KEY in self.source:valid_source(self)
+        from .morning_registry import KEY as MORNING,valid_ig_source
+        if MORNING in self.source:valid_ig_source(self)
+        elif KEY in self.source:valid_source(self)
         elif set(self.source.get('x_digests', {})) != set(SLOTS):
             raise ValueError('X用4枠と同じ正本の対応が必要です')
         for value in self.source['x_digests'].values():

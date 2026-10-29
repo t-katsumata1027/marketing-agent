@@ -49,6 +49,9 @@ def prepare(store,notice,platform):
     with store.transaction() as db:
         policy=admitted(db,target)
         if not policy:
+            from .morning_registry import handoff_policy
+            policy=handoff_policy(db,target)
+        if not policy:
             from .next_saved import handoff_policy
             policy=handoff_policy(db,target)
         if not policy:

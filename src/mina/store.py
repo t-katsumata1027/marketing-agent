@@ -183,6 +183,8 @@ class Store:
                 if c.approval_source and c.approval_source.get('ogp_image_url'):
                     card['embeds'][0]['image'] = {'url': c.approval_source['ogp_image_url']}
                     card['embeds'][0]['fields'].append({'name': '承認対象の版', 'value': c.digest[:16]})
+                from .native_media import selected as native_selected,decorate_card
+                if native_selected(c):decorate_card(card,c)
                 approval_notice(card,c.approval_source)
                 db.execute("UPDATE candidates SET nonce_hash=? WHERE target_date=? AND slot=?", (hashlib.sha256(nonce.encode()).hexdigest(), target_date, row["slot"]))
                 db.execute("INSERT INTO notices(target_date,slot,revision,kind,payload,created) VALUES(?,?,?,'approval',?,?)", (target_date, row["slot"], row["revision"], json.dumps(card, ensure_ascii=False), timestamp))

@@ -16,7 +16,7 @@ from .audit import OperationalFailure
 
 EXPECTED_ACCOUNT = 'EatsLog88161'
 TEST_TEXT = '【非公開の接続テスト】本文・URLの保持を確認する下書きです。公開しません。\nhttps://www.log-eats.com/'
-FIELDS = 'id text status dueAt sentAt externalLink channel { id service }'
+FIELDS = 'id text status dueAt sentAt externalLink schedulingType channel { id service } assets { source mimeType }'
 ORGANIZATIONS = 'query { account { organizations { id } } }'
 CHANNELS = '''query($input: ChannelsInput!) {
  channels(input: $input) { id name service serviceId externalLink timezone isDisconnected isLocked isQueuePaused }

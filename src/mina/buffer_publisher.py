@@ -162,10 +162,15 @@ class BufferPublisher:
         if (not isinstance(post, dict) or not post.get('id') or post.get('text') != text
                 or post.get('channel') != {'id':self.route['channel_id'],'service':'twitter'}):
             raise ProbeError('buffer_post_binding_changed')
+        from .native_media import selected as native_selected,check_post
+        current=Candidate(**json.loads(self.row['payload']))
         if post.get('status') != 'sent':
             if post.get('status') not in ('scheduled','sending') or post.get('sentAt') or post.get('externalLink'):
                 raise ProbeError('buffer_delivery_unconfirmed')
             return None
+        if native_selected(current):
+            if post.get('schedulingType')!='automatic':raise ProbeError('buffer_native_scheduling_type_changed')
+            check_post(current,post)
         # Bufferは公開後、同じURLのユーザー名を接続済みX数値IDへ正規化する。
         # 任意IDは許可せず、事前照合・保存済みの同じ公開先だけを同値として扱う。
         actors=re.escape(ACCOUNT)
@@ -206,7 +211,10 @@ class BufferPublisher:
                 or not 0 <= self.timer()-self.proof['started_monotonic'] <= 120
                 or now >= instant(datetime.fromisoformat(self.proof['expires_at']))):
             raise ProbeError('buffer_preflight_expired')
-        request = {'channelId':self.route['channel_id'],'text':text,'assets':[],
+        from .native_media import selected as native_selected,assets as native_assets,validate as validate_native
+        native=native_selected(c)
+        if native and self.proof.get('native_image_sha256')!=validate_native(c)['asset']['sha256']:raise ProbeError('buffer_native_media_proof_missing')
+        request = {'channelId':self.route['channel_id'],'text':text,'assets':native_assets(c),
                    'schedulingType':'automatic','mode':'shareNow','saveToDraft':False,'needsApproval':False}
         with self.store.transaction() as db:
             from .publication_hold import require_clear
@@ -243,6 +251,11 @@ class BufferPublisher:
         for attempt in range(7):
             x_id = self.validate(post,text)
             if x_id:
+                if native:
+                    # POSTの受領だけでなく、同IDの実GETで本文・画像・native IDを照合する。
+                    actual=self.api.post(post['id'])
+                    if not isinstance(actual,dict) or actual.get('id')!=post['id'] or self.validate(actual,text)!=x_id:raise ProbeError('buffer_native_media_receipt_unconfirmed')
+                    post=actual
                 with self.store.transaction() as db:
                     db.execute("UPDATE buffer_publication SET state='sent',response_json=? WHERE singleton=?",(json.dumps(post,ensure_ascii=False),self.route['singleton']))
                 return x_id

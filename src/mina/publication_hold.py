@@ -34,6 +34,8 @@ def exists(db, table):
 def held(db, target, publication=None):
     """旧DBは読取だけで扱い、停止行があれば機能無効化後も保護する。"""
     if publication is not None:
+        from .morning_registry import publication_allowed as morning_publication
+        if morning_publication(db,target,publication):return False
         from .next_meals import publication_allowed
         if publication_allowed(db,target,publication):return False
     from .post_late import clear
@@ -67,7 +69,8 @@ def require_buffer_mutation(store=None, target=None, publication=None):
         if target is not None:
             require_clear(db, target,publication)
             from .next_meals import job
-            if job(db,target):
+            from .morning_registry import job as morning_job
+            if job(db,target) or morning_job(db,target):
                 platform,row=publication;table='candidates' if platform=='x' else 'instagram_candidates'
                 current=db.execute('SELECT state FROM '+table+' WHERE target_date=? AND slot=?',(target,row['slot'])).fetchone()
                 if not current or current['state']!='dispatching':raise PublicationHeld()
