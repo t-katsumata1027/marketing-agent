@@ -4,6 +4,11 @@ from .generation import object_schema
 from .preparation import fingerprint
 
 POLICY='mina-approximate-portion-review-v1'
+VALIDATION_VERSION='mina-approximate-validation-v2-condiment-roles'
+# 配列位置で主要食材を決めない。混ざることが自然な調味料だけを完全一致で許容する。
+MIXED_CONDIMENTS=frozenset(('しょうが','生姜','にんにく','ニンニク','しょうゆ','醤油','みりん','酒','料理酒',
+ '砂糖','塩','酢','米酢','穀物酢','油','植物油','サラダ油','ごま油','オリーブ油','オリーブオイル','菜種油',
+ 'だし','だし汁','水','みそ','味噌','こしょう','胡椒','白ごま','ごま'))
 CHECKS=('composition','style','food_identity','visible_portions','nutrition')
 WARNINGS=('minor_portion_variation','minor_rim_crop','weight_unmeasurable')
 BLOCKING=('food_missing','food_identity_unknown','major_portion_difference','food_cropped','style_violation','nutrition_inconsistent','context_inconsistent')
@@ -43,7 +48,8 @@ def schema(positive):
         'region':enum(REGIONS),'observed':{'type':'null'}})},
       'warnings':{'type':'array','items':finding(WARNINGS)},'blocking':{'type':'array','items':finding(BLOCKING)}})
 
-def policy_sha256():return fingerprint({'policy':POLICY,'instructions':INSTRUCTIONS,'image_schema':schema('image_acceptable'),'meal_schema':schema('publishable')})
+def policy_sha256():return fingerprint({'policy':POLICY,'instructions':INSTRUCTIONS,'image_schema':schema('image_acceptable'),'meal_schema':schema('publishable'),
+    'validation_version':VALIDATION_VERSION,'mixed_condiments':sorted(MIXED_CONDIMENTS)})
 
 def scoped_policy(default,provided):
     """通常経路の既定版は保持し、明示した限定caseだけが新policyを使う。"""
@@ -85,7 +91,7 @@ def validate(value,meal,positive):
                 code,b=('minor_portion_variation','minor_visual_variation') if relation=='minor_variation' else ('weight_unmeasurable','cannot_measure_weight')
                 if basis!=b or not any(w['code']==code and w['food_index']==index for w in value['warnings']):return bad
             else:return bad
-            if f['presence']=='mixed_ingredient' and (index<3 or meal['foods'][index]['name'] in ('ほうれん草','にんじん','乾燥わかめ')):return bad
+            if f['presence']=='mixed_ingredient' and meal['foods'][index]['name'].strip() not in MIXED_CONDIMENTS:return bad
         if value['status']=='hold':
             if not value['blocking'] or all(v in ('pass','not_applicable') for v in checks.values()):return bad
             return {'status':'hold','reason_codes':['nutrition_semantic_mismatch' if any(f['code']=='nutrition_inconsistent' for f in value['blocking']) else 'image_analysis_mismatch']}

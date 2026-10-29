@@ -169,5 +169,20 @@ class ToleranceReviewTests(unittest.TestCase):
     def test_custom_policy_requires_current_authorized_case_and_default_is_unchanged(self):
         self.assertEqual(scoped_policy('old',None),'old')
         with self.assertRaises(ValueError):scoped_policy('old',policy_sha256())
+    def test_third_food_condiment_may_be_mixed_but_main_food_never_hidden(self):
+        meal={'foods':[{'name':'豚ロース肉（脂身つき）'},{'name':'玉ねぎ'},{'name':'しょうが'},{'name':'ごはん'}]}
+        value=positive(meal);value['foods'][2].update(presence='mixed_ingredient',portion='unmeasurable',evidence='cannot_measure_weight')
+        value['warnings']=[{'code':'weight_unmeasurable','region':'bottom','food_index':2}]
+        self.assertEqual(validate(value,meal,'image_acceptable')['status'],'image_acceptable')
+        for index in (0,1,3):
+            bad=copy.deepcopy(value);bad['foods'][index]['presence']='mixed_ingredient'
+            self.assertEqual(validate(bad,meal,'image_acceptable')['reason_codes'],['diagnostic_incomplete'])
+        self.assertEqual(validate(value,meal,'image_acceptable')['status'],'image_acceptable')
+    def test_condiment_names_require_exact_match_and_raw_hold_is_unchanged(self):
+        meal={'foods':[{'name':'しょうが焼きの豚肉'},{'name':'玉ねぎ'}]};value=positive(meal)
+        value['foods'][0]['presence']='mixed_ingredient'
+        self.assertEqual(validate(value,meal,'image_acceptable')['status'],'hold')
+        value=positive(self.meal);value.update(status='hold',blocking=[{'code':'food_missing','region':'left','food_index':0}]);value['checks']['food_identity']='hold'
+        self.assertEqual(validate(value,self.meal,'image_acceptable')['status'],'hold')
 
 if __name__=='__main__':unittest.main()
