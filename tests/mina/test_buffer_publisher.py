@@ -84,6 +84,18 @@ class BufferPublisherTests(unittest.TestCase):
         with self.assertRaises(Exception):publisher.publish(self.c.content)
         self.assertEqual(api._request.call_count,1)
 
+    def test_same_saved_x_account_numeric_url_is_stable_after_publication(self):
+        publisher,api,row=self.publisher();publisher.route['service_id']='2032214868485685249'
+        initial=self.post(externalLink='https://twitter.com/EatsLog88161/status/12345')
+        later=self.post(externalLink='https://x.com/2032214868485685249/status/12345')
+        self.assertEqual(publisher.validate(initial,self.c.content),'12345')
+        self.assertEqual(publisher.validate(later,self.c.content),'12345')
+        api._request.assert_not_called()
+        for url in ('https://x.com/999/status/12345','https://x.com/other/status/12345','https://x.com/2032214868485685249/status/12345?x=1','https://x.com.evil/2032214868485685249/status/12345','http://x.com/2032214868485685249/status/12345'):
+            with self.subTest(url=url),self.assertRaises(Exception):publisher.validate(self.post(externalLink=url),self.c.content)
+        with self.assertRaises(Exception):publisher.validate({**later,'text':'変更'},self.c.content)
+        with self.assertRaises(Exception):publisher.validate({**later,'channel':{'id':'other','service':'twitter'}},self.c.content)
+
     def test_timeout_never_retries_or_uses_default_x(self):
         arm(self.store,CHANNEL,NOW)
         api = Mock();api.channel.return_value = CHANNEL;api._request.side_effect = TimeoutError()

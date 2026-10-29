@@ -166,7 +166,12 @@ class BufferPublisher:
             if post.get('status') not in ('scheduled','sending') or post.get('sentAt') or post.get('externalLink'):
                 raise ProbeError('buffer_delivery_unconfirmed')
             return None
-        match = re.fullmatch(r'https://(?:www\.)?(?:x\.com|twitter\.com)/' + ACCOUNT + r'/status/([0-9]+)', post.get('externalLink') or '', re.I)
+        # Bufferは公開後、同じURLのユーザー名を接続済みX数値IDへ正規化する。
+        # 任意IDは許可せず、事前照合・保存済みの同じ公開先だけを同値として扱う。
+        actors=re.escape(ACCOUNT)
+        native_account=self.route.get('service_id')
+        if isinstance(native_account,str) and re.fullmatch(r'[0-9]+',native_account):actors+='|'+re.escape(native_account)
+        match = re.fullmatch(r'https://(?:www\.)?(?:x\.com|twitter\.com)/(?:' + actors + r')/status/([0-9]+)', post.get('externalLink') or '', re.I)
         if not match or not post.get('sentAt'):
             raise ProbeError('buffer_native_x_result_missing')
         sent = instant(datetime.fromisoformat(post['sentAt'].replace('Z','+00:00')))
