@@ -53,7 +53,8 @@ def notice_allowed(db,row,channel,*,scoped_operator=False):
         from .scoped_preparation import locked
         # 準備専用日は、期限を検査する限定operatorだけが承認カードを送る。
         # 常駐daemonに渡すと、operator停止・期限後にもpendingを送信し得る。
-        if locked(db,row['target_date']) and not scoped_operator:return False
+        from .post_promotion import notice_ready
+        if locked(db,row['target_date']) and not scoped_operator and not notice_ready(db,row['target_date']):return False
         table='candidates' if channel=='x' else 'instagram_candidates'
         candidate=db.execute('SELECT * FROM '+table+' WHERE target_date=? AND slot=?',(row['target_date'],row['slot'])).fetchone()
         if not candidate or candidate['state']!='approval_pending' or candidate['revision']!=row['revision']:return False
@@ -63,6 +64,8 @@ def notice_allowed(db,row,channel,*,scoped_operator=False):
         return False
 
 def maybe_release(db,target,now):
+    from .post_promotion import maybe_release as promoted_release
+    if promoted_release(db,target,now):return
     from .scoped_preparation import locked
     if locked(db,target):return
     if not exists(db,'replacement_bundles'):return

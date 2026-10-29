@@ -78,6 +78,8 @@ def require_claim(store, row, table='candidates'):
         if (not current or current['state'] != 'dispatching' or current['digest'] != row['digest']
                 or current['revision'] != row['revision']):
             raise ValueError('publication_claim_changed')
+        from .post_promotion_external import guard_claim
+        guard_claim(db,row)
         from .scoped_preparation import blocked
         import json
         if blocked(json.loads(current['payload'])) or blocked(json.loads(row['payload'])):

@@ -31,6 +31,11 @@ class PreparationJournal:
         stage,slot=step_context(step)
         started=time.monotonic()
         digest = fingerprint(inputs)
+        # 外部生成中に120秒を超えても、次の工程はTX外の実一覧更新から照合する。
+        # 台帳内でネットワークを待たず、停止済みjobの再開も認めない。
+        from .current_day_gate import CURRENT
+        gate=CURRENT.get()
+        if gate is not None and target==gate.approval['target_date']:gate.refresh_external()
         with self.store.transaction() as db:
             previous = db.execute("SELECT * FROM preparation_steps WHERE target_date=? AND step=?", (target, step)).fetchone()
             if previous:
@@ -47,6 +52,8 @@ class PreparationJournal:
                 if previous['state']=='stopped':
                     raise PreparationDeadline('準備期限による工程停止を保持しています')
                 raise OutcomeUnknown("preparation_reconciliation_required")
+            from .current_day_gate import require_stage
+            require_stage(self.store,target,db)
             db.execute("INSERT INTO preparation_steps VALUES(?,?,?,'started',NULL,?)", (target, step, digest, datetime.now(UTC).timestamp()))
             self.store.audit.emit('creation',target,slot,None,stage,'started',details={'step_sha256':digest},db=db)
         self.store.record_preparation_progress(target,step,step_status(step))
@@ -92,9 +99,11 @@ class PreparationJournal:
 
 
 def prepare_images(store, draft_path: Path, directory: Path, client, replacement_round=None, replace_slots=(),
-                   reused_rounds=None, repair_instruction=None, only_slots=None):
+                   reused_rounds=None, repair_instruction=None, only_slots=None, review_policy_sha256=None):
     """画像3枚と事前点検結果を保存する。LogEats登録や承認候補化はまだ行わない。"""
     draft = json.loads(draft_path.read_text(encoding="utf-8-sig"))
+    from .current_day_gate import require_stage
+    require_stage(store,draft['target_date'])
     if draft.get("state") != "draft_unreviewed":
         raise ValueError("未レビューの献立下書きが必要です")
     from .menu_budget import validate_draft_plan
@@ -121,6 +130,8 @@ def prepare_images(store, draft_path: Path, directory: Path, client, replacement
     selected=tuple(MEAL_SLOTS if only_slots is None else only_slots)
     if not selected or len(set(selected))!=len(selected) or not set(selected)<=set(MEAL_SLOTS):
         raise ValueError('画像準備の対象枠が不正です')
+    from .tolerance_review import scoped_policy
+    selected_policy=scoped_policy(image_review_policy_sha256(),review_policy_sha256)
     outputs = {}
     for slot in selected:
         meal = draft["meals"][slot]
@@ -165,7 +176,7 @@ def prepare_images(store, draft_path: Path, directory: Path, client, replacement
             raise ValueError("保存した画像の版が変わっています")
         review = journal.run(target, "image_review:" + slot + suffix,
                              {"sha256": image["sha256"], "meal": meal,
-                              "review_policy_sha256": image_review_policy_sha256()},
+                              "review_policy_sha256": selected_policy},
                              lambda: client.review_image(raw, meal))
         from .review_diagnostics import record_findings,record_verdict
         record_findings(store,client,target,slot,'image_review',image['sha256'])
@@ -182,6 +193,8 @@ def save_images_to_drive(store, reviewed, drive, replacement_rounds=None):
         raise ValueError('点検済みの3画像が必要です')
     journal = PreparationJournal(store)
     target = reviewed['target_date']
+    from .current_day_gate import require_stage
+    require_stage(store,target)
     replacement_rounds = replacement_rounds or {}
     if not set(replacement_rounds) <= set(MEAL_SLOTS):
         raise ValueError('画像保存の差替え枠が不正です')

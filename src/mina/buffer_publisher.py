@@ -64,10 +64,13 @@ def bind_route(db, row, channel):
 
 def production_client(store):
     """要求種別・時刻だけを記録し、無料枠の実測に使う。本文や認証は記録しない。"""
+    from .buffer_budget import subject,observe
+    token=os.getenv('BUFFER_API_KEY','');identity=subject(token)
     def record(query):
         from .buffer_limits import record_request
-        record_request(store, query)
-    client = BufferTrialClient(os.getenv('BUFFER_API_KEY',''),on_request=record)
+        return record_request(store, query,subject=identity)
+    client = BufferTrialClient(token,on_request=record)
+    client.on_headers=lambda headers,request_id:observe(store,headers,identity,request_id)
     client.publication_store = store
     return client
 
@@ -133,6 +136,11 @@ class BufferPublisher:
         self.proof = None
 
     def verify_account(self, account):
+        from .post_promotion import record
+        with self.store.transaction() as db:promoted=record(db,self.row['target_date'])
+        if promoted:
+            from .post_promotion_external import ensure_external
+            ensure_external(self.store,self.row['target_date'],self.row['slot'],self.clock)
         from datetime import timedelta
         due=datetime.fromtimestamp(self.row['scheduled'],UTC)
         self.api.connection_deadline=due+timedelta(seconds=120)

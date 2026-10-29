@@ -61,6 +61,7 @@ class InstagramStore:
         candidate.validate(now, hosts)
         with (self.transaction() if connection is None else nullcontext(connection)) as db:
             require_clear(db, candidate.target_date)
+            if db.execute("SELECT 1 FROM sqlite_master WHERE name='publication_exclusions'").fetchone() and db.execute('SELECT 1 FROM publication_exclusions WHERE target_date=? AND slot=?',(candidate.target_date,candidate.slot)).fetchone():raise ValueError('本人指定により公開しない枠です')
             previous = db.execute('SELECT * FROM instagram_candidates WHERE target_date=? AND slot=?',
                                   (candidate.target_date, candidate.slot)).fetchone()
             if previous and previous['digest'] == candidate.digest:

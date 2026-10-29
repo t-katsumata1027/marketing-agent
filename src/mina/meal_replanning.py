@@ -30,6 +30,12 @@ class MealReplanner:
 
     def guard(self,slot,client=None):
         """登録済み・成否不明・承認候補があれば、別メニューでの新規登録を拒否する。"""
+        from .current_day_gate import CURRENT,require_stage
+        require_stage(self.store,self.target)
+        recovery=CURRENT.get()
+        if recovery is not None:
+            recovery.check(sending=True)
+            if slot!='dinner':raise ValueError('29日例外では夕食以外の献立を変更しません')
         with self.store.transaction() as db:
             if db.execute('SELECT 1 FROM candidates WHERE target_date=?',(self.target,)).fetchone():
                 raise ValueError('承認候補のある日の計画は変更しません')
@@ -156,6 +162,8 @@ class MealReplanner:
         return proposed['round']
 
     def current_budget(self,client=None):
+        from .current_day_gate import require_stage
+        require_stage(self.store,self.target)
         self.adoption_guard()
         state=None
         if client is not None:
@@ -181,7 +189,10 @@ class MealReplanner:
             raise ValueError('再計画回数の原本が不正です')
         for row in rows:
             if row['state']=='known_rejected':rejection(row)
-            elif row['state']!='complete':raise ValueError('既存再計画の成否照合が必要です')
+            elif row['state']!='complete':
+                from .current_day_origin import consumed_unknown
+                with self.store.transaction() as db:
+                    if not consumed_unknown(db,row):raise ValueError('既存再計画の成否照合が必要です')
         return len(rows)
 
     def check_budget(self,client=None,only_slot=None):

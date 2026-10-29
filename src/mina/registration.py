@@ -39,9 +39,13 @@ def assert_day_state(state, target, completed, now):
 
 
 def register_day(store, draft, saved, directory, meal_client, ai, host, capture=capture_ogp, capture_round=None,
-                 allow_correction=False, replacement_rounds=None, collection_slots=None):
+                 allow_correction=False, replacement_rounds=None, collection_slots=None, meal_policy_sha256=None):
     """3食と日次を点検する。履歴・旧予約が未照合なら承認候補へ進めない。"""
+    from .tolerance_review import scoped_policy
+    selected_policy=scoped_policy(meal_review_policy_sha256(),meal_policy_sha256)
     target = draft['target_date']
+    from .current_day_gate import require_stage
+    require_stage(store,target)
     if collection_slots is not None:
         from .rescue_collection import _scope
         from .replacement_collection import _scope as future_scope
@@ -207,13 +211,16 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
         captured, preview = ogp(slot, normalized, '-corrected' if variant else '')
         review_suffix = ':' + capture_round if capture_round else ''
         from .meal_review_recovery import review_once
-        review = review_once(journal,target, 'meal_review:' + slot + variant + review_suffix, {'image_sha256': info['sha256'], 'meal': meal, 'response': response, 'ogp_digest': captured['digest'], 'policy_sha256':meal_review_policy_sha256()},
-                             lambda: ai.review_meal(raw, meal, response, captured['meta']))
+        review_method=getattr(type(ai),'review_response',None)
+        review_response=review_method(ai,response) if callable(review_method) else response
+        review = review_once(journal,target, 'meal_review:' + slot + variant + review_suffix, {'image_sha256': info['sha256'], 'meal': meal, 'response': review_response, 'ogp_digest': captured['digest'], 'policy_sha256':selected_policy},
+                             lambda: ai.review_meal(raw, meal, review_response, captured['meta']))
         from .review_diagnostics import record_findings,record_verdict
         record_findings(store,ai,target,slot,'meal_review',info['sha256'])
         record_verdict(store,target,slot,'meal_review',review)
         if (allow_correction and operation == 'meal_register' and review.get('status') == 'hold' and review.get('reason_codes') and
-                set(review['reason_codes']) <= {'image_analysis_mismatch','nutrition_semantic_mismatch'}):
+                set(review['reason_codes']) <= {'image_analysis_mismatch','nutrition_semantic_mismatch'} and
+                (meal_policy_sha256 is None or ai.allow_correction(meal,response,review))):
             from .correction import correct_meal_once
             original = response
             response, key = correct_meal_once(journal, requests, meal_client, ai, check_state, target, slot, meal, raw, original, host)
@@ -222,9 +229,11 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
             normalized = validate_write(response, slot, target, host, operation=operation, logged_at=logged, input_comment=meal['comment'])
             input_hash = completed_request(meal_client.request_state(key, operation), key, operation, response['result'])
             captured, preview = ogp(slot, normalized, '-corrected')
+            review_method=getattr(type(ai),'review_response',None)
+            review_response=review_method(ai,response) if callable(review_method) else response
             review = review_once(journal,target, 'meal_review:' + slot + ':corrected' + review_suffix,
-                {'image_sha256':info['sha256'],'meal':meal,'response':response,'ogp_digest':captured['digest'],'policy_sha256':meal_review_policy_sha256()},
-                lambda:ai.review_meal(raw, meal, response, captured['meta']))
+                {'image_sha256':info['sha256'],'meal':meal,'response':review_response,'ogp_digest':captured['digest'],'policy_sha256':selected_policy},
+                lambda:ai.review_meal(raw, meal, review_response, captured['meta']))
             record_findings(store,ai,target,slot,'meal_review',info['sha256'])
             record_verdict(store,target,slot,'meal_review',review)
         if review != {'status': 'publishable', 'reason_codes': []}:

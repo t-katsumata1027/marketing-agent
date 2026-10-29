@@ -24,7 +24,8 @@ class InstagramBufferClient:
         if query.lstrip().startswith('mutation'):
             from .publication_hold import require_buffer_mutation
             require_buffer_mutation(self.store, getattr(self, 'publication_target', None))
-        record_request(self.store, query)
+        from .buffer_budget import subject,observe
+        identity=subject(self.token);request_id=record_request(self.store, query,subject=identity)
         try:
             if self.transport is not None:
                 result = self.transport(query, variables or {})
@@ -35,12 +36,15 @@ class InstagramBufferClient:
                 with build_opener(NoRedirect()).open(request, timeout=20) as response:
                     raw = response.read(262145)
                     record_headers(self.store, response.headers)
+                    observe(self.store,response.headers,identity,request_id)
                 if len(raw) > 262144:
                     raise ProbeError('buffer_response_too_large')
                 result = json.loads(raw)
         except ProbeError:
             raise
         except HTTPError as error:
+            record_headers(self.store,error.headers)
+            observe(self.store,error.headers,identity,request_id)
             raise ProbeError('buffer_http_' + str(error.code)) from None
         except (URLError, OSError, TimeoutError, ValueError):
             raise ProbeError('buffer_response_unknown') from None

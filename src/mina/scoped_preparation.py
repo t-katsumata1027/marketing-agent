@@ -65,8 +65,9 @@ def blocked(payload):
 def locked(db,target=None):
     from .publication_hold import exists
     if not exists(db,'scoped_preparation_locks'):return False
-    return db.execute('SELECT 1 FROM scoped_preparation_locks'+(' WHERE target_date=?' if target else ''),
-                      (target,) if target else ()).fetchone() is not None
+    from .post_promotion import lock_released
+    rows=db.execute('SELECT target_date FROM scoped_preparation_locks'+(' WHERE target_date=?' if target else ''),(target,) if target else ()).fetchall()
+    return any(not lock_released(db,row['target_date']) for row in rows)
 
 
 def seal(db,window,owner,epoch,xs,igs,now):

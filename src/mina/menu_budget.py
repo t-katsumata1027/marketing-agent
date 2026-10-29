@@ -72,9 +72,11 @@ class MenuBudget:
         inputs = json.loads(row['source_inputs'])
         source = db.execute('SELECT state,digest,result FROM preparation_steps WHERE target_date=? AND step=?',
             (self.target, row['source_step'])).fetchone()
+        from .current_day_origin import legacy_source
+        compatible=inputs.get('policy')==POLICY or legacy_source(db,self.target,row['source_step'],inputs)
         if (not source or source['state'] != 'complete' or source['digest'] != fingerprint(inputs)
                 or row['source_step'] != 'menu_nutrition:' + source['digest']
-                or inputs.get('policy') != POLICY or inputs.get('foods', {}).get(slot) != meal_foods):
+                or not compatible or inputs.get('foods', {}).get(slot) != meal_foods):
             raise ValueError('食品別概算の入力原本が変わっています')
         value = json.loads(source['result'])
         if fingerprint(value) != row['source_result_digest'] or set(value) != set(inputs['foods']):
@@ -89,6 +91,8 @@ class MenuBudget:
         return PlanBudget(self.target, fingerprint(foods(draft)), tuple(values))
 
     def collect(self, draft, ai, api_state=None, now=None):
+        from .current_day_gate import require_stage
+        require_stage(self.store,self.target)
         from .generation import object_schema
         current = foods(draft)
         if api_state is not None:
@@ -109,8 +113,9 @@ class MenuBudget:
                         if current_versions is None or current_versions.get(item['meal']['meal_type'])!=item['result_version']:
                             raise ValueError('採用済み実解析の変更・消失を検出しました')
             # 旧結果不明を新policyや新keyで回避しない。個別救済は別の承認・照合が必要。
-            if db.execute("SELECT 1 FROM preparation_steps WHERE target_date=? AND state IN ('started','outcome_unknown')",
-                    (self.target,)).fetchone():
+            from .current_day_origin import consumed_unknown
+            unresolved=list(db.execute("SELECT * FROM preparation_steps WHERE target_date=? AND state IN ('started','outcome_unknown')",(self.target,)))
+            if any(not consumed_unknown(db,row) for row in unresolved):
                 raise ValueError('既存工程の成否照合が必要です')
             missing = {s: current[s] for s in SLOTS if s not in actuals and self._read(db, s, current[s]) is None}
             legacy = 'menu_nutrition:' + fingerprint({'foods': current})
@@ -219,7 +224,8 @@ def validate_adoptions(db,draft,strict=False):
     if not rows and not strict:
         admission_table=db.execute("SELECT 1 FROM sqlite_master WHERE name='menu_nutrition_admissions'").fetchone()
         if not admission_table or not db.execute('SELECT 1 FROM menu_nutrition_admissions WHERE target_date=?',(target,)).fetchone():return
-    steps={r['step']:r for r in db.execute("SELECT * FROM preparation_steps WHERE target_date=? AND step LIKE 'meal_replan:%'",(target,))}
+    from .current_day_origin import consumed_unknown
+    steps={r['step']:r for r in db.execute("SELECT * FROM preparation_steps WHERE target_date=? AND step LIKE 'meal_replan:%'",(target,)) if not consumed_unknown(db,r)}
     if any(r['state'] not in ('adopted','rejected') for r in rows) or set(steps)!={r['step'] for r in rows}:
         raise ValueError('再計画の完了・採用状態の照合が必要です')
     latest={}

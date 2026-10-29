@@ -120,6 +120,13 @@ def request_json(url: str, body: dict, headers: dict, method="POST", meal=False)
         raise OutcomeUnknown("external_write_unknown") from None
 
 
+class DiscordAttachmentRejected(RuntimeError):
+    """明示HTTP拒否。本文や認証を例外に含めず、自動再送も許可しない。"""
+    def __init__(self,status,code=None,response_sha256=None):
+        super().__init__('discord_attachment_rejected')
+        self.http_status=status;self.discord_code=code;self.response_sha256=response_sha256
+
+
 class DiscordClient:
     """Botメッセージで署名付きInteractionを起動するカードを送る。"""
 
@@ -133,6 +140,50 @@ class DiscordClient:
         return request_json(f"https://discord.com/api/v10/channels/{self.channel}/messages",
                             payload, {"Authorization": f"Bot {self.token}",
                                       "User-Agent": "DiscordBot (https://github.com/t-katsumata1027/marketing-agent, 1.0)"})
+
+    def send_files(self,payload,files):
+        """限定準備カードのJPEGを添付する。一度のPOST以外へ自動退避しない。"""
+        from pathlib import Path
+        import uuid
+        require_live()
+        if not 1<=len(files)<=5 or len(payload.get('content',''))>2000:raise ValueError('Discord準備カードの容量が不正です')
+        if payload.get('enforce_nonce') and (not isinstance(payload.get('nonce'),str) or not 1<=len(payload['nonce'])<=25):raise ValueError('Discord送付nonceが不正です')
+        parts=[];attachments=[];boundary=uuid.uuid4().hex
+        for index,item in enumerate(files):
+            p=Path(item)
+            if p.is_symlink() or not p.is_file() or not re.fullmatch(r'[a-z0-9_-]+\.jpg',p.name):raise ValueError('添付画像の実体が必要です')
+            raw=p.read_bytes()
+            if not raw.startswith(b'\xff\xd8\xff') or not 0<len(raw)<=4*1024*1024:raise ValueError('添付画像の形式が不正です')
+            attachments.append({'id':index,'filename':p.name})
+            parts.append((f'--{boundary}\r\nContent-Disposition: form-data; name="files[{index}]"; filename="{p.name}"\r\nContent-Type: image/jpeg\r\n\r\n'.encode()+raw+b'\r\n'))
+        data=json.dumps({**payload,'attachments':attachments},ensure_ascii=False).encode()
+        body=(f'--{boundary}\r\nContent-Disposition: form-data; name="payload_json"\r\nContent-Type: application/json\r\n\r\n'.encode()+data+b'\r\n'+b''.join(parts)+f'--{boundary}--\r\n'.encode())
+        if len(body)>10*1024*1024:raise ValueError('添付画像の合計が大きすぎます')
+        from urllib.request import build_opener
+        from .drive import NoRedirect
+        from .external_guard import guard
+        check=guard.get()
+        if check:check()
+        request=Request(f'https://discord.com/api/v10/channels/{self.channel}/messages',data=body,
+            headers={'Authorization':'Bot '+self.token,'Content-Type':'multipart/form-data; boundary='+boundary,
+                     'User-Agent':'DiscordBot (https://github.com/t-katsumata1027/marketing-agent, 1.0)'},method='POST')
+        try:
+            with build_opener(NoRedirect()).open(request,timeout=30) as response:
+                raw=response.read(131073)
+            if len(raw)>131072:raise ValueError()
+            result=json.loads(raw)
+            if not isinstance(result,dict) or not isinstance(result.get('id'),str) or not result['id'].isdigit():raise ValueError()
+            return result
+        except HTTPError as error:
+            import hashlib
+            raw=error.read(16384);code=None
+            try:
+                value=json.loads(raw);code=value.get('code') if isinstance(value,dict) and type(value.get('code')) is int else None
+            except ValueError:pass
+            if error.code in (400,401,403,404,405,413,415,422):raise DiscordAttachmentRejected(error.code,code,hashlib.sha256(raw).hexdigest()) from None
+            failure=OutcomeUnknown('discord_attachment_outcome_unknown');failure.http_status=error.code;failure.discord_code=code;failure.response_sha256=hashlib.sha256(raw).hexdigest()
+            raise failure from None
+        except (URLError,OSError,ValueError):raise OutcomeUnknown('discord_attachment_outcome_unknown') from None
 
 
 class XClient:
