@@ -64,7 +64,7 @@ class RoutingTests(unittest.TestCase):
                 raise AssertionError('未計画のAPI')
         api=API();proof={'started_at':now.isoformat(),'checked_at':now.isoformat(),'observed_at':now.isoformat(),'expires_at':(now+timedelta(minutes=5)).isoformat(),'started_monotonic':100,'observed_monotonic':100}
         env={'MINA_LIVE_WRITES':'true','MINA_PUBLISH_ENABLED':'true','MINA_INSTAGRAM_PUBLISH_ENABLED':'true'}
-        with patch.dict('os.environ',env),patch('src.mina.post_promotion_external.load',return_value=(r,d,self.settings,self.snapshot,lambda:None)),patch('src.mina.buffer_publisher.production_client',return_value=api):
+        with patch.dict('os.environ',env),patch('src.mina.post_promotion_external.time.time',return_value=now.timestamp()),patch('src.mina.post_promotion_external.load',return_value=(r,d,self.settings,self.snapshot,lambda:None)),patch('src.mina.buffer_publisher.production_client',return_value=api):
             from src.mina.runtime import publish_due
             self.assertEqual(publish_due(self.store,Mock(),now,fixtures.HOST,lambda c:proof,clock=lambda:now,timer=lambda:100),1);self.assertEqual(api.mutations,1)
             row=self.ig.claim_due(now);c=next(c for c in self.igs if c.slot=='dinner')
@@ -84,3 +84,11 @@ class RoutingTests(unittest.TestCase):
                 verified.assert_called_once();self.assertEqual(set(verified.call_args.args[1]),{'breakfast','lunch','dinner','daily'})
             self.assertEqual(igapi.mutations,1)
             self.assertEqual(publish_due(self.store,Mock(),now,fixtures.HOST,lambda c:proof,clock=lambda:now),0);self.assertIsNone(self.ig.claim_due(now))
+
+    def test_unknown_after_inventory_is_still_rejected_at_final_claim(self):
+        r,d=self.released();due=slot_time(date.fromisoformat(TARGET),'dinner');row=self.ig.claim_due(due)
+        with self.store.transaction() as db:
+            db.execute("UPDATE post_promotion_phases SET state='complete',receipt=? WHERE phase='dinner'",(json.dumps({'read_started_at':due.isoformat()}),));db.execute("UPDATE candidates SET state='outcome_unknown' WHERE slot='dinner'")
+        from src.mina.publication_hold import require_claim
+        with patch('src.mina.post_promotion_external.time.time',return_value=due.timestamp()):
+            with self.assertRaises(ValueError):require_claim(self.ig,row,'instagram_candidates')

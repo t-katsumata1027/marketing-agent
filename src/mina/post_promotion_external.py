@@ -107,3 +107,13 @@ def ensure_external(store,target,phase,clock=lambda:datetime.now(UTC)):
         finally:
             from .buffer_budget import release
             release(store,budget_id)
+
+
+def guard_claim(db,row):
+    """送信直前にも、照合後に他方が不明化していないか同じTXで確認する。"""
+    r=record(db,row['target_date'])
+    if not r:return
+    if r['state']!='released':raise ValueError('昇格の公開権限が停止しています')
+    document=json.loads(r['document']);current(db,document,row['target_date'],row['slot'])
+    phase=db.execute("SELECT receipt FROM post_promotion_phases WHERE promotion_uuid=? AND phase=? AND state='complete'",(r['promotion_uuid'],row['slot'])).fetchone()
+    if not phase or not 0<=time.time()-datetime.fromisoformat(json.loads(phase[0])['read_started_at']).timestamp()<=120:raise ValueError('送信直前の外部照合が失効しました')
