@@ -23,7 +23,7 @@ def main():
                 if not a.receipts or not a.stop_log or not a.parent_checkpoint:raise ValueError('実CLI原本と停止trace/親原本が必要です')
                 trace=Path(a.stop_log)
                 if trace.is_symlink() or trace.stat().st_uid!=0 or trace.stat().st_mode&0o022:raise ValueError('root停止原本が必要です')
-                previous,_=protected_json(a.parent_checkpoint,root_owned=True)
+                previous,_=protected_json(a.parent_checkpoint,root_owned=True,max_bytes=524288)
                 if Path(previous['base']).resolve()!=Path(a.directory).resolve() or Path(previous['receipts']).resolve()!=Path(a.receipts).resolve():raise ValueError('親原本の領域を変更しません')
                 value=capture(db,previous);print(json.dumps(value,ensure_ascii=False))
             else:

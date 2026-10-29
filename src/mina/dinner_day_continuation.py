@@ -61,6 +61,10 @@ def capture(db,previous):
 
 class DinnerGate(LunchGate):
     TABLE='current_day_dinner_continuations';FLAG='MINA_CURRENT_DAY_DINNER_ENABLED';CONTRACT=VERSION;ID_FIELD='dinner_continuation_uuid'
+    def review_evidence(self,response):
+        if response['result']['meal']['meal_type']!='dinner':return None
+        return {'method':'fixed_planned_quantity_reference','measured_from_image':False,'references':REFERENCES,
+                'reference_proposal':self.snapshot['dinner']['proposal'],'published_energy_used':True,'simple_pfc_4_9_4_energy_used':False}
     def verify_source(self,db):
         super().verify_source(db)
         if rows(db,'current_day_lunch_continuations')!=self.snapshot['dinner']['parent']:raise ValueError('旧昼継続のheld/期限が変わりました')

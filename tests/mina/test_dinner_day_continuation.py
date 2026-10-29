@@ -4,6 +4,18 @@ from pathlib import Path
 from src.mina.dinner_day_continuation import proposal
 
 class DinnerTests(unittest.TestCase):
+    def test_reference_data_only_for_dinner_and_not_a_policy_change(self):
+        from unittest.mock import Mock
+        from src.mina.dinner_day_continuation import DinnerGate
+        from src.mina.tolerance_case import ReviewedAI
+        gate=Mock();gate.snapshot={'dinner':{'proposal':{'foods':[]}}};gate.review_evidence=lambda r:DinnerGate.review_evidence(gate,r)
+        ai=ReviewedAI(gate,None)
+        breakfast={'result':{'meal':{'meal_type':'breakfast'}}}
+        self.assertIs(ai.review_response(breakfast),breakfast)
+        dinner={'result':{'meal':{'meal_type':'dinner'}}};reviewed=ai.review_response(dinner)
+        self.assertNotIn('secondary_review_evidence',dinner)
+        self.assertFalse(reviewed['secondary_review_evidence']['measured_from_image'])
+        self.assertEqual(reviewed['result'],dinner['result'])
     def setUp(self):
         self.meal={'foods':[{'name':'固定','amount':'1g'} for _ in range(16)]}
         self.meal['foods'][7]={'name':'キャベツ','amount':'80g（千切り）'};self.meal['foods'][8]={'name':'ごはん','amount':'炊飯後220g'}

@@ -59,6 +59,11 @@ class ReviewedAI:
     def structured(self,*args,**kwargs):return self.ai.structured(*args,**kwargs)
     def image(self,*args,**kwargs):return self.ai.image(*args,**kwargs)
     def review_ogp(self,*args,**kwargs):return self.ai.review_ogp(*args,**kwargs)
+    def review_response(self,response):
+        """限定caseの固定資料をデータとして添付する。点検指示/policyは変更しない。"""
+        method=getattr(self.gate,'review_evidence',None)
+        evidence=method(response) if method else None
+        return {**response,'secondary_review_evidence':evidence} if evidence is not None else response
     def allow_correction(self,meal,response,verdict):
         """画像差の訂正は禁止。同名食品の解析量に数値根拠がある場合だけ一回訂正へ進む。"""
         value=getattr(self,'last_raw_review',None)
