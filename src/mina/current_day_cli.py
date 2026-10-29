@@ -9,7 +9,7 @@ from .preparation import fingerprint
 
 def protected_json(path,root_owned=False,*,max_bytes=131072):
     """資格原文を読まない承認ファイル。リンク・第三者書込・過大資料を拒否する。"""
-    if type(max_bytes) is not int or max_bytes not in (131072,262144):raise ValueError('原本読取上限が不正です')
+    if type(max_bytes) is not int or max_bytes not in (131072,262144,524288):raise ValueError('原本読取上限が不正です')
     path=Path(path)
     if path.is_symlink() or not path.is_file() or path.stat().st_size>max_bytes:raise ValueError('承認原本の実体がありません')
     if any(p.is_symlink() for p in path.parents):raise ValueError('承認原本の親リンクを拒否します')
