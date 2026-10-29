@@ -288,7 +288,7 @@ class CurrentDayRecoveryTests(unittest.TestCase):
         client=Mock();client.request_state.side_effect=RuntimeError('404')
         args=['operator','lookups','--database',self.store.path,'--directory',str(self.root)]
         output=io.StringIO()
-        with patch('sys.argv',args),patch.dict(os.environ,{'MINA_CURRENT_DAY_RECOVERY_ENABLED':'false','MINA_MEAL_API_BASE_URL':'','MINA_AGENT_API_TOKEN':''}),patch('src.mina.clients.preparation_client',return_value=client),contextlib.redirect_stdout(output):main()
+        with patch('sys.argv',args),patch.dict(os.environ,{'MINA_CURRENT_DAY_RECOVERY_ENABLED':'false','MINA_MEAL_API_BASE_URL':'https://www.log-eats.com','MINA_AGENT_API_TOKEN':''}),patch('src.mina.clients.preparation_client',return_value=client),contextlib.redirect_stdout(output):main()
         result=json.loads(output.getvalue());self.assertEqual(result['lookups'][0]['persistence'],'unknown')
         self.assertEqual(result['post_count'],0);self.assertEqual(result['ledger_updates'],0)
         client.request_state.assert_called_once_with(key,'meal_register');client.register.assert_not_called()

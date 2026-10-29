@@ -62,5 +62,11 @@ class CurrentDayCliTests(unittest.TestCase):
         except OSError:self.skipTest('symlink権限なし')
         with self.assertRaises(ValueError):protected_json(link)
 
+    def test_bearer_is_not_constructed_for_unapproved_environment_origin(self):
+        from src.mina.current_day_cli import scoped_meal
+        with patch.dict(os.environ,{'MINA_MEAL_API_BASE_URL':'https://other.invalid','MINA_AGENT_API_TOKEN':'private-token'}),patch('src.mina.clients.preparation_client') as factory:
+            with self.assertRaises(ValueError):scoped_meal()
+            factory.assert_not_called()
+
 
 if __name__=='__main__':unittest.main()

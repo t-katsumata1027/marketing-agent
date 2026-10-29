@@ -28,7 +28,8 @@ def protected_json(path,root_owned=False):
 def config(path,root):
     from .readiness import release_commit
     document,_=protected_json(path,root_owned=True)
-    if set(document)!={'approval','database','directory','host','organization_id','channels','references','history'}:raise ValueError('当日構成の形式が不正です')
+    if set(document)!={'approval','database','directory','host','organization_id','channels','references','history','discord_channel'}:raise ValueError('当日構成の形式が不正です')
+    if document['host']!='www.log-eats.com' or not isinstance(document['discord_channel'],str) or not document['discord_channel'].isdigit():raise ValueError('承認されたAPI/送付先が不正です')
     approval=document['approval']
     if approval.get('target_date')!=TARGET or approval.get('spec')!=VERSION or not re.fullmatch('[0-9a-f]{40}',approval.get('code_commit','')):raise ValueError('当日構成の版が不正です')
     binding=fingerprint({k:v for k,v in document.items() if k!='references'})
@@ -57,6 +58,14 @@ def config(path,root):
     return document,check
 
 
+def scoped_meal():
+    """既存Bearerを任意のenv URLへ転送しない。読取照会も正式originだけに限る。"""
+    from .clients import preparation_client
+    base=os.environ.get('MINA_MEAL_API_BASE_URL','')
+    if base!='https://www.log-eats.com':raise ValueError('当日APIは正式originへ固定してください')
+    return preparation_client(base,os.environ.get('MINA_AGENT_API_TOKEN',''))
+
+
 def main():
     parser=argparse.ArgumentParser(description='10/29準備専用operator。SNS公開機能なし')
     parser.add_argument('command',choices=('origin','status','activate','run','lookups'))
@@ -73,7 +82,6 @@ def main():
                     'old_preparation_deadline':origin['old_preparation_deadline'],'derived_policy_deadline':origin['derived_policy_deadline'],
                     'old_cost_status':'unknown_consumed','used_ordinals':[1],'new_calls':0}))
             elif args.command=='lookups':
-                from .clients import preparation_client
                 from .m1_contract import request_report
                 from .request_ledger import RequestLedger
                 from contextlib import contextmanager
@@ -81,7 +89,7 @@ def main():
                     @contextmanager
                     def transaction(self):yield db
                 ledger=object.__new__(RequestLedger);ledger.store=ReadOnly()
-                meal=preparation_client(os.environ['MINA_MEAL_API_BASE_URL'],os.environ['MINA_AGENT_API_TOKEN'])
+                meal=scoped_meal()
                 results=[]
                 if db.execute("SELECT 1 FROM sqlite_master WHERE name='mina_requests'").fetchone():
                     keys=[r[0] for r in db.execute('SELECT request_key FROM mina_requests WHERE target_date=?',(TARGET,))]
@@ -102,10 +110,10 @@ def main():
     settings,check_code=config(args.config,root)
     if Path(args.database).resolve()!=Path(settings['database']).resolve() or Path(args.directory).resolve()!=Path(settings['directory']).resolve():raise ValueError('別の台帳/原本領域へ当日権限を転用しません')
     from .store import Store
-    from .clients import preparation_client,DiscordClient
+    from .clients import DiscordClient
     from .current_day_gate import Gate
     store=Store(args.database);clock=lambda:datetime.now(UTC)
-    meal=preparation_client(os.environ['MINA_MEAL_API_BASE_URL'],os.environ['MINA_AGENT_API_TOKEN'])
+    meal=scoped_meal()
     from .buffer_publisher import production_client
     from .replacement_inventory import BufferInventoryAdapter,ExternalInventory
     inventory=ExternalInventory(store,BufferInventoryAdapter(production_client(store),settings['organization_id']),clock,settings['channels'])
@@ -125,7 +133,7 @@ def main():
     require_live()
     evidence,_=protected_json(settings['history']['path'])
     result=execute(gate,args.directory,generation_client(),DriveClient.from_env(),meal,settings['host'],evidence,capture_ogp,
-        DiscordClient(os.environ['DISCORD_BOT_TOKEN'],os.environ['DISCORD_ALLOWED_CHANNEL_ID']),settings['approval']['code_commit'])
+        DiscordClient(os.environ['DISCORD_BOT_TOKEN'],settings['discord_channel']),settings['approval']['code_commit'])
     print(json.dumps(result))
 
 

@@ -40,7 +40,7 @@ Discordは点検済みJPEGを添付し、一回だけPOST。送付直前にも�
 - `activate --config ...`：別承認3原本・実配置版・初期M1・全外部一覧を確認し、初回とholdを一度だけ保存。
 - `run --config ...`：未消費jobをCASで確保し、夕食残1回→3画像→Drive→通常M1/一回訂正→日次→実OGP再照合→8カード→Discord。失敗/再起動後のrun再実行は不可。元UUID照会へ戻る。
 
-構成JSONはapproval/database/directory/host/organization_id/channels/references/historyの閉じた形。approvalにはspec/target_date/recovery_uuid/code_commit/not_after/origin_digest/initial_state_version/approval_reference/mode/cost_modeを持つ。not_afterはUTCミリ秒Z形式。referencesはimplementation_review・deployment_approval・execution_approvalの各path/SHA。historyは既存の履歴原本をpath/SHAで明示し、日付フォルダーにhistory.jsonがあるとは推測しない。履歴の本文・hashも各境界で固定する。
+構成JSONはapproval/database/directory/host/organization_id/channels/references/history/discord_channelの閉じた形。approvalにはspec/target_date/recovery_uuid/code_commit/not_after/origin_digest/initial_state_version/approval_reference/mode/cost_modeを持つ。not_afterはUTCミリ秒Z形式。referencesはimplementation_review・deployment_approval・execution_approvalの各path/SHA。historyは既存の履歴原本をpath/SHAで明示し、日付フォルダーにhistory.jsonがあるとは推測しない。履歴の本文・hashも各境界で固定する。APIは正式origin https://www.log-eats.com、Discordはconfigに封印したchannelへ固定し、後から環境変数で送付先やBearer転送先を差し替えない。
 
 各role原本はrole/contract_version/config_digest/verdictを持ち、config_digestはreferencesを除く構成全体のfingerprint。verdictは実装Go、他はapproved。構成と全roleはLinux root所有・group/world書込禁止、Actorには読取りだけを与える。Actor自身が作ったapprovedを承認と認めない。Windowsからの実行承認読込は未対応で拒否する。API資格は既存の保護環境を用い、新規キーを作らない。
 
