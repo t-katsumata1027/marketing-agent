@@ -99,7 +99,7 @@ class PreparationJournal:
 
 
 def prepare_images(store, draft_path: Path, directory: Path, client, replacement_round=None, replace_slots=(),
-                   reused_rounds=None, repair_instruction=None, only_slots=None):
+                   reused_rounds=None, repair_instruction=None, only_slots=None, review_policy_sha256=None):
     """画像3枚と事前点検結果を保存する。LogEats登録や承認候補化はまだ行わない。"""
     draft = json.loads(draft_path.read_text(encoding="utf-8-sig"))
     from .current_day_gate import require_stage
@@ -130,6 +130,8 @@ def prepare_images(store, draft_path: Path, directory: Path, client, replacement
     selected=tuple(MEAL_SLOTS if only_slots is None else only_slots)
     if not selected or len(set(selected))!=len(selected) or not set(selected)<=set(MEAL_SLOTS):
         raise ValueError('画像準備の対象枠が不正です')
+    from .tolerance_review import scoped_policy
+    selected_policy=scoped_policy(image_review_policy_sha256(),review_policy_sha256)
     outputs = {}
     for slot in selected:
         meal = draft["meals"][slot]
@@ -174,7 +176,7 @@ def prepare_images(store, draft_path: Path, directory: Path, client, replacement
             raise ValueError("保存した画像の版が変わっています")
         review = journal.run(target, "image_review:" + slot + suffix,
                              {"sha256": image["sha256"], "meal": meal,
-                              "review_policy_sha256": image_review_policy_sha256()},
+                              "review_policy_sha256": selected_policy},
                              lambda: client.review_image(raw, meal))
         from .review_diagnostics import record_findings,record_verdict
         record_findings(store,client,target,slot,'image_review',image['sha256'])
