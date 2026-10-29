@@ -82,6 +82,27 @@ class Delivery:
                 inputs={'content':content(payload),'assets':payload['assets'],'channel':self.channel,'author':self.author,'nonce':nonce}
                 db.execute("INSERT INTO current_day_discord_delivery_attempts VALUES(?,?,?,?,?,?,?,'prepared',NULL,NULL)",(a['delivery_uuid'],row['platform'],row['slot'],json.dumps(row),json.dumps(inputs),fingerprint(inputs),nonce))
         return deadline
+    def reconcile(self,reader):
+        """同IDのGETだけで受領を回復し、未送信分だけの継続を許可する。"""
+        with self.store.transaction() as db:
+            self.source(db)
+            job=db.execute('SELECT * FROM current_day_discord_delivery_jobs WHERE case_uuid=?',(self.a['delivery_uuid'],)).fetchone()
+            if not job or job['state']!='held' or job['approval_digest']!=fingerprint(self.a) or self.clock()>=timestamp(job['deadline']):raise ValueError('照会継続の状態/期限が不一致です')
+            pending=[dict(r) for r in db.execute("SELECT * FROM current_day_discord_delivery_attempts WHERE case_uuid=? AND state='unknown'",(self.a['delivery_uuid'],))]
+        if len(pending)!=1 or not pending[0]['message_id']:raise ValueError('照会可能な同IDがありません')
+        row=pending[0];inputs=json.loads(row['input']);current=reader.message(row['message_id']);receipt=verify_receipt(current,inputs,reader)
+        with self.store.transaction() as db:
+            self.source(db)
+            if self.clock()>=timestamp(job['deadline']):raise ValueError('照会継続の期限を超過しました')
+            latest=db.execute('SELECT * FROM current_day_discord_delivery_jobs WHERE case_uuid=?',(self.a['delivery_uuid'],)).fetchone()
+            actual=db.execute('SELECT * FROM current_day_discord_delivery_attempts WHERE case_uuid=? AND platform=? AND slot=?',(self.a['delivery_uuid'],row['platform'],row['slot'])).fetchone()
+            if dict(actual)!=row or dict(latest)!=dict(job):raise ValueError('照会継続が競合しました')
+            db.execute("UPDATE current_day_discord_delivery_attempts SET state='sent',receipt=? WHERE case_uuid=? AND platform=? AND slot=?",(json.dumps(receipt),self.a['delivery_uuid'],row['platform'],row['slot']))
+            old=json.loads(row['original'])
+            if db.execute("UPDATE current_day_cards SET state='sent',message_id=? WHERE recovery_uuid=? AND platform=? AND slot=? AND state=? AND message_id IS NULL",(row['message_id'],self.s['owner'],row['platform'],row['slot'],old['state'])).rowcount!=1:raise ValueError('照会受領反映が競合しました')
+            db.execute("UPDATE current_day_discord_delivery_jobs SET state='issued' WHERE case_uuid=? AND state='held'",(self.a['delivery_uuid'],))
+        return {'reconciled':1,'post_count':0,'deadline_unchanged':True}
+
     def run(self,discord,reader,verify):
         with self.store.transaction() as db:
             self.check(db,True)
@@ -93,6 +114,9 @@ class Delivery:
             self.check(sending=True)
             for old in self.s['cards']:
                 if (old['platform'],old['slot']) not in SELECTED:continue
+                with self.store.transaction() as db:
+                    prior=db.execute('SELECT state FROM current_day_discord_delivery_attempts WHERE case_uuid=? AND platform=? AND slot=?',(self.a['delivery_uuid'],old['platform'],old['slot'])).fetchone()
+                    if prior and prior['state']=='sent':self.source(db);continue
                 payload=json.loads(old['payload']);verify(payload);self.check(sending=True)
                 with self.store.transaction() as db:
                     self.check(db,True);row=db.execute('SELECT * FROM current_day_discord_delivery_attempts WHERE case_uuid=? AND platform=? AND slot=?',(self.a['delivery_uuid'],old['platform'],old['slot'])).fetchone();inputs=json.loads(row['input'])
@@ -125,13 +149,25 @@ def verify_receipt(result,inputs,reader):
     """同IDの実読取と添付bytesを照合。nonce省略は省略として記録する。"""
     if not isinstance(result,dict) or not isinstance(result.get('id'),str) or not result['id'].isdigit():raise ValueError('Discord受領IDが不明です')
     current=reader.message(result['id'])
+    from urllib.parse import urlsplit,unquote
+    def assets(value):
+        found={a['filename']:a['url'] for a in value.get('attachments',[])}
+        for embed in value.get('embeds',[]):
+            url=embed.get('image',{}).get('url')
+            if url:
+                parts=urlsplit(url)
+                if parts.scheme!='https' or parts.hostname!='cdn.discordapp.com':raise ValueError('Discord埋込画像の取得先が不正です')
+                name=unquote(parts.path.rsplit('/',1)[-1])
+                if name in found and found[name]!=url:raise ValueError('Discord画像名が重複しています')
+                found[name]=url
+        return found
     for value in (result,current):
         if value.get('id')!=result['id'] or value.get('channel_id')!=inputs['channel'] or value.get('author',{}).get('id')!=inputs['author'] or value.get('content')!=inputs['content'] or value.get('nonce') is not None and str(value['nonce'])!=inputs['nonce']:raise ValueError('Discord受領の宛先/著者/本文/nonceが不一致です')
-        if sorted(a['filename'] for a in value.get('attachments',[]))!=sorted(Path(a['path']).name for a in inputs['assets']):raise ValueError('Discord受領の添付集合が不一致です')
+        if sorted(assets(value))!=sorted(Path(a['path']).name for a in inputs['assets']):raise ValueError('Discord受領の添付集合が不一致です')
     expected={Path(a['path']).name:a for a in inputs['assets']}
-    for asset in current['attachments']:
-        raw=reader.asset(asset['url'])
-        if hashlib.sha256(raw).hexdigest()!=expected[asset['filename']]['sha256']:raise ValueError('Discord添付実バイトが不一致です')
+    for name,url in assets(current).items():
+        raw=reader.asset(url)
+        if hashlib.sha256(raw).hexdigest()!=expected[name]['sha256']:raise ValueError('Discord添付実バイトが不一致です')
     return {'message_id':result['id'],'channel':inputs['channel'],'author':inputs['author'],'content_sha256':hashlib.sha256(inputs['content'].encode()).hexdigest(),'nonce_requested':inputs['nonce'],'nonce_echo_present':current.get('nonce') is not None,'assets_verified':True}
 
 class DiscordReader:

@@ -8,7 +8,7 @@ from .preparation import fingerprint
 
 def main():
     parser=argparse.ArgumentParser(description='夕食/日次のDiscord送付専用')
-    parser.add_argument('command',choices=('activate','run'));parser.add_argument('--config',required=True);a=parser.parse_args()
+    parser.add_argument('command',choices=('activate','run','reconcile'));parser.add_argument('--config',required=True);a=parser.parse_args()
     if os.getenv('MINA_DISCORD_DELIVERY_RECOVERY_ENABLED','false').lower()!='true':raise ValueError('discord_delivery_recovery_disabled')
     settings,code=config(a.config,Path(__file__).resolve().parents[2],version=VERSION,extras=('checkpoint','own_author'))
     snapshot,sha=protected_json(settings['checkpoint']['path'],root_owned=True)
@@ -25,6 +25,7 @@ def main():
     if reader.identity()!=settings['own_author']:raise ValueError('Discord著者が承認と不一致です')
     gate=Delivery(store,settings['approval'],snapshot,lambda:datetime.now(UTC),check,settings['own_author'],settings['discord_channel'])
     if a.command=='activate':print(json.dumps({'deadline':gate.issue().isoformat(),'food_writes':0,'ai_calls':0}));return
+    if a.command=='reconcile':print(json.dumps(gate.reconcile(reader)));return
     raw=scoped_meal()
     class ReadOnly:
         def day_state(self,*args):return raw.day_state(*args)

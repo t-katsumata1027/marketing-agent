@@ -68,3 +68,26 @@ class DeliveryTests(unittest.TestCase):
             if len(checked)==4:raise ValueError('四件目不一致')
         with self.assertRaises(ValueError):self.gate.run(self.discord,self.reader,verify)
         self.assertEqual(len(checked),4);self.assertEqual(self.sent,[])
+
+    def test_embed_only_receipt_and_reconcile_without_second_post(self):
+        self.gate.issue()
+        original=self.reader.asset
+        self.reader.asset=lambda url:b'wrong'
+        with self.assertRaises(ValueError):self.gate.run(self.discord,self.reader,lambda p:None)
+        self.assertEqual(len(self.sent),1)
+        message=self.messages['101'];message['attachments']=[];message['embeds']=[{'image':{'url':'https://cdn.discordapp.com/card.jpg'}}]
+        self.reader.asset=original
+        self.assertEqual(self.gate.reconcile(self.reader)['post_count'],0)
+        self.assertEqual(len(self.sent),1)
+        result=self.gate.run(self.discord,self.reader,lambda p:None)
+        self.assertEqual(result['discord_sent'],4);self.assertEqual(len(self.sent),4)
+        with self.assertRaises(ValueError):self.gate.reconcile(self.reader)
+    def test_embed_receipt_wrong_hash_or_host_is_rejected(self):
+        from src.mina.discord_delivery_recovery import verify_receipt
+        message={'id':'101','channel_id':'456','author':{'id':'123'},'content':'fixed','attachments':[],'embeds':[{'image':{'url':'https://bad.example/card.jpg'}}]}
+        self.messages['101']=message
+        inputs={'content':'fixed','channel':'456','author':'123','nonce':'123','assets':[{'path':str(self.path),'sha256':hashlib.sha256(b'jpeg').hexdigest()}]}
+        with self.assertRaises(ValueError):verify_receipt(message,inputs,self.reader)
+        message['embeds'][0]['image']['url']='https://cdn.discordapp.com/card.jpg'
+        self.reader.asset=lambda url:b'wrong'
+        with self.assertRaises(ValueError):verify_receipt(message,inputs,self.reader)
