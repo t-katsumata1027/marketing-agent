@@ -147,6 +147,10 @@ def require_m1(db,request):
 
 def require_stage(store,target,db=None):
     """別承認日の工程は通常CLIから再生成しない。読取検査とは分ける。"""
+    from .next_saved import guard_stage
+    if db is None:
+        with store.transaction() as connection:guard_stage(store,target,connection)
+    else:guard_stage(store,target,db)
     if target!=TARGET:return
     if db is None:
         gate=CURRENT.get()

@@ -48,6 +48,9 @@ def prepare(store,notice,platform):
     payload=json.loads(notice['payload']);target=notice['target_date']
     with store.transaction() as db:
         policy=admitted(db,target)
+        if not policy:
+            from .next_saved import handoff_policy
+            policy=handoff_policy(db,target)
         if not policy:return None
         if notice['kind']!='approval':return None
         current_notice(db,notice,platform)

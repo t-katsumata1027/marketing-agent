@@ -31,6 +31,9 @@ def maybe_refresh(api,store,token):
     if run:run.check()
     with store.transaction() as db:
         policy=admitted(db,target)
+        if not policy:
+            from .next_saved import handoff_policy
+            policy=handoff_policy(db,target)
         if not policy:return
         if run is None:
             claim=getattr(api,'routine_publication_claim',None)

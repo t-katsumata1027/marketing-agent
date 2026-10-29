@@ -61,6 +61,8 @@ class RequestLedger:
         return result
 
     def record(self, key, phase, observation):
+        from .next_saved import preserve_request
+        if preserve_request(self.store,key,phase):return
         with self.store.transaction() as db:
             db.execute('UPDATE mina_requests SET phase=?,observation=?,updated=? WHERE request_key=?',
                        (phase, json.dumps(observation), datetime.now(UTC).timestamp(), key))
@@ -111,7 +113,10 @@ class RequestLedger:
             from .rescue_collection import require_claim as require_collection_claim
             from .replacement_collection import require_claim as require_future_claim
             from .current_day_gate import require_m1 as require_current_day
-            if not require_current_day(db,request) and not require_collection_claim(db,request) and not require_future_claim(db,request):
+            from .next_saved import CURRENT as NEXT
+            next_gate=NEXT.get()
+            permitted_next=next_gate.require_daily(db,request) if next_gate is not None else False
+            if not permitted_next and not require_current_day(db,request) and not require_collection_claim(db,request) and not require_future_claim(db,request):
                 require_m1_write(db,request['target_date'],request['operation'])
             claimed = db.execute("UPDATE mina_requests SET phase='dispatching' WHERE request_key=? AND phase='prepared'", (key,)).rowcount
             if claimed==1:
