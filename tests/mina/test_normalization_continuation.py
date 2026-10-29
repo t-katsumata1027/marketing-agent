@@ -130,8 +130,9 @@ class NormalizationTests(unittest.TestCase):
         with patch('sys.argv',args),contextlib.redirect_stdout(output):main()
         self.assertEqual(json.loads(output.getvalue()),{'state':'not_activated'})
     def test_live_issue_requires_reserved_buffer_budget_before_authority(self):
-        with patch.dict(os.environ,{'MINA_LIVE_WRITES':'true','BUFFER_API_KEY':'isolated'}):
-            with self.assertRaisesRegex(Exception,'buffer_reservation_required'):self.issue()
+        for flag in ('true','TRUE'):
+            with patch.dict(os.environ,{'MINA_LIVE_WRITES':flag,'BUFFER_API_KEY':'isolated'}):
+                with self.assertRaisesRegex(Exception,'buffer_reservation_required'):self.issue()
         with self.f.store.transaction() as db:self.assertFalse(db.execute("SELECT 1 FROM sqlite_master WHERE name='current_day_normalization_continuations'").fetchone())
 
 if __name__=='__main__':unittest.main()

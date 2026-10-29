@@ -13,7 +13,7 @@ class NormalizationGate(ToleranceGate):
     def parent(self,db):
         super().parent(db)
         import os,time
-        if os.getenv('MINA_LIVE_WRITES','false')=='true':
+        if os.getenv('MINA_LIVE_WRITES','false').lower()=='true':
             from .buffer_budget import RESERVATION,subject
             from .buffer_trial import ProbeError
             from .replacement_client import timestamp
