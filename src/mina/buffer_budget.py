@@ -164,10 +164,10 @@ def continuation_refresh_check(db,key,now):
         if used+outstanding(db,now)+1+8>maximum:raise ProbeError('buffer_local_quota_stop')
 
 def continuation_reserve(store,budget_id,key,units,deadline):
-    """旧予約を変更せず、新承認の15:30までの予約だけを追記する。"""
+    """旧予約を変更せず、新承認の16:00までの予約だけを追記する。"""
     from .clients import MealClient
     MealClient.request_key(budget_id)
-    if type(units) is not int or not 1<=units<=78 or not time.time()<deadline<=__import__('datetime').datetime.fromisoformat('2026-10-29T06:30:00+00:00').timestamp():raise ProbeError('buffer_budget_invalid')
+    if type(units) is not int or not 1<=units<=78 or not time.time()<deadline<=__import__('datetime').datetime.fromisoformat('2026-10-29T07:00:00+00:00').timestamp():raise ProbeError('buffer_budget_invalid')
     with store.transaction() as db:
         setup(db);check(db,key,time.time(),units,8)
         if db.execute('SELECT 1 FROM buffer_continuation_reservations').fetchone():raise ProbeError('buffer_continuation_reissue_forbidden')
@@ -176,7 +176,7 @@ def continuation_reserve(store,budget_id,key,units,deadline):
 def grant_continuation_refresh(store,grant_id,key,deadline):
     from .clients import MealClient
     MealClient.request_key(grant_id)
-    if os.name!='posix' or os.geteuid()!=0 or not time.time()<deadline<=__import__('datetime').datetime.fromisoformat('2026-10-29T06:30:00+00:00').timestamp():raise ProbeError('buffer_refresh_authorization_invalid')
+    if os.name!='posix' or os.geteuid()!=0 or not time.time()<deadline<=__import__('datetime').datetime.fromisoformat('2026-10-29T07:00:00+00:00').timestamp():raise ProbeError('buffer_refresh_authorization_invalid')
     with store.transaction() as db:
         setup(db)
         if db.execute('SELECT 1 FROM buffer_continuation_refresh').fetchone():raise ProbeError('buffer_refresh_reissue_forbidden')
