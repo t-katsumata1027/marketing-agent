@@ -1,5 +1,6 @@
 """29限定の明示operator。通常daemonから起動せず、既定OFFを維持する。"""
 import argparse,hashlib,json,os,re,sqlite3,stat
+from contextlib import closing
 from datetime import UTC,datetime
 from pathlib import Path
 from .current_day_origin import TARGET,VERSION,capture,policy_proof
@@ -63,7 +64,7 @@ def main():
     parser.add_argument('--config');args=parser.parse_args()
     root=Path(__file__).resolve().parents[2]
     if args.command in ('origin','status','lookups'):
-        with sqlite3.connect(Path(args.database).resolve().as_uri()+'?mode=ro',uri=True) as db:
+        with closing(sqlite3.connect(Path(args.database).resolve().as_uri()+'?mode=ro',uri=True)) as db:
             db.row_factory=sqlite3.Row;db.execute('PRAGMA query_only=ON');db.execute('BEGIN')
             if args.command=='origin':
                 draft=json.loads(Path(args.directory,'draft.json').read_bytes())
