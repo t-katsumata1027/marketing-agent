@@ -8,6 +8,14 @@ from src.mina.preparation import fingerprint
 from src.mina.current_day_cards import initialize,marker,deliver,VERSION,TARGET,KEY,SLOTS
 
 class LunchTests(unittest.TestCase):
+    def test_expanded_checkpoint_limit_is_explicit_and_default_unchanged(self):
+        from src.mina.current_day_cli import protected_json
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'proof.json';path.write_text(json.dumps({'evidence':'x'*174888}),encoding='utf-8')
+            with self.assertRaises(ValueError):protected_json(path)
+            self.assertEqual(len(protected_json(path,max_bytes=262144)[0]['evidence']),174888)
+            for value in (True,1048576):
+                with self.assertRaises(ValueError):protected_json(path,max_bytes=value)
     def setUp(self):
         self.meal={'foods':[{'name':n,'amount':a} for n,a in zip(NAMES,AMOUNTS)]}
         self.response={'result':{'analysis':{'foods':[{'name':n} for n in ['そぼろ丼（鶏そぼろと炒り卵）','ほうれん草の胡麻和え','味噌汁（わかめと人参）']]}}}

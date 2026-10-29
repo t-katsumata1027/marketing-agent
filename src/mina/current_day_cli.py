@@ -7,20 +7,21 @@ from .current_day_origin import TARGET,VERSION,capture,policy_proof
 from .preparation import fingerprint
 
 
-def protected_json(path,root_owned=False):
+def protected_json(path,root_owned=False,*,max_bytes=131072):
     """資格原文を読まない承認ファイル。リンク・第三者書込・過大資料を拒否する。"""
+    if type(max_bytes) is not int or max_bytes not in (131072,262144):raise ValueError('原本読取上限が不正です')
     path=Path(path)
-    if path.is_symlink() or not path.is_file() or path.stat().st_size>131072:raise ValueError('承認原本の実体がありません')
+    if path.is_symlink() or not path.is_file() or path.stat().st_size>max_bytes:raise ValueError('承認原本の実体がありません')
     if any(p.is_symlink() for p in path.parents):raise ValueError('承認原本の親リンクを拒否します')
     if root_owned and os.name!='posix':raise ValueError('実行/配置承認はroot所有の管理原本が必要です')
     fd=os.open(path,os.O_RDONLY|getattr(os,'O_NOFOLLOW',0))
     with os.fdopen(fd,'rb') as stream:
         info=os.fstat(stream.fileno())
-        if not stat.S_ISREG(info.st_mode) or info.st_size>131072:raise ValueError('承認原本の実体が不正です')
+        if not stat.S_ISREG(info.st_mode) or info.st_size>max_bytes:raise ValueError('承認原本の実体が不正です')
         if root_owned and info.st_uid!=0:raise ValueError('実行/配置承認はroot所有の管理原本が必要です')
         if os.name=='posix' and (info.st_uid not in (0,os.getuid()) or info.st_mode&0o022):raise ValueError('承認原本の所有・書込権限が不正です')
-        raw=stream.read(131073)
-    if len(raw)>131072:raise ValueError('承認原本が大きすぎます')
+        raw=stream.read(max_bytes+1)
+    if len(raw)>max_bytes:raise ValueError('承認原本が大きすぎます')
     from .replacement_client import json_object
     return json.loads(raw,object_pairs_hook=json_object),hashlib.sha256(raw).hexdigest()
 

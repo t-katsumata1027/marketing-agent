@@ -36,11 +36,11 @@ def main():
     if not a.config:raise ValueError('継続専用の別承認構成が必要です')
     settings,code=config(a.config,root,version=VERSION,extras=('checkpoint','receipts'))
     if Path(a.database).resolve()!=Path(settings['database']).resolve() or Path(a.directory).resolve()!=Path(settings['directory']).resolve():raise ValueError('継続の対象領域が不一致です')
-    reference=settings['checkpoint'];snapshot,sha=protected_json(reference['path'],root_owned=True)
+    reference=settings['checkpoint'];snapshot,sha=protected_json(reference['path'],root_owned=True,max_bytes=262144)
     if set(reference)!={'path','sha256'} or sha!=reference['sha256'] or fingerprint(snapshot)!=settings['approval']['checkpoint_digest']:raise ValueError('停止原本の版が不一致です')
     if Path(snapshot['base']).resolve()!=Path(a.directory).resolve() or Path(snapshot['receipts']).resolve()!=Path(settings['receipts']).resolve():raise ValueError('停止原本の保存先を変更しません')
     def check():
-        code();_,current=protected_json(reference['path'],root_owned=True)
+        code();_,current=protected_json(reference['path'],root_owned=True,max_bytes=262144)
         if current!=sha:raise ValueError('root停止原本が変更されています')
     from .store import Store
     from .buffer_publisher import production_client
