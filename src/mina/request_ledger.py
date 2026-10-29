@@ -61,6 +61,8 @@ class RequestLedger:
         return result
 
     def record(self, key, phase, observation):
+        from .next_saved import preserve_request
+        if preserve_request(self.store,key,phase):return
         with self.store.transaction() as db:
             db.execute('UPDATE mina_requests SET phase=?,observation=?,updated=? WHERE request_key=?',
                        (phase, json.dumps(observation), datetime.now(UTC).timestamp(), key))
@@ -68,8 +70,11 @@ class RequestLedger:
     def reconcile(self, key, client):
         """同UUIDのGETのみ。404・不正応答・読取失敗をunknownへ保留する。"""
         request = self.restore(key)
+        self.last_lookup=None
         try:
-            observation = request_report(client.request_state(key, request['operation']), key, request['operation'])
+            from .routine_request_recovery import lookup
+            raw=lookup(self,key,client);self.last_lookup=(key,raw)
+            observation=request_report(raw,key,request['operation'])
         except Exception:
             observation = {'persistence': 'unknown', 'stage': 'unrecognized', 'reason': 'lookup_unavailable',
                            'automatic_retry_allowed': False, 'ledger_updated': False}
@@ -88,7 +93,9 @@ class RequestLedger:
         if (request['operation'] != 'meal_register' or request['phase'] != 'held' or
                 previous.get('persistence') != 'not_saved'):
             return None
-        lookup = client.request_state(key, 'meal_register')
+        from .routine_request_recovery import lookup as read_lookup
+        lookup = read_lookup(self,key,client)
+        self.last_lookup=(key,lookup)
         report = request_report(lookup, key, 'meal_register')
         if (report['status'] != 'failed' or report['persistence'] != 'not_saved' or
                 report['stage'] != 'quality' or report['reason'] != 'quality_review_required' or
@@ -106,7 +113,10 @@ class RequestLedger:
             from .rescue_collection import require_claim as require_collection_claim
             from .replacement_collection import require_claim as require_future_claim
             from .current_day_gate import require_m1 as require_current_day
-            if not require_current_day(db,request) and not require_collection_claim(db,request) and not require_future_claim(db,request):
+            from .next_saved import CURRENT as NEXT
+            next_gate=NEXT.get()
+            permitted_next=next_gate.require_daily(db,request) if next_gate is not None else False
+            if not permitted_next and not require_current_day(db,request) and not require_collection_claim(db,request) and not require_future_claim(db,request):
                 require_m1_write(db,request['target_date'],request['operation'])
             claimed = db.execute("UPDATE mina_requests SET phase='dispatching' WHERE request_key=? AND phase='prepared'", (key,)).rowcount
             if claimed==1:
@@ -122,6 +132,8 @@ class RequestLedger:
             if isinstance(error,MealWriteFailure):details.update(error.quality_metrics)
             observation = error.write_state if isinstance(error, MealWriteFailure) else {'persistence': 'unknown'}
             self.record(key, 'held', observation)
+            from .routine_request_recovery import archive_failure
+            archive_failure(self,key)
             observation=self.reconcile(key, client)
             self.store.audit.emit('creation',request['target_date'],request['slot'],None,'request','failed',reason,
                 {**details,'input_sha256':request['input_digest'],'persistence':observation['persistence']})
@@ -135,6 +147,10 @@ class RequestLedger:
                 if terminal is not None:
                     from .preparation_status import KnownQualityRejected
                     raise KnownQualityRejected(request['slot']) from None
+            from .routine_request_recovery import recover
+            seed=getattr(self,'last_lookup',None)
+            recovered=recover(self,key,client,seed[1] if seed and seed[0]==key else None,seed_attempted=True)
+            if recovered is not None:return recovered
             raise OutcomeUnknown('request_reconciliation_required') from None
         # HTTP成功だけで完了・保存を推測しない。後続のUUID照合で確定する。
         self.record(key, 'response_received', safe_write_state(response.get('request', {})))

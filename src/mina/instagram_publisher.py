@@ -120,6 +120,7 @@ def publish_once(store, row, verify_source, hosts, client=None, clock=lambda: da
     c = InstagramCandidate(**json.loads(row['payload']))
     client = client or InstagramBufferClient(store)
     client.publication_target = c.target_date
+    client.routine_publication_claim=('instagram',dict(row))
     started = time.monotonic()
     attempted = False
     stage = 'authorization'

@@ -57,12 +57,14 @@ def notify_day(store: Store, target: str, now: datetime):
 
 def send_notifications(store: Store, client):
     """通知成否不明を保留し、同じカードを自動重複送信しない。"""
+    from .routine_handoff import maintain_notices,transmit
+    maintain_notices(store,'x',client)
     count = 0
     while (notice := store.claim_notice()) is not None:
         try:
             slot=notice['slot'] if notice['slot'] in SLOTS else None
             with store.audit.operation('system',notice['target_date'],slot,notice['revision'],'notification'):
-                client.send(json.loads(notice["payload"]))
+                transmit(store,notice,'x',client)
         except Exception:
             store.finish_notice(notice["id"], "outcome_unknown")
             break
@@ -113,7 +115,10 @@ def publish_due(store: Store, client, now: datetime, host: str, preflight, clock
             # この検査でも実際の失敗位置と時刻を保存する。
             store.audit.emit('publication',row['target_date'],row['slot'],row['revision'],stage,'started')
             sending_at = instant(clock())
-            due_at = datetime.fromtimestamp(row['scheduled'], UTC) if immediate else c.scheduled_at
+            from .post_late import window
+            late=window(store,c)
+            due_at = late[0] if late else datetime.fromtimestamp(row['scheduled'], UTC) if immediate else c.scheduled_at
+            if late and sending_at>=late[1]:raise ValueError('限定日次の期限を超過しました')
             if not 0 <= (sending_at - due_at).total_seconds() <= 120 or (immediate and sending_at >= c.scheduled_at):
                 raise ValueError('送信直前に公開猶予を超えています')
             if c.approval_source is not None:

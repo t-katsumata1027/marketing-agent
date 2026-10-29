@@ -210,14 +210,22 @@ def verify_source(candidate, client, host, capture, now=None, clock=None, timer=
     if 'result_version' in binding and (binding.get('ogp_revision') != ogp['revision'] or
             binding.get('ogp_source_version') != ogp['source_state_version' if candidate.slot == 'daily' else 'source_result_version']):
         raise ValueError('承認したOGPの版・生成元版が不一致です')
-    snapshot = capture(candidate.share_url, host)
-    if (snapshot['digest'] != candidate.ogp_sha256 or
-            snapshot['meta']['image_sha256'] != ogp['image_sha256']):
-        raise ValueError('承認したOGPと現在の実画像が一致しません')
-    from .ogp import verify_image_reference
-    verify_image_reference(snapshot, ogp, candidate.share_url, host)
-    from .tracking import verify_tracked_ogp
-    verify_tracked_ogp(candidate, host, capture, snapshot)
+    from .native_media import selected as native_selected
+    native_proof={}
+    if native_selected(candidate):
+        from .native_media import validate as validate_native,verify_bytes,verify_link
+        validate_native(candidate);asset=verify_bytes(candidate)
+        native_proof=verify_link(candidate,host,result)
+        native_proof['native_image_sha256']=asset['sha256']
+    else:
+        snapshot = capture(candidate.share_url, host)
+        if (snapshot['digest'] != candidate.ogp_sha256 or
+                snapshot['meta']['image_sha256'] != ogp['image_sha256']):
+            raise ValueError('承認したOGPと現在の実画像が一致しません')
+        from .ogp import verify_image_reference
+        verify_image_reference(snapshot, ogp, candidate.share_url, host)
+        from .tracking import verify_tracked_ogp
+        verify_tracked_ogp(candidate, host, capture, snapshot)
     # 実画像取得中の正本変更を、最後の対象日照会で検出する。
     final_state = client.day_state(candidate.target_date)
     if (validate_state(final_state, candidate.target_date, clock()) != current or
@@ -234,4 +242,4 @@ def verify_source(candidate, client, host, capture, now=None, clock=None, timer=
     validate_ogp(result, host, candidate.slot == 'daily', finished)
     return {'started_at': started.isoformat(), 'checked_at': final_state['checked_at'],
             'observed_at': finished.isoformat(), 'expires_at': ogp['expires_at'],
-            'started_monotonic': started_monotonic, 'observed_monotonic': finished_monotonic}
+            'started_monotonic': started_monotonic, 'observed_monotonic': finished_monotonic,**native_proof}

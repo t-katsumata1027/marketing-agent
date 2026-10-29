@@ -111,13 +111,15 @@ class InstagramStore:
                 (target_date,slot,revision,kind,payload) VALUES(?,'prepare',1,'preparation_held',?)''',
                        (target, json.dumps(payload, ensure_ascii=False)))
 
-    def queue_approval(self, row):
+    def queue_approval(self, row, connection=None):
         """承認ボタンはInstagram専用の一度だけ使える乱数に結び付ける。"""
         token = secrets.token_urlsafe(24)
         hashed = hashlib.sha256(token.encode()).hexdigest()
         c = InstagramCandidate(**json.loads(row['payload']))
         types = 'ストーリーズ' if c.format == 'story' else 'カルーセル'
         timing = f'予定 {c.scheduled_at.astimezone(JST).isoformat()}'
+        from .post_late import KEY as LATE
+        if LATE in c.source:timing='X・Instagram両方の承認後120秒以内／受付期限 JST '+c.scheduled_at.astimezone(JST).isoformat()
         if 'recovery' in c.source:
             from .instagram_recovery import publication_window
             _, until = publication_window(self, row, c)
@@ -132,7 +134,7 @@ class InstagramStore:
                        {'type': 2, 'style': style, 'label': label, 'custom_id': 'minaig:' + action + ':' + token}
                        for action, label, style in (('approve', 'Instagramを承認', 3), ('reject', '差戻し', 2), ('skip', '見送り', 4))]}]}
         approval_notice(payload,c.source)
-        with self.transaction() as db:
+        with (self.transaction() if connection is None else nullcontext(connection)) as db:
             actual = db.execute('SELECT * FROM instagram_candidates WHERE target_date=? AND slot=?',
                                 (c.target_date, c.slot)).fetchone()
             from .replacement_bundle import approval_allowed
@@ -187,7 +189,7 @@ class InstagramStore:
             db.execute("UPDATE instagram_candidates SET state='expired',nonce_hash=NULL WHERE state IN ('approved','approval_pending') AND scheduled<?", (ts - 120,))
             rows = db.execute("SELECT * FROM instagram_candidates WHERE state='approved' AND scheduled<=? AND scheduled>=? ORDER BY scheduled", (ts, ts - 120)).fetchall()
             from .scoped_preparation import blocked
-            row = next((r for r in rows if not held(db, r['target_date']) and not blocked(json.loads(r['payload']))), None)
+            row = next((r for r in rows if not held(db, r['target_date'],('instagram',dict(r))) and not blocked(json.loads(r['payload']))), None)
             if not row:
                 return None
             c = InstagramCandidate(**json.loads(row['payload']))
@@ -198,7 +200,7 @@ class InstagramStore:
 
     def begin(self, row, request, now):
         with self.transaction() as db:
-            require_clear(db, row['target_date'])
+            require_clear(db, row['target_date'],('instagram',dict(row)))
             current = db.execute('SELECT * FROM instagram_candidates WHERE target_date=? AND slot=?',
                                  (row['target_date'], row['slot'])).fetchone()
             if (not current or current['state'] != 'dispatching' or current['digest'] != row['digest'] or
@@ -250,6 +252,8 @@ class InstagramStore:
                            (row['target_date'], row['slot'], row['revision'], state, json.dumps(payload, ensure_ascii=False)))
 
     def send_notices(self, client):
+        from .routine_handoff import maintain_notices,transmit
+        maintain_notices(self,'instagram',client)
         from .replacement_bundle import notice_allowed
         sent = 0
         while True:
@@ -260,7 +264,7 @@ class InstagramStore:
                     break
                 db.execute("UPDATE instagram_notices SET state='sending' WHERE id=?", (row['id'],))
             try:
-                client.send(json.loads(row['payload']))
+                transmit(self,row,'instagram',client)
             except Exception:
                 with self.transaction() as db:
                     db.execute("UPDATE instagram_notices SET state='outcome_unknown' WHERE id=?", (row['id'],))

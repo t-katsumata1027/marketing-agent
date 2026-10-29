@@ -24,6 +24,11 @@ _scope=ContextVar('one_lunch_corrected_review',default=None)
 
 def review_once(journal,target,step,inputs,operation):
     """通常点検は無変更。許可された昼訂正後だけ元unknownを残し別採用する。"""
+    from .next_saved import CURRENT
+    gate=CURRENT.get()
+    if gate is not None:
+        result=gate.review(journal,target,step,inputs,operation)
+        if result is not None:return result
     scope=_scope.get()
     if scope is None:
         from .ogp_finish_recovery import cached_lunch_review

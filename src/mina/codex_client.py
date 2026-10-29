@@ -127,6 +127,10 @@ class CodexClient(OpenAIClient):
             transmitted = guard + "\n" + prompt
             invocation_receipt = invocation(root.name, schema, transmitted)
             (root / 'invocation.json').write_text(json.dumps(invocation_receipt), encoding='utf-8')
+            from .routine_recovery import provider_started
+            provider_started(root.name,invocation_receipt)
+            from .next_saved import provider_started as next_started
+            next_started(root.name,invocation_receipt)
             try:
                 process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                            text=True, encoding="utf-8", errors="replace", env=self.environment(),
@@ -165,8 +169,16 @@ class CodexClient(OpenAIClient):
                 result["image_bytes"] = image_path.read_bytes()
             state("complete")
             completed(root, schema, result, invocation_receipt, process.returncode, writable)
+            from .routine_recovery import provider_finished
+            provider_finished(root.name,'complete')
+            from .next_saved import provider_finished as next_finished
+            next_finished(root.name,'complete')
             return result
         except Exception as error:
+            from .routine_recovery import provider_finished
+            provider_finished(root.name,'unknown')
+            from .next_saved import provider_finished as next_finished
+            next_finished(root.name,'unknown')
             exit_code=getattr(locals().get('process'),'returncode',None)
             error.cli_job_id=root.name
             error.cli_exit_code=exit_code if type(exit_code) is int else None

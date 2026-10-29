@@ -16,7 +16,7 @@ from .audit import OperationalFailure
 
 EXPECTED_ACCOUNT = 'EatsLog88161'
 TEST_TEXT = '【非公開の接続テスト】本文・URLの保持を確認する下書きです。公開しません。\nhttps://www.log-eats.com/'
-FIELDS = 'id text status dueAt sentAt externalLink channel { id service }'
+FIELDS = 'id text status dueAt sentAt externalLink schedulingType channel { id service } assets { source mimeType }'
 ORGANIZATIONS = 'query { account { organizations { id } } }'
 CHANNELS = '''query($input: ChannelsInput!) {
  channels(input: $input) { id name service serviceId externalLink timezone isDisconnected isLocked isQueuePaused }
@@ -62,9 +62,11 @@ class BufferTrialClient:
         self.audit_context=None
 
     def _request(self, query, variables=None):
+        from .routine_buffer import maybe_refresh
+        maybe_refresh(self,getattr(self,'publication_store',None),self._token)
         if query.lstrip().startswith('mutation'):
             from .publication_hold import require_buffer_mutation
-            require_buffer_mutation(getattr(self, 'publication_store', None), getattr(self, 'publication_target', None))
+            require_buffer_mutation(getattr(self, 'publication_store', None), getattr(self, 'publication_target', None),getattr(self,'routine_publication_claim',None))
         connection=query in (ORGANIZATIONS,CHANNELS)
         stage='connection' if connection else 'submission' if query==CREATE else 'delivery'
         operation='channel_organizations' if query==ORGANIZATIONS else 'channel_list' if query==CHANNELS else 'post_create' if query==CREATE else 'post_lookup'

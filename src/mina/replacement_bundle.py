@@ -38,6 +38,16 @@ def invalidate_saved(db,target):
 
 def approval_allowed(db,target,channel,slot=None,revision=None,candidate_digest=None):
     """通常入口は停止を守り、新版の指定メンバーだけに限定許可する。"""
+    from .morning_registry import approval as morning_approval
+    if morning_approval(db,target,channel,slot,revision,candidate_digest):return
+    from .next_meals import approval
+    if approval(db,target,channel,slot,revision,candidate_digest):return
+    from .next_saved import blocked_handoff
+    if blocked_handoff(db,target):
+        from .publication_hold import PublicationHeld
+        raise PublicationHeld()
+    from .post_late import approval_allowed as late
+    if late(db,target,channel,slot,revision,candidate_digest):return
     from .publication_hold import held,PublicationHeld
     if not held(db,target):return
     if not exists(db,'replacement_bundles'):raise PublicationHeld()
@@ -49,6 +59,15 @@ def approval_allowed(db,target,channel,slot=None,revision=None,candidate_digest=
     if slot is not None and not any(r['slot']==slot and (revision is None or r['revision']==revision) and (candidate_digest is None or r['digest']==candidate_digest) for r in rows):raise PublicationHeld()
 
 def notice_allowed(db,row,channel,*,scoped_operator=False):
+    from .morning_registry import job as morning_job,notice as morning_notice
+    if morning_job(db,row['target_date']):return morning_notice(db,row,channel)
+    from .next_meals import job,notice
+    if job(db,row['target_date']):return notice(db,row,channel)
+    from .next_saved import blocked_handoff
+    if blocked_handoff(db,row['target_date'],notice=True):return False
+    from .post_late import notice_ready
+    late=notice_ready(db,row,channel)
+    if late is not None:return late
     try:
         from .scoped_preparation import locked
         # 準備専用日は、期限を検査する限定operatorだけが承認カードを送る。
@@ -64,6 +83,14 @@ def notice_allowed(db,row,channel,*,scoped_operator=False):
         return False
 
 def maybe_release(db,target,now):
+    from .morning_registry import maybe_ready as morning_ready
+    if morning_ready(db,target):return
+    from .next_meals import maybe_ready
+    if maybe_ready(db,target):return
+    from .next_saved import blocked_handoff
+    if blocked_handoff(db,target,release=True):return
+    from .post_late import maybe_release as late
+    if late(db,target,now):return
     from .post_promotion import maybe_release as promoted_release
     if promoted_release(db,target,now):return
     from .scoped_preparation import locked

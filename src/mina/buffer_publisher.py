@@ -46,7 +46,7 @@ def configure_policy(store, channel, now, review_until):
 def bind_route(db, row, channel):
     """外部送信前に日時枠と承認版を一意に保存する。"""
     from .publication_hold import require_clear
-    require_clear(db, row['target_date'])
+    require_clear(db, row['target_date'],('x',dict(row)))
     if row['slot'] not in SLOTS or row['approved'] is None or not row['actor']:
         raise ProbeError('buffer_approved_slot_required')
     c = Candidate(**json.loads(row['payload']))
@@ -131,6 +131,7 @@ class BufferPublisher:
     def __init__(self, store, row, route, api, clock=None, timer=None, sleep=None):
         self.store, self.row, self.route, self.api = store, row, route, api
         self.api.publication_target = row['target_date']
+        self.api.routine_publication_claim=('x',dict(row))
         self.clock = clock or (lambda: datetime.now(UTC))
         self.timer, self.sleep = timer or time.monotonic, sleep or time.sleep
         self.proof = None
@@ -161,11 +162,21 @@ class BufferPublisher:
         if (not isinstance(post, dict) or not post.get('id') or post.get('text') != text
                 or post.get('channel') != {'id':self.route['channel_id'],'service':'twitter'}):
             raise ProbeError('buffer_post_binding_changed')
+        from .native_media import selected as native_selected,check_post
+        current=Candidate(**json.loads(self.row['payload']))
         if post.get('status') != 'sent':
             if post.get('status') not in ('scheduled','sending') or post.get('sentAt') or post.get('externalLink'):
                 raise ProbeError('buffer_delivery_unconfirmed')
             return None
-        match = re.fullmatch(r'https://(?:www\.)?(?:x\.com|twitter\.com)/' + ACCOUNT + r'/status/([0-9]+)', post.get('externalLink') or '', re.I)
+        if native_selected(current):
+            if post.get('schedulingType')!='automatic':raise ProbeError('buffer_native_scheduling_type_changed')
+            check_post(current,post)
+        # Bufferは公開後、同じURLのユーザー名を接続済みX数値IDへ正規化する。
+        # 任意IDは許可せず、事前照合・保存済みの同じ公開先だけを同値として扱う。
+        actors=re.escape(ACCOUNT)
+        native_account=self.route.get('service_id')
+        if isinstance(native_account,str) and re.fullmatch(r'[0-9]+',native_account):actors+='|'+re.escape(native_account)
+        match = re.fullmatch(r'https://(?:www\.)?(?:x\.com|twitter\.com)/(?:' + actors + r')/status/([0-9]+)', post.get('externalLink') or '', re.I)
         if not match or not post.get('sentAt'):
             raise ProbeError('buffer_native_x_result_missing')
         sent = instant(datetime.fromisoformat(post['sentAt'].replace('Z','+00:00')))
@@ -189,17 +200,25 @@ class BufferPublisher:
         now = instant(self.clock())
         immediate = bool((c.approval_source or {}).get('publish_after_approval_until'))
         due = datetime.fromtimestamp(self.row['scheduled'], UTC) if immediate else c.scheduled_at
+        from .post_late import window
+        late=window(self.store,c)
+        if late:
+            due=late[0]
+            if now>=late[1]:raise ProbeError('buffer_preflight_expired')
         if (immediate and (self.row['scheduled'] != self.row['approved'] or now >= c.scheduled_at)):
             raise ProbeError('buffer_approval_time_or_deadline_changed')
         if (not 0 <= (now-due).total_seconds() <= 120
                 or not 0 <= self.timer()-self.proof['started_monotonic'] <= 120
                 or now >= instant(datetime.fromisoformat(self.proof['expires_at']))):
             raise ProbeError('buffer_preflight_expired')
-        request = {'channelId':self.route['channel_id'],'text':text,'assets':[],
+        from .native_media import selected as native_selected,assets as native_assets,validate as validate_native
+        native=native_selected(c)
+        if native and self.proof.get('native_image_sha256')!=validate_native(c)['asset']['sha256']:raise ProbeError('buffer_native_media_proof_missing')
+        request = {'channelId':self.route['channel_id'],'text':text,'assets':native_assets(c),
                    'schedulingType':'automatic','mode':'shareNow','saveToDraft':False,'needsApproval':False}
         with self.store.transaction() as db:
             from .publication_hold import require_clear
-            require_clear(db, self.row['target_date'])
+            require_clear(db, self.row['target_date'],('x',dict(self.row)))
             row = db.execute('SELECT * FROM candidates WHERE target_date=? AND slot=?',
                              (self.row['target_date'],self.row['slot'])).fetchone()
             if (not row or row['state'] != 'dispatching' or row['revision'] != self.row['revision']
@@ -232,6 +251,11 @@ class BufferPublisher:
         for attempt in range(7):
             x_id = self.validate(post,text)
             if x_id:
+                if native:
+                    # POSTの受領だけでなく、同IDの実GETで本文・画像・native IDを照合する。
+                    actual=self.api.post(post['id'])
+                    if not isinstance(actual,dict) or actual.get('id')!=post['id'] or self.validate(actual,text)!=x_id:raise ProbeError('buffer_native_media_receipt_unconfirmed')
+                    post=actual
                 with self.store.transaction() as db:
                     db.execute("UPDATE buffer_publication SET state='sent',response_json=? WHERE singleton=?",(json.dumps(post,ensure_ascii=False),self.route['singleton']))
                 return x_id

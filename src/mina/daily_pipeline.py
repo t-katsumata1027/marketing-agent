@@ -45,6 +45,17 @@ def write_artifact(path, value):
 
 
 def prepare_day(store, directory, history, evidence_path, commit, root, host, ai, drive, meal,
+                clock=lambda:datetime.now(UTC),same_day=False,replacement_coordinator=None):
+    """新規の通常翌日だけ新方針へ束縛し、既存当日救済とは混ぜない。"""
+    from .routine_recovery import enabled,Routine,scope,ReviewedAI
+    args=(store,directory,history,evidence_path,commit,root,host)
+    if not enabled() or same_day:return _prepare_day(*args,ai,drive,meal,clock=clock,same_day=same_day,replacement_coordinator=replacement_coordinator)
+    target=(clock().astimezone(JST).date()+timedelta(days=1)).isoformat()
+    run=Routine(store,target,commit,host,clock)
+    with scope(run):return _prepare_day(*args,ReviewedAI(ai,run),drive,meal,clock=clock,same_day=False,replacement_coordinator=replacement_coordinator)
+
+
+def _prepare_day(store, directory, history, evidence_path, commit, root, host, ai, drive, meal,
                 clock=lambda: datetime.now(UTC), same_day=False, replacement_coordinator=None):
     """翌日だけを時間窓内で処理。再起動・競合実行では外部工程を重ねない。"""
     now = instant(clock())
@@ -70,6 +81,9 @@ def prepare_day(store, directory, history, evidence_path, commit, root, host, ai
         if state == 'complete':
             return {'target_date': target, 'state': 'already_complete'}
         raise ValueError('準備の成否照合が必要です。自動再実行しません')
+    from .routine_recovery import CURRENT as ROUTINE
+    routine=ROUTINE.get()
+    if routine is not None:routine.admit()
     if same_day:
         # 当日朝食は登録・日次集計だけに使い、後から候補として追加することも拒否する。
         with store.transaction() as db:
@@ -155,12 +169,17 @@ def prepare_day(store, directory, history, evidence_path, commit, root, host, ai
         write_artifact(manifest, candidates)
         within_deadline()
         import_manifest(store, manifest, host, clock(), excluded_slots=excluded_slots)
+        if routine is not None:
+            from .routine_handoff import assert_candidates
+            assert_candidates(store,target,candidates)
+            routine.event('candidates','x_candidates_ready',{'count':len(candidates),'instagram_state':'pending_separate_preparation'})
         store.preparation_done(target)
         return {'target_date': target, 'state': 'approval_ready', 'post_count': len(candidates)}
     except Exception as error:
         # 秘密値や外部応答を保存せず、停止した工程だけを残す。
         with store.transaction() as db:
             db.execute("UPDATE preparation SET state=? WHERE target_date=?", ('held:' + stage, target))
+        if routine is not None:routine.failure(error)
         store.record_preparation_failure(target,stage,error,clock())
         raise RuntimeError('daily_preparation_held:' + stage) from None
 

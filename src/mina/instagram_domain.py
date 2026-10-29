@@ -58,6 +58,12 @@ class InstagramCandidate:
 
     @property
     def scheduled_at(self):
+        from .morning_late import proposed as breakfast_late
+        value=breakfast_late(self.source,self.target_date,self.slot)
+        if value is not None:return value
+        from .post_late import proposed as late
+        value=late(self.source,self.target_date)
+        if value is not None:return value
         from .scoped_preparation import proposed
         preparation=proposed(self.source,self.target_date)
         if preparation is not None:return preparation
@@ -86,7 +92,11 @@ class InstagramCandidate:
                     asset.get('height') != (1350 if self.slot == 'daily' else 1920)):
                 raise ValueError('Instagram画像の規格が不正です')
         sha(self.source['bundle_sha256'])
-        if set(self.source.get('x_digests', {})) != set(SLOTS):
+        from .next_meals import KEY,valid_source
+        from .morning_registry import KEY as MORNING,valid_ig_source
+        if MORNING in self.source:valid_ig_source(self)
+        elif KEY in self.source:valid_source(self)
+        elif set(self.source.get('x_digests', {})) != set(SLOTS):
             raise ValueError('X用4枠と同じ正本の対応が必要です')
         for value in self.source['x_digests'].values():
             sha(value)
