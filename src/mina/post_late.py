@@ -154,7 +154,7 @@ def historical(store):
     from .readiness import release_commit
     release_commit(old_root,a['old_commit'])
     settings,check=config(a['config_path'],old_root,version=VERSION,extras=('checkpoint',))
-    if protected_json(a['config_path'],root_owned=True)[1]!=a['config_sha256']:raise ValueError('旧構成の原本が変わりました')
+    if protected_json(a['config_path'],root_owned=True)[1]!=a['config_sha256'] or settings['approval']['promotion_uuid']!=old['post_promotions'][0]['promotion_uuid']:raise ValueError('旧構成の原本が変わりました')
     checkpoint,sha=protected_json(settings['checkpoint']['path'],root_owned=True)
     if sha!=settings['checkpoint']['sha256'] or fingerprint(checkpoint)!=old['post_promotions'][0]['source_digest']:raise ValueError('旧検査原本が変わりました')
     check()
@@ -203,6 +203,7 @@ def send_cards(store,client):
             if actual.get('id')!=key or not matches(actual,wire,author,client.channel):raise ValueError('新カードの全操作/宛先/原本が不一致です')
             with store.transaction() as db:
                 db.execute("UPDATE daily_late_notices SET state='sent',receipt=? WHERE case_uuid=? AND platform=?",(json.dumps({'message_id':key,'visible_digest':fingerprint(visible(actual)),'nonce_echo_present':actual.get('nonce') is not None}),r['case_uuid'],p));db.execute("UPDATE "+table+" SET state='sent' WHERE id=?",(n['id'],))
+                maybe_release(db,TARGET,datetime.now(UTC))
         except BaseException:
             with store.transaction() as db:
                 db.execute("UPDATE daily_late_notices SET state='unknown' WHERE case_uuid=? AND platform=?",(r['case_uuid'],p));db.execute("UPDATE "+table+" SET state='outcome_unknown' WHERE id=?",(n['id'],));db.execute("UPDATE daily_late_jobs SET state='held' WHERE target_date=?",(TARGET,))

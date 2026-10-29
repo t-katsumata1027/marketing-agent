@@ -53,6 +53,7 @@ def run(path):
     with store.transaction() as db:
         if late.row(db):raise ValueError('限定日次operatorを再起動しません。原IDを照会してください')
         old=late.snapshot(db)
+    if protected_json(a['config_path'],root_owned=True)[1]!=a['config_sha256'] or settings['approval']['promotion_uuid']!=old['post_promotions'][0]['promotion_uuid'] or fingerprint(checkpoint)!=old['post_promotions'][0]['source_digest']:raise ValueError('旧構成/原本/権限の束縛が不一致です')
     def read(phase,inputs=None):
         check();oldcheck();deadline=min(late.END.timestamp(),datetime.now(UTC).timestamp()+120)
         with store.transaction() as db:

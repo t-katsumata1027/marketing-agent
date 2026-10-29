@@ -46,7 +46,17 @@ class LateTests(unittest.TestCase):
         with self.f.store.transaction() as db:
             notices=list(db.execute("SELECT payload FROM instagram_notices WHERE slot='daily' AND state='pending'"));self.assertEqual(len(notices),1);ig=json.loads(notices[0][0])
         from test_routine_pipeline import Discord
-        self.discord=Discord();late.send_cards(self.f.store,self.discord)
+        self.discord=Discord()
+        if getattr(self,'fast',False):
+            send=self.discord.send
+            def fast(wire):
+                result=send(wire)
+                if self.discord.posts==2:
+                    first=self.discord.messages['1']['components'][0]['components'][0]['custom_id'];second=wire['components'][0]['components'][0]['custom_id']
+                    self.f.store.decide(first,'fast-human',self.now);self.f.ig.decide(second,'fast-human',self.now)
+                return result
+            self.discord.send=fast
+        late.send_cards(self.f.store,self.discord)
         return xs[0]['components'][0]['components'][0]['custom_id'],ig['components'][0]['components'][0]['custom_id']
     def approve(self,tokens):
         self.f.store.decide(tokens[0],'human',self.now);self.f.ig.decide(tokens[1],'human',self.now)
@@ -117,3 +127,7 @@ class LateTests(unittest.TestCase):
         with self.f.store.transaction() as db:
             db.execute("UPDATE daily_late_jobs SET state='executing'");db.execute("UPDATE buffer_publication SET state='unknown' WHERE slot='daily'")
         with late.scope(self.a['case_uuid']),self.f.store.transaction() as db:self.assertFalse(late.clear(db,late.TARGET))
+    def test_both_votes_before_second_receipt_still_become_ready(self):
+        self.fast=True;self.stage()
+        with self.f.store.transaction() as db:
+            r=late.row(db);self.assertEqual(r['state'],'ready');self.assertEqual(r['activation_at'],self.now.timestamp())
