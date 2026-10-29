@@ -17,3 +17,11 @@
 5bd3c801は独立Go・CI40966192034成功後に配置し、切替時130台帳全行不変。専用実行は履歴と新版rev2/通知78を原子的に保存した後、-mの__main__と通常importでContextVarが二重になり送信前guardで停止した。新通知のroutine receipt行は0でtransmit未到達、Discord追加POST0。旧unit/停止原本は保持する。
 
 入口はcanonical imported runへ集約する。同じ登録済みUUID/通知78/版2/wire/nonceだけの送信前継続を追加し、receipt行0・registered・sending・同payload/digest/予定・原画像を要求する。旧configは変更せず、新root継続原本で新コードcommit・旧config SHA・同UUID・通知ID・新rev・18:30を束縛する。POST直前は二原本ともSHAを再検査。送信済み/不明を未送信へ戻す経路ではない。
+
+## 実送付と本人承認
+
+024ec5ceを独立Go・CI40967081924成功後に配置。再起動によりnotice78がローカルoutcome_unknownへ移ったため、元送信前停止のjournal・終端unit・並行送信者なし・同UUID/全列・receipt0を併せて確認し、旧unknown原本をroot保存した上でstateだけ同TX/CAS再claimした。receipt0単独を一般未送信証明にはしていない。
+
+実multipartは一回、既知ID `1565496682743992350` に成功。Discordはembedへ使ったuploadをattachments配列から省略し、image.urlにCDNの実ファイルを返した。生GETと旧unknownを保持し、同channel/数値ID/同filenameのCDN全文430577bytes・SHA `dae5578fc3da54280c619a8f6aa8f85152e098365f45bc88febd874bb8cf6b14`・JPEG1080×1920・全本文/三ボタンを検査してGET-onlyで採用。再POST0。本人が07:45台に新版2を承認済み。root証跡 `/var/lib/mina-agent/renotice-adoption-1565496682743992350`。
+
+このAPI表現を専用transportの明示canonical viewとして扱う補修を追加。生GET原本/そのSHA、API観測MIMEと実JPEG検証MIMEを別々にreceiptへ保持する。写像だけで合格にせず、実CDN全文・寸法検査は維持。nonce/enforce_nonceなしの送信は拒否する。

@@ -93,6 +93,7 @@ def transmit(store,notice,platform,client):
         actual=client.message(key)
         if actual.get('id')!=key or not matches(result,wire,author,channel) or not matches(actual,wire,author,channel):raise ValueError('通知の同ID/全内容/操作が不一致です')
         receipt={'message_id':key,'visible_digest':fingerprint(visible(actual)),'nonce_echo_present':actual.get('nonce') is not None,'token_binding':fingerprint(buttons(actual)),'verification':'same_id_get'}
+        if '_mina_attachment_proof' in actual:receipt['attachment_receipt']=actual['_mina_attachment_proof']
         with store.transaction() as db:db.execute("UPDATE routine_notice_receipts SET state='sent',receipt=? WHERE platform=? AND notice_id=?",(json.dumps(receipt),platform,notice['id']))
         return result
     except BaseException:

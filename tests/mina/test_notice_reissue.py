@@ -7,7 +7,7 @@ from unittest.mock import patch
 from PIL import Image
 import test_morning_preparation as fixture
 from src.mina import notice_reissue as r,morning_registry as m
-from src.mina.notice_attachment import validate_actual
+from src.mina.notice_attachment import validate_actual,canonical_upload,AttachedDiscord
 from src.mina.preparation import fingerprint
 from src.mina.domain import JST
 from src.mina.routine_handoff import matches
@@ -63,6 +63,25 @@ class ReissueTests(unittest.TestCase):
   a['embeds'][0]['image']['width']=0
   with self.assertRaises(ValueError):validate_actual(a,self.asset,Opener(self.raw))
   with self.assertRaises(ValueError):validate_actual(self.actual(),self.asset,Opener(b'wrong'))
+ def test_discord_embedded_upload_is_explicitly_normalized_then_byte_checked(self):
+  class Response(io.BytesIO):pass
+  class Opener:
+   def open(_, *a,**k):return Response(self.raw)
+  raw=self.actual();raw['channel_id']='1';raw['attachments']=[]
+  view=canonical_upload(raw,self.asset);self.assertEqual(view['_mina_attachment_representation'],'embedded_upload');self.assertEqual(raw['attachments'],[])
+  self.assertTrue(validate_actual(view,self.asset,Opener()))
+  raw['embeds'][0]['image']['url']='https://drive.google.com/uc?id=bad'
+  self.assertEqual(canonical_upload(raw,self.asset)['attachments'],[])
+ def test_raw_consumed_upload_is_preserved_and_sender_requires_persistent_nonce(self):
+  from unittest.mock import Mock
+  raw=self.actual();raw['channel_id']='1';raw['attachments']=[]
+  client=Mock(channel='1');client.message.return_value=raw;wrapped=AttachedDiscord(client,self.asset)
+  class Opener:
+   def open(_, *a,**k):return io.BytesIO(self.raw)
+  with patch('src.mina.notice_attachment.build_opener',return_value=Opener()):value=wrapped.message('123')
+  proof=value['_mina_attachment_proof'];self.assertEqual(proof['raw_message'],raw);self.assertEqual(proof['raw_attachments_count'],0);self.assertIsNone(proof['api_image_content_type']);self.assertEqual(proof['validated_mime_type'],'image/jpeg')
+  with self.assertRaises(ValueError):wrapped.send({'attachments':[{'id':0,'filename':self.path.name}],'embeds':[{'image':{'url':'attachment://'+self.path.name}}]})
+  client.send_files.assert_not_called()
  def test_module_entry_uses_canonical_scope_and_explicit_pre_send_finish(self):
   import runpy
   with patch('sys.argv',['notice_reissue','--config','sealed','--finish-registered']),patch('src.mina.notice_reissue.run') as main:

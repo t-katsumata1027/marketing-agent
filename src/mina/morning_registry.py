@@ -53,13 +53,20 @@ def members(db,r,cohort,decided=False):
         if candidate.digest!=c['digest'] or source.get(KEY)!=marker(r['case_uuid'],v['slot']):return None
         states=('approved','expired','dispatching','accepted','published') if decided else ('approval_pending','changes_requested','approved','expired','cancelled','dispatching','accepted','published')
         if c['state'] not in states or (decided and (not c['actor'] or c['approved'] is None)):return None
-        if c['state']=='expired' and (not c['actor'] or c['approved'] is None or c['approved']>=candidate.scheduled_at.timestamp() or c['scheduled']!=candidate.scheduled_at.timestamp() or c['nonce_hash'] is not None):return None
+        if c['state']=='expired':
+            if c['scheduled']!=candidate.scheduled_at.timestamp() or c['nonce_hash'] is not None:return None
+            if c['actor'] and c['approved'] is not None:
+                if c['approved']>=candidate.scheduled_at.timestamp():return None
+            elif c['actor'] is None and c['approved'] is None:
+                if decided:return None
+            else:return None
         attempts='buffer_publication' if v['platform']=='x' else 'instagram_attempts'
         if exists(db,attempts):
             a=db.execute('SELECT * FROM '+attempts+' WHERE target_date=? AND slot=?',(TARGET,v['slot'])).fetchone()
             allowed=('armed','attempting','accepted','sent') if v['platform']=='x' else ('attempting','accepted','published')
             if a and (a['state'] not in allowed or a['revision']!=c['revision'] or a['digest']!=c['digest']):return None
             if c['state']=='expired' and a and (v['platform']!='x' or a['state']!='armed'):return None
+            if c['state']=='expired' and a and c['actor'] is None:return None
         values.append((dict(v),dict(c)))
     return values
 

@@ -19,3 +19,9 @@ M1/実native画像/共有HTMLを読取照合し、Buffer全状態全ページを
 ## 検証
 
 個別判定morning13件、朝直接公開7件、再通知7件が隔離成功。別食事差戻し/他SNS未承認でも自分の承認済みだけclaim、当該受領欠落/unknown/改変/期限切れは停止、朝新X/IG同時刻・二重claim0・実X publisher Fake一回・IG unknown再送0を確認。最終固定版・実DBコピー通し・独立Go・CI・本番の実公開結果を別に追記する。
+
+## 朝食の実公開完了
+
+8cc5c5d3を独立Go・CI40969698646成功後に配置。切替132台帳全行不変・救済OFF・3サービスactive。実正本/native画像/共有HTML/Buffer全状態全ページを照合後、専用unit一回で最新指示を発行し、通常サービスが各一回公開した。新publish_atは08:03:09 JST、旧expired/07:30/旧承認は履歴に保持。X route `6ae3d0bb6385db216a1249ce` は画像付き1POSTと同ID GET照合後sent/published、IG `6ae3d0b9ba1ca51fd3e3178d` はaccepted後に同ID照会でpublished。IG公開URLは `https://www.instagram.com/stories/log_eats/4018940045843061994`。他六件の本人判断・時刻は不変。本体・食事・AI・追加画像生成0。
+
+さらに原本整合検査では、未承認のまま期限切れになった別投稿も非公開終端として扱い、他の承認済み投稿を止めない。全承認の完成観測では未承認のままであり、当該expiredは公開できない。片欠けのactor/approved・未知attempt・版/予定改変は拒否する。

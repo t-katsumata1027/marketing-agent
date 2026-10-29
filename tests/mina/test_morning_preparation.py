@@ -101,9 +101,20 @@ class CohortTests(unittest.TestCase):
    for table in ('candidates','instagram_candidates'):db.execute('UPDATE '+table+" SET state='expired',nonce_hash=NULL WHERE slot='breakfast'")
   self.assertEqual(self.store.claim_due(self.xs[0].scheduled_at),[])
   self.assertEqual([v['slot'] for v in self.store.claim_due(self.xs[1].scheduled_at)],['lunch'])
- def test_unapproved_expired_breakfast_never_enables_lunch(self):
+ def test_unapproved_expired_breakfast_does_not_block_approved_lunch(self):
   self.sent('meals');self.approve('meals')
   with self.store.transaction() as db:db.execute("UPDATE candidates SET state='expired',actor=NULL,approved=NULL,nonce_hash=NULL WHERE slot='breakfast'")
+  with self.store.transaction() as db:self.assertIsNone(m.members(db,m.job(db,m.TARGET),'meals',True))
+  self.assertEqual([v['slot'] for v in self.store.claim_due(self.xs[1].scheduled_at)],['lunch'])
+ def test_partially_approved_expired_or_unknown_attempt_still_blocks(self):
+  self.sent('meals');self.approve('meals')
+  with self.store.transaction() as db:db.execute("UPDATE candidates SET state='expired',actor=NULL,nonce_hash=NULL WHERE slot='breakfast'")
+  self.assertEqual(self.store.claim_due(self.xs[1].scheduled_at),[])
+ def test_unapproved_expired_with_unknown_attempt_still_blocks_other_meal(self):
+  self.sent('meals');self.approve('meals')
+  with self.store.transaction() as db:
+   db.execute("UPDATE candidates SET state='expired',actor=NULL,approved=NULL,nonce_hash=NULL WHERE slot='breakfast'")
+   db.execute("INSERT INTO buffer_publication(target_date,slot,revision,digest,channel_id,service_id,state) VALUES(?,?,1,?,'channel','123','outcome_unknown')",(m.TARGET,'breakfast',self.xs[0].digest))
   self.assertEqual(self.store.claim_due(self.xs[1].scheduled_at),[])
  def test_old_parent_or_receipt_binding_mutation_stops_claim(self):
   self.sent('meals');self.approve('meals')
