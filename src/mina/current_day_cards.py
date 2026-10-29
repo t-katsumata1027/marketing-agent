@@ -127,7 +127,12 @@ def deliver(gate,discord,base,verify):
             try:result=discord.send_files(message,files)
             finally:guard.reset(token)
             if not isinstance(result,dict) or not isinstance(result.get('id'),str) or not result['id'].isdigit():raise ValueError('Discord受付IDが不明です')
-        except BaseException:
-            with gate.store.transaction() as db:db.execute("UPDATE current_day_cards SET state='unknown' WHERE recovery_uuid=? AND platform=? AND slot=?",(gate.approval['recovery_uuid'],row['platform'],row['slot']))
+        except BaseException as error:
+            from .clients import DiscordAttachmentRejected
+            state='rejected' if isinstance(error,DiscordAttachmentRejected) else 'unknown'
+            with gate.store.transaction() as db:
+                db.execute('CREATE TABLE IF NOT EXISTS current_day_card_failures(id INTEGER PRIMARY KEY,recovery_uuid TEXT NOT NULL,platform TEXT NOT NULL,slot TEXT NOT NULL,digest TEXT NOT NULL,state TEXT NOT NULL,http_status INTEGER,discord_code INTEGER,response_sha256 TEXT)')
+                db.execute('INSERT INTO current_day_card_failures(recovery_uuid,platform,slot,digest,state,http_status,discord_code,response_sha256) VALUES(?,?,?,?,?,?,?,?)',(gate.approval['recovery_uuid'],row['platform'],row['slot'],row['digest'],state,getattr(error,'http_status',None),getattr(error,'discord_code',None),getattr(error,'response_sha256',None)))
+                db.execute('UPDATE current_day_cards SET state=? WHERE recovery_uuid=? AND platform=? AND slot=?',(state,gate.approval['recovery_uuid'],row['platform'],row['slot']))
             raise
         with gate.store.transaction() as db:db.execute("UPDATE current_day_cards SET state='sent',message_id=? WHERE recovery_uuid=? AND platform=? AND slot=?",(result['id'],gate.approval['recovery_uuid'],row['platform'],row['slot']))

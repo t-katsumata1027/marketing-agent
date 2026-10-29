@@ -120,6 +120,13 @@ def request_json(url: str, body: dict, headers: dict, method="POST", meal=False)
         raise OutcomeUnknown("external_write_unknown") from None
 
 
+class DiscordAttachmentRejected(RuntimeError):
+    """明示HTTP拒否。本文や認証を例外に含めず、自動再送も許可しない。"""
+    def __init__(self,status,code=None,response_sha256=None):
+        super().__init__('discord_attachment_rejected')
+        self.http_status=status;self.discord_code=code;self.response_sha256=response_sha256
+
+
 class DiscordClient:
     """Botメッセージで署名付きInteractionを起動するカードを送る。"""
 
@@ -140,6 +147,7 @@ class DiscordClient:
         import uuid
         require_live()
         if not 1<=len(files)<=5 or len(payload.get('content',''))>2000:raise ValueError('Discord準備カードの容量が不正です')
+        if payload.get('enforce_nonce') and (not isinstance(payload.get('nonce'),str) or not 1<=len(payload['nonce'])<=25):raise ValueError('Discord送付nonceが不正です')
         parts=[];attachments=[];boundary=uuid.uuid4().hex
         for index,item in enumerate(files):
             p=Path(item)
@@ -157,7 +165,8 @@ class DiscordClient:
         check=guard.get()
         if check:check()
         request=Request(f'https://discord.com/api/v10/channels/{self.channel}/messages',data=body,
-            headers={'Authorization':'Bot '+self.token,'Content-Type':'multipart/form-data; boundary='+boundary},method='POST')
+            headers={'Authorization':'Bot '+self.token,'Content-Type':'multipart/form-data; boundary='+boundary,
+                     'User-Agent':'DiscordBot (https://github.com/t-katsumata1027/marketing-agent, 1.0)'},method='POST')
         try:
             with build_opener(NoRedirect()).open(request,timeout=30) as response:
                 raw=response.read(131073)
@@ -165,7 +174,16 @@ class DiscordClient:
             result=json.loads(raw)
             if not isinstance(result,dict) or not isinstance(result.get('id'),str) or not result['id'].isdigit():raise ValueError()
             return result
-        except (HTTPError,URLError,OSError,ValueError):raise OutcomeUnknown('discord_attachment_outcome_unknown') from None
+        except HTTPError as error:
+            import hashlib
+            raw=error.read(16384);code=None
+            try:
+                value=json.loads(raw);code=value.get('code') if isinstance(value,dict) and type(value.get('code')) is int else None
+            except ValueError:pass
+            if 400<=error.code<500 and error.code!=429:raise DiscordAttachmentRejected(error.code,code,hashlib.sha256(raw).hexdigest()) from None
+            failure=OutcomeUnknown('discord_attachment_outcome_unknown');failure.http_status=error.code;failure.discord_code=code;failure.response_sha256=hashlib.sha256(raw).hexdigest()
+            raise failure from None
+        except (URLError,OSError,ValueError):raise OutcomeUnknown('discord_attachment_outcome_unknown') from None
 
 
 class XClient:

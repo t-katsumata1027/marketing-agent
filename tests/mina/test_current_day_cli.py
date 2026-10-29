@@ -24,6 +24,7 @@ class CurrentDayCliTests(unittest.TestCase):
         finally:guard.reset(token)
         self.assertEqual(result,{'id':'123'});check.assert_called_once()
         request=opener.open.call_args.args[0];self.assertEqual(request.get_method(),'POST')
+        self.assertTrue(request.get_header('User-agent').startswith('DiscordBot '))
         self.assertIn(b'name="files[0]"',request.data);self.assertIn(b'name="payload_json"',request.data)
         self.assertNotIn(b'private-token',request.data);self.assertNotIn(b'custom_id',request.data)
 
@@ -42,6 +43,19 @@ class CurrentDayCliTests(unittest.TestCase):
                 with patch('urllib.request.build_opener',return_value=opener):
                     with self.assertRaises(OutcomeUnknown):DiscordClient('private-token','1234').send_files({'content':'準備専用'},[self.path])
                 self.assertEqual(opener.open.call_count,1)
+
+    def test_attachment_http_rejection_is_not_hidden_as_network_unknown(self):
+        from urllib.error import HTTPError
+        from src.mina.clients import DiscordAttachmentRejected
+        for status in (400,403,429,500):
+            opener=MagicMock();opener.open.side_effect=HTTPError('https://discord.com/api/v10/channels/1234/messages',status,'拒否',{},io.BytesIO(b'{"code":50035}'))
+            with patch('urllib.request.build_opener',return_value=opener):
+                expected=DiscordAttachmentRejected if status in (400,403) else OutcomeUnknown
+                with self.assertRaises(expected) as result:DiscordClient('private-token','1234').send_files({'content':'準備専用','nonce':'fixed-once','enforce_nonce':True},[self.path])
+                self.assertEqual(result.exception.http_status,status)
+                self.assertEqual(result.exception.discord_code,50035)
+                self.assertNotIn('private-token',str(result.exception))
+            self.assertEqual(opener.open.call_count,1)
 
     def test_attachment_symlink_and_wrong_format_do_not_post(self):
         bad=self.root/'bad.jpg';bad.write_bytes(b'not-jpeg')
