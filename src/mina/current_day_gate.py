@@ -183,6 +183,8 @@ class Operations:
             if not lookup and db.execute("SELECT 1 FROM current_day_calls WHERE recovery_uuid=? AND state<>'complete'",(self.gate.approval['recovery_uuid'],)).fetchone():raise ValueError('外部操作の成否照合が必要です')
             key=db.execute("INSERT INTO current_day_calls(recovery_uuid,operation,input_digest,state,cost_mode) VALUES(?,?,?,'started','waived')",
                 (self.gate.approval['recovery_uuid'],name,fingerprint(safe_digest(inputs)))).lastrowid
+            record=getattr(self.gate,'record_call',None)
+            if record is not None:record(db,key,name)
         from .external_guard import guard,normal_retry
         token=guard.set(lambda:self.gate.check(sending=True));retry=normal_retry.set(False)
         try:

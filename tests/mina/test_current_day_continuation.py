@@ -14,7 +14,10 @@ from src.mina.replacement_contract import stamp
 class ContinuationTests(unittest.TestCase):
     def setUp(self):
         self.fixture=recovery.CurrentDayRecoveryTests();self.fixture.setUp();self.addCleanup(self.fixture.doCleanups)
-        f=self.fixture;f.issue();calls=[0];reviews={}
+        f=self.fixture
+        customize=getattr(self,'customize_source',None)
+        if customize:customize(f)
+        f.issue();calls=[0];reviews={}
         from PIL import Image
         png=io.BytesIO();Image.new('RGB',(200,160),'#e1b990').save(png,'PNG');self.png=png.getvalue()
         def producer(description):

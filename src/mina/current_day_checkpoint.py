@@ -127,8 +127,8 @@ def capture(db,base,receipts,stop_trace):
         'stop_trace_sha256':hashlib.sha256(stop_trace).hexdigest(),'ai_receipt_count':9}
 
 
-def verify(db,snapshot):
-    if snapshot.get('spec')!=VERSION or snapshot.get('target_date')!=TARGET:raise ValueError('停止原本の契約・対象日が不正です')
+def verify(db,snapshot,*,expected_version=VERSION):
+    if snapshot.get('spec')!=expected_version or snapshot.get('target_date')!=TARGET:raise ValueError('停止原本の契約・対象日が不正です')
     job=db.execute('SELECT * FROM current_day_jobs WHERE target_date=?',(TARGET,)).fetchone()
     if not job or dict(job)!=snapshot['parent']:raise ValueError('親job・旧初回・旧期限が変更されています')
     verify_stored_rows(db,stored(db))

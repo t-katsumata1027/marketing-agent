@@ -12,25 +12,37 @@ from .replacement_contract import stamp,canonical,digest
 
 
 class ContinuationGate(Gate):
+    TABLE='current_day_continuations'
+    FLAG='MINA_CURRENT_DAY_CONTINUATION_ENABLED'
+    CONTRACT=VERSION
+    ID_FIELD='continuation_uuid'
+    EXTRA_FIELDS=set()
+
     def __init__(self,store,approval,snapshot,clock,check_code,inventory=None):
         super().__init__(store,approval,clock,check_code,inventory);self.snapshot=snapshot
 
     def parent(self,db):
-        verify(db,self.snapshot)
+        self.verify_source(db)
         if (fingerprint(self.snapshot)!=self.approval['checkpoint_digest'] or self.snapshot['parent']['recovery_uuid']!=self.approval['recovery_uuid']):raise ValueError('別の停止原本へ継続権限を転用しません')
         h=db.execute('SELECT * FROM publication_holds WHERE target_date=?',(TARGET,)).fetchone()
         lock=db.execute('SELECT owner,epoch FROM scoped_preparation_locks WHERE target_date=?',(TARGET,)).fetchone()
         if not h or not lock or (h['owner'],h['epoch'],h['state'])!=(self.approval['recovery_uuid'],1,'held') or tuple(lock)!=(self.approval['recovery_uuid'],1):raise ValueError('公開hold/所有世代が変わっています')
 
     def enabled(self):
-        if os.getenv('MINA_CURRENT_DAY_CONTINUATION_ENABLED','false').lower()!='true':raise ValueError('current_day_continuation_disabled')
+        if os.getenv(self.FLAG,'false').lower()!='true':raise ValueError('current_day_continuation_disabled')
         self.check_code()
+
+    def verify_source(self,db):
+        verify(db,self.snapshot)
+
+    def validate_scope(self,approval):
+        """派生した一度限りの契約は、別の対象制約もここで検査する。"""
 
     def authority(self,db,states,sending):
         self.enabled();self.parent(db)
         actual=next((r[2] for r in db.execute('PRAGMA database_list') if r[1]=='main'),None)
         if not actual or Path(actual).resolve()!=Path(self.store.path).resolve():raise ValueError('別のDBへ継続しません')
-        r=db.execute('SELECT * FROM current_day_continuations WHERE target_date=?',(TARGET,)).fetchone()
+        r=db.execute('SELECT * FROM '+self.TABLE+' WHERE target_date=?',(TARGET,)).fetchone()
         if (not r or r['state'] not in states or r['approval_digest']!=fingerprint(self.approval) or json.loads(r['approval'])!=self.approval):raise ValueError('継続権限の段階・版が不一致です')
         first=[e['occurred'] for e in db.execute("SELECT occurred,details FROM operation_events WHERE target_date=? AND stage='recovery' AND event='started'",(TARGET,)) if json.loads(e['details']).get('input_sha256')==fingerprint(self.approval)]
         if not first or min(first)!=timestamp(r['activated_at']).timestamp() or timestamp(r['deadline'])!=min(timestamp(self.approval['not_after']),timestamp(r['activated_at'])+timedelta(minutes=15)):raise ValueError('継続の初回・期限が変わっています')
@@ -59,13 +71,14 @@ class ContinuationGate(Gate):
         from .m1_contract import validate_state
         from .domain import JST,ACCOUNT
         self.enabled();a=self.approval;now=self.clock()
-        required={'spec','target_date','recovery_uuid','continuation_uuid','code_commit','not_after','checkpoint_digest','initial_state_version','approval_reference','mode','cost_mode'}
+        required={'spec','target_date','recovery_uuid',self.ID_FIELD,'code_commit','not_after','checkpoint_digest','initial_state_version','approval_reference','mode','cost_mode'}|self.EXTRA_FIELDS
         import re
-        if (set(a)!=required or a['spec']!=VERSION or a['target_date']!=TARGET or a['mode']!='prepare_only' or a['cost_mode']!='waived'
+        if (set(a)!=required or a['spec']!=self.CONTRACT or a['target_date']!=TARGET or a['mode']!='prepare_only' or a['cost_mode']!='waived'
                 or not re.fullmatch('[a-f0-9]{40}',a['code_commit']) or not isinstance(a['approval_reference'],str) or not 1<=len(a['approval_reference'])<=200):raise ValueError('継続権限の範囲が不正です')
-        for key in ('recovery_uuid','continuation_uuid'):MealClient.request_key(a[key])
+        self.validate_scope(a)
+        for key in ('recovery_uuid',self.ID_FIELD):MealClient.request_key(a[key])
         end=timestamp(a['not_after'])
-        if (a['continuation_uuid']==a['recovery_uuid'] or now.astimezone(JST).date().isoformat()!=TARGET or end.astimezone(JST).date().isoformat()!=TARGET or (end-now).total_seconds()<60):raise ValueError('継続の日時・IDが不正です')
+        if (a[self.ID_FIELD]==a['recovery_uuid'] or now.astimezone(JST).date().isoformat()!=TARGET or end.astimezone(JST).date().isoformat()!=TARGET or (end-now).total_seconds()<60):raise ValueError('継続の日時・IDが不正です')
         if validate_state(state,TARGET,now)!=a['initial_state_version'] or state['meal_count']!=0 or state.get('daily_share') is not None:raise ValueError('既存正本がある日は継続しません')
         if (receipt.get('account')!=ACCOUNT or receipt.get('target_date')!=TARGET or not receipt.get('pages')
                 or {p['channel'] for p in receipt['pages']}!={'x','instagram'}):raise ValueError('継続の全外部一覧不足')
@@ -79,12 +92,10 @@ class ContinuationGate(Gate):
             calls=[dict(r) for r in db.execute('SELECT * FROM current_day_calls WHERE recovery_uuid=? ORDER BY id',(a['recovery_uuid'],))]
             if calls!=self.snapshot['calls'] or rows(db,'preparation_steps')!=self.snapshot['tables']['preparation_steps']:raise ValueError('停止後に別の操作・工程が追加されています')
             if exists(db,'instagram_drafts') and db.execute("SELECT 1 FROM instagram_drafts WHERE state<>'verified'").fetchone():raise ValueError('未照合draftがあります')
-            db.execute('''CREATE TABLE IF NOT EXISTS current_day_continuations (
-                target_date TEXT PRIMARY KEY,continuation_uuid TEXT NOT NULL UNIQUE,recovery_uuid TEXT NOT NULL UNIQUE,
-                approval TEXT NOT NULL,approval_digest TEXT NOT NULL,activated_at TEXT NOT NULL,deadline TEXT NOT NULL,state TEXT NOT NULL)''')
-            if db.execute('SELECT 1 FROM current_day_continuations WHERE target_date=?',(TARGET,)).fetchone():raise ValueError('継続は再発行しません')
+            db.execute('CREATE TABLE IF NOT EXISTS '+self.TABLE+' (target_date TEXT PRIMARY KEY,'+self.ID_FIELD+' TEXT NOT NULL UNIQUE,recovery_uuid TEXT NOT NULL UNIQUE,approval TEXT NOT NULL,approval_digest TEXT NOT NULL,activated_at TEXT NOT NULL,deadline TEXT NOT NULL,state TEXT NOT NULL)')
+            if db.execute('SELECT 1 FROM '+self.TABLE+' WHERE target_date=?',(TARGET,)).fetchone():raise ValueError('継続は再発行しません')
             deadline=min(end,now+timedelta(minutes=15))
-            db.execute('INSERT INTO current_day_continuations VALUES(?,?,?,?,?,?,?,?)',(TARGET,a['continuation_uuid'],a['recovery_uuid'],json.dumps(a),fingerprint(a),stamp(now),stamp(deadline),'issued'))
+            db.execute('INSERT INTO '+self.TABLE+' VALUES(?,?,?,?,?,?,?,?)',(TARGET,a[self.ID_FIELD],a['recovery_uuid'],json.dumps(a),fingerprint(a),stamp(now),stamp(deadline),'issued'))
             self.store.audit.emit('creation',TARGET,None,None,'recovery','started',details={'input_sha256':fingerprint(a),'source_commit':a['code_commit']},now=timestamp(stamp(now)),db=db)
         return deadline
 
@@ -94,15 +105,15 @@ class ContinuationGate(Gate):
         self.refresh_external()
         with self.store.transaction() as db:
             self.authority(db,('issued',),True)
-            if db.execute("UPDATE current_day_continuations SET state='running' WHERE target_date=? AND state='issued' AND approval_digest=?",(TARGET,fingerprint(self.approval))).rowcount!=1:raise ValueError('継続の二重実行を拒否します')
+            if db.execute('UPDATE '+self.TABLE+" SET state='running' WHERE target_date=? AND state='issued' AND approval_digest=?",(TARGET,fingerprint(self.approval))).rowcount!=1:raise ValueError('継続の二重実行を拒否します')
         token=CURRENT.set(self)
         try:
             self.check(sending=True);yield
         except BaseException:
-            with self.store.transaction() as db:db.execute("UPDATE current_day_continuations SET state='held' WHERE target_date=? AND state='running'",(TARGET,))
+            with self.store.transaction() as db:db.execute('UPDATE '+self.TABLE+" SET state='held' WHERE target_date=? AND state='running'",(TARGET,))
             raise
         else:
-            with self.store.transaction() as db:db.execute("UPDATE current_day_continuations SET state='complete' WHERE target_date=? AND state='running'",(TARGET,))
+            with self.store.transaction() as db:db.execute('UPDATE '+self.TABLE+" SET state='complete' WHERE target_date=? AND state='running'",(TARGET,))
         finally:CURRENT.reset(token)
 
 
