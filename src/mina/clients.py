@@ -180,7 +180,7 @@ class DiscordClient:
             try:
                 value=json.loads(raw);code=value.get('code') if isinstance(value,dict) and type(value.get('code')) is int else None
             except ValueError:pass
-            if 400<=error.code<500 and error.code!=429:raise DiscordAttachmentRejected(error.code,code,hashlib.sha256(raw).hexdigest()) from None
+            if error.code in (400,401,403,404,405,413,415,422):raise DiscordAttachmentRejected(error.code,code,hashlib.sha256(raw).hexdigest()) from None
             failure=OutcomeUnknown('discord_attachment_outcome_unknown');failure.http_status=error.code;failure.discord_code=code;failure.response_sha256=hashlib.sha256(raw).hexdigest()
             raise failure from None
         except (URLError,OSError,ValueError):raise OutcomeUnknown('discord_attachment_outcome_unknown') from None

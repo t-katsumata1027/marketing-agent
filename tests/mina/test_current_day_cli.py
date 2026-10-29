@@ -47,7 +47,7 @@ class CurrentDayCliTests(unittest.TestCase):
     def test_attachment_http_rejection_is_not_hidden_as_network_unknown(self):
         from urllib.error import HTTPError
         from src.mina.clients import DiscordAttachmentRejected
-        for status in (400,403,429,500):
+        for status in (400,403,408,409,429,500):
             opener=MagicMock();opener.open.side_effect=HTTPError('https://discord.com/api/v10/channels/1234/messages',status,'拒否',{},io.BytesIO(b'{"code":50035}'))
             with patch('urllib.request.build_opener',return_value=opener):
                 expected=DiscordAttachmentRejected if status in (400,403) else OutcomeUnknown
