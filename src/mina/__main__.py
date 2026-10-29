@@ -91,6 +91,9 @@ def cycle(store: Store, now: datetime):
     if os.getenv('MINA_LIVE_WRITES','false').lower()=='true' and os.getenv('MINA_MEAL_REPLACEMENT_ENABLED','false').lower()=='true':
         from .replacement_runtime import maintain
         maintain(store,lambda:datetime.now(UTC))
+    if os.getenv('MINA_LIVE_WRITES','false').lower()=='true':
+        from .post_promotion import maintain as promotion_maintain
+        promotion_maintain(store)
     target = (now.astimezone(JST).date() + timedelta(days=1)).isoformat()
     today = now.astimezone(JST).date().isoformat()
     # 夜間準備が日付を跨いで完成した場合も、当日分の追加承認を処理する。

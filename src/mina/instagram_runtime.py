@@ -131,6 +131,8 @@ class InstagramRuntime:
         return {'target_date': target, 'notices_sent': self.notify(target)}
 
     def verify(self, candidate):
+        from .post_promotion import KEY,verify_ig
+        if KEY in candidate.source:return verify_ig(self,candidate)
         destination = self.directory / candidate.target_date / candidate.layout_version / candidate.source['bundle_sha256']
         bundle = json.loads((destination / 'bundle.json').read_text(encoding='utf-8'))
         manifest = json.loads((destination / 'rendered.json').read_text(encoding='utf-8'))

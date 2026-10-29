@@ -136,6 +136,11 @@ class BufferPublisher:
         self.proof = None
 
     def verify_account(self, account):
+        from .post_promotion import record
+        with self.store.transaction() as db:promoted=record(db,self.row['target_date'])
+        if promoted:
+            from .post_promotion_external import ensure_external
+            ensure_external(self.store,self.row['target_date'],self.row['slot'],self.clock)
         from datetime import timedelta
         due=datetime.fromtimestamp(self.row['scheduled'],UTC)
         self.api.connection_deadline=due+timedelta(seconds=120)

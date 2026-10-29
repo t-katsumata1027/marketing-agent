@@ -17,6 +17,8 @@ def setup(db):
     db.execute('CREATE TABLE IF NOT EXISTS buffer_request_reservations(budget_id TEXT PRIMARY KEY,subject TEXT NOT NULL,target_date TEXT NOT NULL,remaining INTEGER NOT NULL,original INTEGER NOT NULL,deadline REAL NOT NULL,state TEXT NOT NULL,UNIQUE(subject,target_date))')
     db.execute('CREATE TABLE IF NOT EXISTS buffer_retry_deadlines(subject TEXT PRIMARY KEY,until REAL NOT NULL,request_id INTEGER NOT NULL)')
     db.execute('CREATE TABLE IF NOT EXISTS buffer_continuation_reservations(budget_id TEXT PRIMARY KEY,subject TEXT NOT NULL,target_date TEXT NOT NULL,remaining INTEGER NOT NULL,original INTEGER NOT NULL,deadline REAL NOT NULL,state TEXT NOT NULL)')
+    db.execute('CREATE TABLE IF NOT EXISTS buffer_promotion_refresh(grant_id TEXT PRIMARY KEY,subject TEXT NOT NULL,deadline REAL NOT NULL,state TEXT NOT NULL,request_id INTEGER)')
+    db.execute('CREATE TABLE IF NOT EXISTS buffer_promotion_reservations(budget_id TEXT PRIMARY KEY,subject TEXT NOT NULL,target_date TEXT NOT NULL,remaining INTEGER NOT NULL,original INTEGER NOT NULL,deadline REAL NOT NULL,state TEXT NOT NULL)')
     db.execute('CREATE TABLE IF NOT EXISTS buffer_continuation_refresh(grant_id TEXT PRIMARY KEY,subject TEXT NOT NULL,deadline REAL NOT NULL,state TEXT NOT NULL,request_id INTEGER)')
     db.execute('CREATE TABLE IF NOT EXISTS buffer_lunch_reservations(budget_id TEXT PRIMARY KEY,subject TEXT NOT NULL,target_date TEXT NOT NULL,remaining INTEGER NOT NULL,original INTEGER NOT NULL,deadline REAL NOT NULL,state TEXT NOT NULL)')
     db.execute('CREATE TABLE IF NOT EXISTS buffer_lunch_refresh(grant_id TEXT PRIMARY KEY,subject TEXT NOT NULL,deadline REAL NOT NULL,state TEXT NOT NULL,request_id INTEGER)')
@@ -24,7 +26,7 @@ def setup(db):
     db.execute('CREATE TABLE IF NOT EXISTS buffer_dinner_refresh(grant_id TEXT PRIMARY KEY,subject TEXT NOT NULL,deadline REAL NOT NULL,state TEXT NOT NULL,request_id INTEGER)')
 
 def reservation(db,key):
-    for table in ('buffer_request_reservations','buffer_continuation_reservations','buffer_lunch_reservations','buffer_dinner_reservations'):
+    for table in ('buffer_request_reservations','buffer_continuation_reservations','buffer_lunch_reservations','buffer_dinner_reservations','buffer_promotion_reservations'):
         if db.execute("SELECT 1 FROM sqlite_master WHERE name=?",(table,)).fetchone():
             row=db.execute('SELECT * FROM '+table+' WHERE budget_id=?',(key,)).fetchone()
             if row:return table,row
@@ -45,7 +47,7 @@ def limits(db,key,now):
 def outstanding(db,now,exclude=None):
     if not db.execute("SELECT 1 FROM sqlite_master WHERE name='buffer_request_reservations'").fetchone():return 0
     total=0
-    for table in ('buffer_request_reservations','buffer_continuation_reservations','buffer_lunch_reservations','buffer_dinner_reservations'):
+    for table in ('buffer_request_reservations','buffer_continuation_reservations','buffer_lunch_reservations','buffer_dinner_reservations','buffer_promotion_reservations'):
         if db.execute("SELECT 1 FROM sqlite_master WHERE name=?",(table,)).fetchone():total+=db.execute('SELECT COALESCE(sum(remaining),0) FROM '+table+" WHERE state='active' AND deadline>? AND budget_id<>?",(now,exclude or '')).fetchone()[0]
     return total
 
@@ -189,7 +191,7 @@ def grant_continuation_refresh(store,grant_id,key,deadline):
         db.execute('INSERT INTO buffer_continuation_refresh VALUES(?,?,?,?,NULL)',(grant_id,key,deadline,'reserved'))
 
 def run_continuation_refresh(store,api,grant_id,table='buffer_continuation_refresh'):
-    if table not in ('buffer_continuation_refresh','buffer_lunch_refresh','buffer_dinner_refresh'):raise ProbeError('buffer_refresh_scope_invalid')
+    if table not in ('buffer_continuation_refresh','buffer_lunch_refresh','buffer_dinner_refresh','buffer_promotion_refresh'):raise ProbeError('buffer_refresh_scope_invalid')
     key=subject(api._token);token=REFRESH.set(grant_id);scope=REFRESH_TABLE.set(table)
     try:
         result=api._request(ORGANIZATIONS)

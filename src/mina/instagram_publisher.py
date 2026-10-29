@@ -137,6 +137,9 @@ def publish_once(store, row, verify_source, hosts, client=None, clock=lambda: da
         if (not 0 <= (instant(clock()) - due).total_seconds() <= 120 or
                 (deadline is not None and instant(clock()) >= deadline)):
             raise ProbeError('instagram_deadline_expired')
+        if 'publication_promotion' in c.source:
+            from .post_promotion_external import ensure_external
+            ensure_external(store,c.target_date,c.slot,clock)
         stage = 'account'
         channel = instagram_channel(client)
         if channel['id'] != c.channel_id or channel['serviceId'] != c.account_id:

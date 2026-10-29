@@ -21,12 +21,15 @@ def record_request(store, query, subject=None):
             budget_table,row=reservation(db,budget)
             from .buffer_trial import ORGANIZATIONS,CHANNELS
             from .replacement_inventory import POSTS
-            if query not in (ORGANIZATIONS,CHANNELS,POSTS) or not row or row['subject']!=subject or row['state']!='active' or row['deadline']<=ts or row['remaining']<=0:raise ProbeError('buffer_reservation_unavailable')
+            from .buffer_trial import GET_POST
+            from .instagram_publisher import GET as IG_GET
+            allowed=(ORGANIZATIONS,CHANNELS,POSTS,GET_POST,IG_GET) if budget_table=='buffer_promotion_reservations' else (ORGANIZATIONS,CHANNELS,POSTS)
+            if query not in allowed or not row or row['subject']!=subject or row['state']!='active' or row['deadline']<=ts or row['remaining']<=0:raise ProbeError('buffer_reservation_unavailable')
         refresh=REFRESH.get()
         if refresh:
             from .buffer_trial import ORGANIZATIONS
             refresh_table=REFRESH_TABLE.get()
-            if refresh_table not in ('buffer_continuation_refresh','buffer_lunch_refresh','buffer_dinner_refresh'):raise ProbeError('buffer_refresh_scope_invalid')
+            if refresh_table not in ('buffer_continuation_refresh','buffer_lunch_refresh','buffer_dinner_refresh','buffer_promotion_refresh'):raise ProbeError('buffer_refresh_scope_invalid')
             row=db.execute('SELECT * FROM '+refresh_table+' WHERE grant_id=?',(refresh,)).fetchone()
             if probe or budget or query!=ORGANIZATIONS or not row or row['subject']!=subject or row['state']!='reserved' or row['deadline']<=ts:raise ProbeError('buffer_refresh_unavailable')
             continuation_refresh_check(db,subject,ts)
