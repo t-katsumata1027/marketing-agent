@@ -1,7 +1,7 @@
 """期限切れの旧caseを保持し、同ID照会と残三案だけを別権限で継続する。"""
 import json,os
 from datetime import timedelta
-from .discord_delivery_recovery import Delivery,verify_receipt
+from .discord_delivery_recovery import Delivery,verify_receipt,content,SELECTED
 from .current_day_origin import TARGET
 from .preparation import fingerprint
 from .replacement_client import timestamp
@@ -22,7 +22,7 @@ class Continuation(Delivery):
     def issue(self):
         from .clients import MealClient
         self.check_code();n=self.n;now=self.clock();end=timestamp(n['not_after'])
-        if os.getenv('MINA_DISCORD_DELIVERY_RECOVERY_ENABLED','false').lower()!='true' or set(n)!={'spec','target_date','continuation_uuid','parent_delivery_uuid','not_after','approval_reference','mode'} or n['spec']!=VERSION or n['target_date']!=TARGET or n['parent_delivery_uuid']!=self.a['delivery_uuid'] or n['mode']!='remaining_three_only':raise ValueError('残三案の承認が不正です')
+        if os.getenv('MINA_DISCORD_DELIVERY_RECOVERY_ENABLED','false').lower()!='true' or set(n)!={'spec','target_date','continuation_uuid','parent_delivery_uuid','not_after','approval_reference','mode','received_message_id'} or n['spec']!=VERSION or n['target_date']!=TARGET or n['parent_delivery_uuid']!=self.a['delivery_uuid'] or n['mode']!='remaining_three_only':raise ValueError('残三案の承認が不正です')
         MealClient.request_key(n['continuation_uuid'])
         if now.astimezone(JST).date().isoformat()!=TARGET or not now<end<=timestamp('2026-10-29T09:15:00.000Z') or (end-now).total_seconds()<60:raise ValueError('別継続日時が不正です')
         with self.store.transaction() as db:
@@ -30,8 +30,16 @@ class Continuation(Delivery):
             if now<timestamp(old['deadline']):raise ValueError('旧期限内に別継続を作りません')
             attempts=[dict(r) for r in db.execute('SELECT * FROM current_day_discord_delivery_attempts WHERE case_uuid=?',(self.a['delivery_uuid'],))]
             if len(attempts)!=4 or sum(r['state']=='prepared' for r in attempts)!=3 or sum(r['state']=='unknown' and bool(r['message_id']) for r in attempts)!=1:raise ValueError('既存一件/残三件以外は継続しません')
+            originals={(r['platform'],r['slot']):r for r in self.s['cards'] if (r['platform'],r['slot']) in SELECTED}
+            if {(r['platform'],r['slot']) for r in attempts}!=SELECTED:raise ValueError('旧四案の構成が変わりました')
             for row in attempts:
-                if fingerprint(json.loads(row['input']))!=row['input_digest']:raise ValueError('旧送付入力が変わりました')
+                original=originals[(row['platform'],row['slot'])];payload=json.loads(original['payload'])
+                nonce=fingerprint({'case':self.a['delivery_uuid'],'digest':original['digest'],'channel':self.channel,'author':self.author})[:24]
+                expected={'content':content(payload),'assets':payload['assets'],'channel':self.channel,'author':self.author,'nonce':nonce}
+                if json.loads(row['original'])!=original or json.loads(row['input'])!=expected or row['input_digest']!=fingerprint(expected) or row['nonce']!=nonce:raise ValueError('旧原本/送付入力/nonceが変わりました')
+                if row['state']=='unknown':
+                    if (row['platform'],row['slot'])!=('instagram','daily') or row['message_id']!=n['received_message_id'] or not isinstance(n['received_message_id'],str) or not n['received_message_id'].isdigit():raise ValueError('既受領一件のIDが不一致です')
+                elif row['state']!='prepared' or row['message_id'] is not None:raise ValueError('残三案の未送信状態が不一致です')
             db.execute('CREATE TABLE IF NOT EXISTS current_day_discord_delivery_continuations(target_date TEXT PRIMARY KEY,case_uuid TEXT NOT NULL UNIQUE,continuation_uuid TEXT NOT NULL UNIQUE,approval_digest TEXT NOT NULL,activated_at TEXT NOT NULL,deadline TEXT NOT NULL,state TEXT NOT NULL,inputs_digest TEXT NOT NULL)')
             deadline=min(end,now+timedelta(minutes=15))
             inputs=fingerprint([{k:r[k] for k in ('platform','slot','input','input_digest','nonce')} for r in sorted(attempts,key=lambda r:(r['platform'],r['slot']))])
@@ -51,7 +59,7 @@ class Continuation(Delivery):
         with self.store.transaction() as db:
             self.check(db)
             pending=[dict(r) for r in db.execute("SELECT * FROM current_day_discord_delivery_attempts WHERE case_uuid=? AND state='unknown'",(self.a['delivery_uuid'],))]
-        if len(pending)!=1 or not pending[0]['message_id']:raise ValueError('同ID照会可能な一件が必要です')
+        if len(pending)!=1 or pending[0]['message_id']!=self.n['received_message_id'] or (pending[0]['platform'],pending[0]['slot'])!=('instagram','daily'):raise ValueError('同ID照会可能な一件が必要です')
         row=pending[0];inputs=json.loads(row['input']);current=reader.message(row['message_id']);receipt=verify_receipt(current,inputs,reader)
         with self.store.transaction() as db:
             self.check(db)
