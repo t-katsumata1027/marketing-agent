@@ -157,6 +157,7 @@ def continuation_refresh_check(db,key,now):
         if window!=900:
             row=db.execute('SELECT * FROM buffer_rate_observations WHERE subject=? AND window=?',(key,window)).fetchone()
             if not row or row['expires']<=now or row['observed']>now:raise ProbeError('buffer_quota_verification_required')
+            if window==86400 and row['quota']<600:raise ProbeError('buffer_quota_verification_required')
             later=db.execute('SELECT count(*) FROM buffer_api_usage WHERE id>?',(row['request_id'],)).fetchone()[0]
             if row['remaining']-later<=8:raise ProbeError('buffer_remote_quota_stop')
             maximum=min(maximum,int(row['quota']*.9))
