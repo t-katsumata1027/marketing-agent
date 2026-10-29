@@ -10,6 +10,19 @@ from .tolerance_review import policy_sha256
 class NormalizationGate(ToleranceGate):
     TABLE='current_day_normalization_continuations';FLAG='MINA_CURRENT_DAY_NORMALIZATION_ENABLED'
     CONTRACT=VERSION;ID_FIELD='normalization_continuation_uuid'
+    def parent(self,db):
+        super().parent(db)
+        import os,time
+        if os.getenv('MINA_LIVE_WRITES','false')=='true':
+            from .buffer_budget import RESERVATION,subject
+            from .buffer_trial import ProbeError
+            from .replacement_client import timestamp
+            key=RESERVATION.get()
+            row=db.execute('SELECT * FROM buffer_request_reservations WHERE budget_id=?',(key,)).fetchone() if key and db.execute("SELECT 1 FROM sqlite_master WHERE name='buffer_request_reservations'").fetchone() else None
+            prior=db.execute('SELECT deadline FROM '+self.TABLE+' WHERE target_date=?',(TARGET,)).fetchone() if db.execute('SELECT 1 FROM sqlite_master WHERE name=?',(self.TABLE,)).fetchone() else None
+            minimum=1 if prior else 10*(len(self.latest_inventory['pages'])+2) if self.latest_inventory else 60
+            until=timestamp(prior['deadline']).timestamp() if prior else min(timestamp(self.approval['not_after']).timestamp(),self.clock().timestamp()+900)
+            if not row or row['subject']!=subject(os.getenv('BUFFER_API_KEY','')) or row['target_date']!=TARGET or row['state']!='active' or row['deadline']<until or row['remaining']<minimum:raise ProbeError('buffer_reservation_required')
     def issue(self,state,receipt):
         deadline=super().issue(state,receipt)
         self.cache_inventory()
