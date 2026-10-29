@@ -47,6 +47,8 @@ class PreparationJournal:
                 if previous['state']=='stopped':
                     raise PreparationDeadline('準備期限による工程停止を保持しています')
                 raise OutcomeUnknown("preparation_reconciliation_required")
+            from .current_day_gate import require_stage
+            require_stage(self.store,target,db)
             db.execute("INSERT INTO preparation_steps VALUES(?,?,?,'started',NULL,?)", (target, step, digest, datetime.now(UTC).timestamp()))
             self.store.audit.emit('creation',target,slot,None,stage,'started',details={'step_sha256':digest},db=db)
         self.store.record_preparation_progress(target,step,step_status(step))
@@ -95,6 +97,8 @@ def prepare_images(store, draft_path: Path, directory: Path, client, replacement
                    reused_rounds=None, repair_instruction=None, only_slots=None):
     """画像3枚と事前点検結果を保存する。LogEats登録や承認候補化はまだ行わない。"""
     draft = json.loads(draft_path.read_text(encoding="utf-8-sig"))
+    from .current_day_gate import require_stage
+    require_stage(store,draft['target_date'])
     if draft.get("state") != "draft_unreviewed":
         raise ValueError("未レビューの献立下書きが必要です")
     from .menu_budget import validate_draft_plan
@@ -182,6 +186,8 @@ def save_images_to_drive(store, reviewed, drive, replacement_rounds=None):
         raise ValueError('点検済みの3画像が必要です')
     journal = PreparationJournal(store)
     target = reviewed['target_date']
+    from .current_day_gate import require_stage
+    require_stage(store,target)
     replacement_rounds = replacement_rounds or {}
     if not set(replacement_rounds) <= set(MEAL_SLOTS):
         raise ValueError('画像保存の差替え枠が不正です')

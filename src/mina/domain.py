@@ -104,6 +104,11 @@ class Candidate:
             if (not following or now.astimezone(JST).date() != day or
                     not slot_time(day,self.slot) <= instant(now) < self.scheduled_at < slot_time(day,following)):
                 raise ValueError('本人指定の当日食事だけを次枠より前に臨時公開できます')
+        self.validate_content(allowed_host,recent_comments,weekly_comments)
+
+    def validate_content(self,allowed_host,recent_comments=(),weekly_comments=None):
+        """本文・栄養・原本の検査。通常候補の未来時刻検査はvalidateで維持する。"""
+        if self.account!=ACCOUNT or self.slot not in SLOTS:raise ValueError('公開先または投稿枠が不正です')
         if not self.comment.strip() or len(self.comment) > 120 or any(c in self.comment for c in "\r\n"):
             raise ValueError("一言は改行なし120文字以内です")
         if self.publish_text is not None:

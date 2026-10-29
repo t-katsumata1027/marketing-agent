@@ -134,6 +134,39 @@ class DiscordClient:
                             payload, {"Authorization": f"Bot {self.token}",
                                       "User-Agent": "DiscordBot (https://github.com/t-katsumata1027/marketing-agent, 1.0)"})
 
+    def send_files(self,payload,files):
+        """限定準備カードのJPEGを添付する。一度のPOST以外へ自動退避しない。"""
+        from pathlib import Path
+        import uuid
+        require_live()
+        if not 1<=len(files)<=5 or len(payload.get('content',''))>2000:raise ValueError('Discord準備カードの容量が不正です')
+        parts=[];attachments=[];boundary=uuid.uuid4().hex
+        for index,item in enumerate(files):
+            p=Path(item)
+            if p.is_symlink() or not p.is_file() or not re.fullmatch(r'[a-z0-9_-]+\.jpg',p.name):raise ValueError('添付画像の実体が必要です')
+            raw=p.read_bytes()
+            if not raw.startswith(b'\xff\xd8\xff') or not 0<len(raw)<=4*1024*1024:raise ValueError('添付画像の形式が不正です')
+            attachments.append({'id':index,'filename':p.name})
+            parts.append((f'--{boundary}\r\nContent-Disposition: form-data; name="files[{index}]"; filename="{p.name}"\r\nContent-Type: image/jpeg\r\n\r\n'.encode()+raw+b'\r\n'))
+        data=json.dumps({**payload,'attachments':attachments},ensure_ascii=False).encode()
+        body=(f'--{boundary}\r\nContent-Disposition: form-data; name="payload_json"\r\nContent-Type: application/json\r\n\r\n'.encode()+data+b'\r\n'+b''.join(parts)+f'--{boundary}--\r\n'.encode())
+        if len(body)>10*1024*1024:raise ValueError('添付画像の合計が大きすぎます')
+        from urllib.request import build_opener
+        from .drive import NoRedirect
+        from .external_guard import guard
+        check=guard.get()
+        if check:check()
+        request=Request(f'https://discord.com/api/v10/channels/{self.channel}/messages',data=body,
+            headers={'Authorization':'Bot '+self.token,'Content-Type':'multipart/form-data; boundary='+boundary},method='POST')
+        try:
+            with build_opener(NoRedirect()).open(request,timeout=30) as response:
+                raw=response.read(131073)
+            if len(raw)>131072:raise ValueError()
+            result=json.loads(raw)
+            if not isinstance(result,dict) or not isinstance(result.get('id'),str) or not result['id'].isdigit():raise ValueError()
+            return result
+        except (HTTPError,URLError,OSError,ValueError):raise OutcomeUnknown('discord_attachment_outcome_unknown') from None
+
 
 class XClient:
     """ブラウザのCookieを使わず、公式APIのユーザー認証で公開する。"""

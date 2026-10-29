@@ -105,7 +105,8 @@ class RequestLedger:
             from .publication_hold import require_m1_write
             from .rescue_collection import require_claim as require_collection_claim
             from .replacement_collection import require_claim as require_future_claim
-            if not require_collection_claim(db,request) and not require_future_claim(db,request):
+            from .current_day_gate import require_m1 as require_current_day
+            if not require_current_day(db,request) and not require_collection_claim(db,request) and not require_future_claim(db,request):
                 require_m1_write(db,request['target_date'],request['operation'])
             claimed = db.execute("UPDATE mina_requests SET phase='dispatching' WHERE request_key=? AND phase='prepared'", (key,)).rowcount
             if claimed==1:

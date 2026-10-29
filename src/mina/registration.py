@@ -42,6 +42,8 @@ def register_day(store, draft, saved, directory, meal_client, ai, host, capture=
                  allow_correction=False, replacement_rounds=None, collection_slots=None):
     """3食と日次を点検する。履歴・旧予約が未照合なら承認候補へ進めない。"""
     target = draft['target_date']
+    from .current_day_gate import require_stage
+    require_stage(store,target)
     if collection_slots is not None:
         from .rescue_collection import _scope
         from .replacement_collection import _scope as future_scope
