@@ -10,6 +10,9 @@ from .preparation import fingerprint,PreparationJournal
 VERSION='mina-current-day-partial-continuation-v1'
 MAPPING=((0,(0,1,2,3,4)),(1,(7,)),(2,(5,6)))
 
+def request_rows(db):
+    return [{k:({'bytes_sha256':hashlib.sha256(v).hexdigest(),'length':len(v)} if isinstance(v,bytes) else v) for k,v in r.items()} for r in rows(db,'mina_requests')]
+
 def validate_mapping(draft,response,review):
     """この朝食の料理と材料の重複・欠落がない対応だけを許可する。"""
     planned=draft['meals']['breakfast']['foods'];actual=response['result']['analysis']['foods']
@@ -36,7 +39,7 @@ def capture(db,previous):
     draft=json.loads((Path(previous['output'])/'draft.json').read_bytes());mapping=validate_mapping(draft,original,raw)
     calls=[dict(r) for r in db.execute('SELECT * FROM current_day_calls WHERE recovery_uuid=? ORDER BY id',(previous['parent']['recovery_uuid'],))]
     if any(r['state']!='complete' for r in calls):raise ValueError('不明要求を再開しません')
-    request=rows(db,'mina_requests')
+    request=request_rows(db)
     if len(request)!=1 or request[0]['operation']!='meal_register' or request[0]['slot']!='breakfast' or request[0]['phase']!='complete':raise ValueError('朝食保存一件の完了証跡だけが必要です')
     out=copy.deepcopy(previous);out.update(calls=calls,tables={t:rows(db,t) for t in previous['tables']})
     path=Path(previous['output'])/('normalization-'+parent[0]['normalization_continuation_uuid'])/'drive.json'
@@ -78,7 +81,7 @@ class PartialGate(NormalizationGate):
         from .publication_hold import exists
         for t in ('meal_replacement_requests','replacement_attempts','candidates','instagram_candidates','publication_mutation_leases','buffer_publication','instagram_attempts'):
             if exists(db,t) and rows(db,t):raise ValueError('公開・予約・置換が存在します')
-        if rows(db,'mina_requests')!=self.snapshot['partial']['requests']:raise ValueError('旧要求が変わりました')
+        if request_rows(db)!=self.snapshot['partial']['requests']:raise ValueError('旧要求が変わりました')
 
 def execute(gate,ai,drive,meal,host,evidence,capture,discord,commit):
     from .current_day_gate import Operations
