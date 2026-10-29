@@ -195,6 +195,11 @@ class BufferPublisher:
         now = instant(self.clock())
         immediate = bool((c.approval_source or {}).get('publish_after_approval_until'))
         due = datetime.fromtimestamp(self.row['scheduled'], UTC) if immediate else c.scheduled_at
+        from .post_late import window
+        late=window(self.store,c)
+        if late:
+            due=late[0]
+            if now>=late[1]:raise ProbeError('buffer_preflight_expired')
         if (immediate and (self.row['scheduled'] != self.row['approved'] or now >= c.scheduled_at)):
             raise ProbeError('buffer_approval_time_or_deadline_changed')
         if (not 0 <= (now-due).total_seconds() <= 120

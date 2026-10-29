@@ -118,6 +118,8 @@ class InstagramStore:
         c = InstagramCandidate(**json.loads(row['payload']))
         types = 'ストーリーズ' if c.format == 'story' else 'カルーセル'
         timing = f'予定 {c.scheduled_at.astimezone(JST).isoformat()}'
+        from .post_late import KEY as LATE
+        if LATE in c.source:timing='X・Instagram両方の承認後120秒以内／受付期限 JST '+c.scheduled_at.astimezone(JST).isoformat()
         if 'recovery' in c.source:
             from .instagram_recovery import publication_window
             _, until = publication_window(self, row, c)

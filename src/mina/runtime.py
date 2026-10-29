@@ -115,7 +115,10 @@ def publish_due(store: Store, client, now: datetime, host: str, preflight, clock
             # この検査でも実際の失敗位置と時刻を保存する。
             store.audit.emit('publication',row['target_date'],row['slot'],row['revision'],stage,'started')
             sending_at = instant(clock())
-            due_at = datetime.fromtimestamp(row['scheduled'], UTC) if immediate else c.scheduled_at
+            from .post_late import window
+            late=window(store,c)
+            due_at = late[0] if late else datetime.fromtimestamp(row['scheduled'], UTC) if immediate else c.scheduled_at
+            if late and sending_at>=late[1]:raise ValueError('限定日次の期限を超過しました')
             if not 0 <= (sending_at - due_at).total_seconds() <= 120 or (immediate and sending_at >= c.scheduled_at):
                 raise ValueError('送信直前に公開猶予を超えています')
             if c.approval_source is not None:

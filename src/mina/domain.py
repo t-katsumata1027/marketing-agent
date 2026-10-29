@@ -60,6 +60,9 @@ class Candidate:
 
     @property
     def scheduled_at(self) -> datetime:
+        from .post_late import proposed as late
+        value=late(self.approval_source,self.target_date)
+        if value is not None:return value
         from .scoped_preparation import proposed
         preparation=proposed(self.approval_source,self.target_date)
         if preparation is not None:return preparation

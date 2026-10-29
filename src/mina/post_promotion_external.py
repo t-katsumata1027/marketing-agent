@@ -58,6 +58,10 @@ def own_sent(store,api,target,document):
     return own
 
 def ensure_external(store,target,phase,clock=lambda:datetime.now(UTC)):
+    from .post_late import row,guard
+    with store.transaction() as db:
+        if row(db,target):
+            guard(db,{'target_date':target,'slot':phase});return json.loads(row(db,target)['proof'])['external']
     if target!=TARGET or phase not in ('stage',*SLOTS):raise ValueError('公開照合の範囲が不正です')
     r,d,settings,snapshot,check=load(store,target);key=r['promotion_uuid']
     if (phase=='stage' and r['state']!='preparing') or (phase!='stage' and r['state']!='released'):raise ValueError('公開照合の段階が不一致です')
@@ -111,6 +115,8 @@ def ensure_external(store,target,phase,clock=lambda:datetime.now(UTC)):
 
 def guard_claim(db,row):
     """送信直前にも、照合後に他方が不明化していないか同じTXで確認する。"""
+    from .post_late import guard
+    if guard(db,row):return
     r=record(db,row['target_date'])
     if not r:return
     if r['state']!='released':raise ValueError('昇格の公開権限が停止しています')

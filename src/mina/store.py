@@ -170,6 +170,8 @@ class Store:
                           + c.scheduled_at.astimezone(JST).strftime('%H:%M') + '）') if (c.approval_source or {}).get('publish_after_approval_until') else f'JST {c.scheduled_at.astimezone(JST):%H:%M}'
                 from .scoped_preparation import KEY,approval_notice
                 timing_label='提案時刻' if KEY in (c.approval_source or {}) else '投稿予定'
+                from .post_late import KEY as LATE
+                if LATE in (c.approval_source or {}):timing_label='遅延公開';timing='X・Instagram両方の承認後120秒以内／受付期限 JST '+c.scheduled_at.astimezone(JST).strftime('%H:%M:%S')
                 card = {"content": f"━━━━━━━━━━━━━━━━━━━━\n**{LABELS[c.slot]}｜{target_date}**\n{timing_label}：{timing}\n━━━━━━━━━━━━━━━━━━━━\n\n{c.content}",
                         "allowed_mentions": {"parse": []},
                         "embeds": [{"title": f"{LABELS[c.slot]}｜品質確認済みの候補", "description": c.menu,

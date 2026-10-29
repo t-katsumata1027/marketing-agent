@@ -191,7 +191,7 @@ def grant_continuation_refresh(store,grant_id,key,deadline):
         db.execute('INSERT INTO buffer_continuation_refresh VALUES(?,?,?,?,NULL)',(grant_id,key,deadline,'reserved'))
 
 def run_continuation_refresh(store,api,grant_id,table='buffer_continuation_refresh'):
-    if table not in ('buffer_continuation_refresh','buffer_lunch_refresh','buffer_dinner_refresh','buffer_promotion_refresh','buffer_routine_refresh'):raise ProbeError('buffer_refresh_scope_invalid')
+    if table not in ('buffer_continuation_refresh','buffer_lunch_refresh','buffer_dinner_refresh','buffer_promotion_refresh','buffer_routine_refresh','buffer_late_refresh'):raise ProbeError('buffer_refresh_scope_invalid')
     key=subject(api._token);token=REFRESH.set(grant_id);scope=REFRESH_TABLE.set(table)
     try:
         result=api._request(ORGANIZATIONS)

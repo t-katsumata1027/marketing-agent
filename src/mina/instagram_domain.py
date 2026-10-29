@@ -58,6 +58,9 @@ class InstagramCandidate:
 
     @property
     def scheduled_at(self):
+        from .post_late import proposed as late
+        value=late(self.source,self.target_date)
+        if value is not None:return value
         from .scoped_preparation import proposed
         preparation=proposed(self.source,self.target_date)
         if preparation is not None:return preparation

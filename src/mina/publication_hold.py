@@ -33,6 +33,8 @@ def exists(db, table):
 
 def held(db, target):
     """旧DBは読取だけで扱い、停止行があれば機能無効化後も保護する。"""
+    from .post_late import clear
+    if clear(db,target):return False
     from .scoped_preparation import locked
     if locked(db,target):return True
     if not exists(db, 'publication_holds'):

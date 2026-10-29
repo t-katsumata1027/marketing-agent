@@ -45,6 +45,9 @@ def recovery_metadata(candidate):
 
 def publication_window(store, row, candidate):
     """通常の承認時刻は変えず、復旧は旧版の保存証跡と照合する。"""
+    from .post_late import window
+    late=window(store,candidate)
+    if late is not None:return late
     if candidate.digest != row['digest']:
         raise ValueError('公開対象の版が変わっています')
     if 'recovery' not in candidate.source:

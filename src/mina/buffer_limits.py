@@ -29,7 +29,7 @@ def record_request(store, query, subject=None):
         if refresh:
             from .buffer_trial import ORGANIZATIONS
             refresh_table=REFRESH_TABLE.get()
-            if refresh_table not in ('buffer_continuation_refresh','buffer_lunch_refresh','buffer_dinner_refresh','buffer_promotion_refresh','buffer_routine_refresh'):raise ProbeError('buffer_refresh_scope_invalid')
+            if refresh_table not in ('buffer_continuation_refresh','buffer_lunch_refresh','buffer_dinner_refresh','buffer_promotion_refresh','buffer_routine_refresh','buffer_late_refresh'):raise ProbeError('buffer_refresh_scope_invalid')
             row=db.execute('SELECT * FROM '+refresh_table+' WHERE grant_id=?',(refresh,)).fetchone()
             if probe or budget or query!=ORGANIZATIONS or not row or row['subject']!=subject or row['state']!='reserved' or row['deadline']<=ts:raise ProbeError('buffer_refresh_unavailable')
             if refresh_table=='buffer_routine_refresh':
