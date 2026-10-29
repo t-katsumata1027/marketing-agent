@@ -68,7 +68,7 @@ class Delivery:
         if os.getenv('MINA_DISCORD_DELIVERY_RECOVERY_ENABLED','false').lower()!='true' or a['spec']!=VERSION or a['target_date']!=TARGET or a['mode']!='discord_only' or a['allow_unknown_resend'] is not True or fingerprint(self.s)!=a['checkpoint_digest'] or not self.author.isdigit() or not self.channel.isdigit():raise ValueError('送付専用承認が不正です')
         MealClient.request_key(a['delivery_uuid'])
         end=timestamp(a['not_after'])
-        if now.astimezone(JST).date().isoformat()!=TARGET or not now<end<=timestamp('2026-10-29T08:30:00.000Z') or (end-now).total_seconds()<60:raise ValueError('送付専用日時が不正です')
+        if now.astimezone(JST).date().isoformat()!=TARGET or not now<end<=timestamp('2026-10-29T08:45:00.000Z') or (end-now).total_seconds()<60:raise ValueError('送付専用日時が不正です')
         with self.store.transaction() as db:
             self.source(db)
             db.execute('CREATE TABLE IF NOT EXISTS current_day_discord_delivery_jobs(target_date TEXT PRIMARY KEY,case_uuid TEXT NOT NULL UNIQUE,approval_digest TEXT NOT NULL,activated_at TEXT NOT NULL,deadline TEXT NOT NULL,state TEXT NOT NULL)')

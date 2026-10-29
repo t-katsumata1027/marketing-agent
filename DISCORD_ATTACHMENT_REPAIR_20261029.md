@@ -9,3 +9,6 @@ send_filesへ正規DiscordBot User-Agentを追加する。nonceを使う場合�
 残4案送付は別の本人承認が必要であり、送付専用caseを計画中。食事/AI/生成/Drive/SNS操作は含めず、各4案の本文・添付SHA・送信先・own author・安定nonceを送信前に永続化する。成功応答と同IDの読取を照合し、unknown/429/5xxでは停止・照会限定とする。Discordのnonce重複抑止は数分間なので永続台帳を主保護とする。
 
 公式仕様：https://github.com/discord/discord-api-docs/blob/main/developers/resources/message.mdx
+
+## 送付期限の追加承認
+本人承認により送付専用期限を2026-10-29 17:45 JSTと新case初回有効化から15分の早い方へ変更。各案1回、旧不明保持、食事・AI・画像・Drive・SNS操作なしの範囲を維持する。
